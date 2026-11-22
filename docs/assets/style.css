@@ -1223,3 +1223,30 @@ footer.site-footer {
     min-width: auto;
   }
 }
+
+/* ==========================================================================
+   KaTeX Mathematical Typography (RTL Isolation)
+   ========================================================================== */
+.katex {
+  direction: ltr !important;
+  display: inline-block;
+  unicode-bidi: isolate;
+  text-align: left;
+  font-size: 1.05em;
+  color: var(--accent-cyan);
+}
+
+.katex-display {
+  direction: ltr !important;
+  display: block;
+  text-align: center;
+  margin: 1.2em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 8px 0;
+}
+
+.katex-display > .katex {
+  display: inline-block;
+  text-align: center;
+}

@@ -691,8 +691,37 @@
     });
   }
 
+  // --- KaTeX Auto-Render for Mathematical Formulas ---
+  function initKaTeX() {
+    function tryRender() {
+      if (typeof renderMathInElement === 'function') {
+        renderMathInElement(document.body, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false },
+            { left: '\\(', right: '\\)', display: false },
+            { left: '\\[', right: '\\]', display: true }
+          ],
+          ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option'],
+          ignoredClasses: ['code-body', 'code-container', 'trace-log', 'output-box'],
+          throwOnError: false
+        });
+        return true;
+      }
+      return false;
+    }
+
+    if (!tryRender()) {
+      window.addEventListener('load', tryRender);
+      setTimeout(tryRender, 200);
+      setTimeout(tryRender, 600);
+      setTimeout(tryRender, 1500);
+    }
+  }
+
   // --- Initialize on DOM ready ---
   document.addEventListener('DOMContentLoaded', () => {
+    initKaTeX();
     initCodeCopy();
     initPlayground();
     initStegoCanvas();

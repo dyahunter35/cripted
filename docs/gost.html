@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap"></noscript>
+    <link rel="stylesheet" href="assets/katex/katex.min.css" />
   <link rel="stylesheet" href="assets/style.css" />
 </head>
 <body>
@@ -140,7 +141,7 @@
         <h3>خوارزمية توزيع المفاتيح (Key Schedule)</h3>
         <p>يتم تقسيم المفتاح الأصلي (256 بت) إلى 8 كلمات فرعية $K_0, K_1, \dots, K_7$ بحجم 32 بت لكل منها، وتستخدم كالتالي:</p>
         <ul style="margin-right: 20px; line-height: 1.8; color: var(--text-muted);">
-          <li><strong>الدورات 1 إلى 24:</strong> تكرار ترتيب الكلمات الثلاث الأولى: $K_0 \dots K_7$ ثلاث مرات متتالية (8 × 3 = 24).</li>
+          <li><strong>الدورات 1 إلى 24:</strong> تكرار ترتيب الكلمات الثلاث الأولى: $K_0, \dots, K_7$ ثلاث مرات متتالية (8 × 3 = 24).</li>
           <li><strong>الدورات 25 إلى 32:</strong> عكس ترتيب الكلمات في الدورات الثماني الأخيرة: $K_7, K_6, \dots, K_0$.</li>
           <li><strong>فك التشفير:</strong> مجرد عكس مسار ترتيب المفاتيح دون أي تعديل في المعمارية.</li>
         </ul>
@@ -246,7 +247,7 @@
     for j in range(8):
         iter_keys.append(...)
     return iter_keys</td>
-                <td class="explain-text-cell"><strong>خوارزمية توسيع المفتاح:</strong> تقسم المفتاح (256 بت) إلى 8 كلمات ذات 32 بت ($K_0 \dots K_7$). للدورات 1–24 تكرر الكلمات 3 مرات متتالية، وللدورات 25–32 تعكس ترتيبها ($K_7 \dots K_0$) لتوليد 32 مفتاح دورة.</td>
+                <td class="explain-text-cell"><strong>خوارزمية توسيع المفتاح:</strong> تقسم المفتاح (256 بت) إلى 8 كلمات ذات 32 بت ($K_0, \dots, K_7$). للدورات 1–24 تكرر الكلمات 3 مرات متتالية، وللدورات 25–32 تعكس ترتيبها ($K_7 \dots K_0$) لتوليد 32 مفتاح دورة.</td>
               </tr>
               <tr>
                 <td class="code-snippet-cell">def _add32(a, b):
@@ -745,6 +746,8 @@ if __name__ == &quot;__main__&quot;:
   </div>
 </footer>
 
-<script src="assets/app.js"></script>
+  <script defer src="assets/katex/katex.min.js"></script>
+  <script defer src="assets/katex/auto-render.min.js"></script>
+  <script src="assets/app.js"></script>
 </body>
 </html>
