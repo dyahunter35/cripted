@@ -38,6 +38,11 @@
       دراسة تفصيلية لهيكل شبكة فايستل (Feistel Network)، وصناديق التعويض S-Boxes،
       وجدول توليد المفاتيح الفرعية، مع تحليل نقاط الضعف التاريخية ونموذج تجريبي تفاعلي مباشر.
     </p>
+    <div style="margin-top: 20px;">
+      <a href="downloads/des.zip" download class="btn-download">
+        📦 تحميل حزمة كود DES كاملة (ZIP)
+      </a>
+    </div>
   </section>
 
   <!-- Interactive Playground Component -->
@@ -196,32 +201,179 @@
     <div class="section-header">
       <div class="section-title-wrap">
         <span class="section-icon">💻</span>
-        <h2>5. الكود البرمجي في المشروع (Python)</h2>
+        <h2>5. شرح الكود البرمجي سطر بسطر (Tabs)</h2>
       </div>
+      <a href="downloads/des.zip" download class="btn-download" style="padding: 6px 14px; font-size: 0.85rem;">
+        📥 تحميل ملفات DES
+      </a>
     </div>
     <p>
-      يتضمن هذا المشروع نسختين من DES: الأولى من الصفر (Manual) في ملف <code>des/des_manual.py</code>،
-      والثانية باستخدام المكتبة المعيارية في ملف <code>des/des_libs.py</code>، مع دعم كامل للإخفاء في صور BMP وملفات الصوت WAV.
+      اختر التبويب للاطلاع على شرح تفصيلي سطر بسطر يوضح دور كل أمر برمجي، سواء في التنفيذ اليدوي الكامل من الصفر أو باستخدام المكتبات القياسية:
     </p>
 
-    <div class="code-container">
-      <div class="code-header">
-        <span class="code-title">des/des_manual.py (مثال تشغيل)</span>
-        <button class="btn-copy">📋 نسخ الكود</button>
+    <!-- Tab Container -->
+    <div class="tab-container">
+      <div class="tab-nav">
+        <button class="tab-btn active" data-tab="tab-des-manual">🛠️ الكود اليدوي من الصفر (des_manual.py)</button>
+        <button class="tab-btn" data-tab="tab-des-libs">📚 الكود باستخدام المكتبات (des_libs.py)</button>
       </div>
-      <pre class="code-body"><code>from des_manual import encrypt, decrypt, derive_key
 
-# 1. اشتقاق مفتاح 8 بايت (56 بت فعلي) عبر SHA-256
-key = derive_key("SecretPassword")
+      <!-- Tab 1: Manual -->
+      <div id="tab-des-manual" class="tab-pane active">
+        <h3>تحليل أسطر الكود اليدوي (Line-by-Line Breakdown)</h3>
+        <div class="table-responsive">
+          <table class="code-explain-table">
+            <thead>
+              <tr>
+                <th style="width: 40%;">السطر / المقطع البرمجي (Code Snippet)</th>
+                <th style="width: 60%;">ماذا يخدم هذا السطر وكيف يعمل؟ (Functionality & Purpose)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="code-snippet-cell">IP = [58, 50, 42, ..., 7]</td>
+                <td class="explain-text-cell"><strong>مصفوفة التبديل الابتدائي (Initial Permutation):</strong> جدول ثابت مكون من 64 موضعاً، يقوم بخلط وإعادة ترتيب بتات كتلة النص الأصلي المكونة من 64 بت قبل إرسالها إلى شبكة فايستل.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">FP = [40, 8, 48, ..., 25]</td>
+                <td class="explain-text-cell"><strong>مصفوفة التبديل النهائي (Final Permutation):</strong> المعكوس الدقيق لمصفوفة IP ($IP^{-1}$)، وتطبق كخطوة ختامية بعد إتمام الـ 16 دورة لإنتاج الكتلة المشفرة النهائية.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">E = [32, 1, 2, ..., 1]</td>
+                <td class="explain-text-cell"><strong>جدول التمدد (Expansion E):</strong> يوسع النصف الأيمن من 32 بت إلى 48 بت بتكرار 16 بتاً معينة لتمكين إجراء عملية XOR مع المفتاح الفرعي المكون من 48 بت.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">PC_1 = [...] & PC_2 = [...]</td>
+                <td class="explain-text-cell"><strong>جداول اختيار المفتاح (Permuted Choice):</strong> جدول PC-1 يسقط بتات التماثل (Parity) محولاً المفتاح من 64 بت إلى 56 بت، وجدول PC-2 يضغط الـ 56 بت إلى 48 بت لإنتاج مفتاح فرعي لكل دورة.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">S_BOXES = [S1, S2, ..., S8]</td>
+                <td class="explain-text-cell"><strong>صناديق التعويض الثمانية:</strong> القلب غير الخطي في DES. يستقبل كل صندوق 6 بتات (البت الأول والأخير يحددان رقم الصف، والبتات الأربعة الوسطى تحدد العمود) ليخرج 4 بتات.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def _permute(value, table, n):
+    r = 0
+    for p in table:
+        r = (r << 1) | ((value >> (n - p)) & 1)
+    return r</td>
+                <td class="explain-text-cell"><strong>دالة التبديل البتي العام:</strong> دالة مركزية تستخرج البت في الموقع <code>p</code> من الرقم المدخل <code>value</code> ذي الطول <code>n</code> بت، ثم تجمعه عبر الإزاحة لليسار لبناء الترتيب الجديد.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def key_schedule(key_bytes):
+    ...
+    for shift in SHIFTS:
+        c = rotl28(c, shift)
+        d = rotl28(d, shift)
+        subkeys.append(permute(..., PC_2, 56))</td>
+                <td class="explain-text-cell"><strong>دالة جدولة المفاتيح الفرعية:</strong> تأخذ مفتاح الـ 8 بايت، وتطبق PC-1 ثم تقسمه لنصفين (28 بت لكل نصف)، وتقوم بإجراء دوران أيسر بحسب جدول الدورات (1 أو 2 بت) ثم تطبق PC-2 لتوليد 16 مفتاحاً فرعياً (48 بت).</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def _des_block(block64, subkeys):
+    b = _permute(block64, IP, 64)
+    L, R = (b >> 32) & 0xffffffff, b & 0xffffffff
+    for k in subkeys:
+        ...
+        R_next = L ^ P_box(S_box(E(R) ^ k))
+        L, R = R, R_next
+    return _permute((R << 32) | L, FP, 64)</td>
+                <td class="explain-text-cell"><strong>دالة تشفير/فك كتلة 64 بت:</strong> تطبق IP، ثم تشطر الكتلة إلى L و R، وتكرر معادلات فايستل عبر 16 دورة، ثم تدمج النصفين وتطبق التبديل النهائي FP لإنتاج الكتلة الناتجة.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def encrypt(plaintext, key_bytes):
+    data = _pkcs7_pad(plaintext.encode())
+    # معالجة الكتل 8 بايت بوضع ECB
+    return bytes(out)</td>
+                <td class="explain-text-cell"><strong>دالة التشفير الرئيسية:</strong> تضيف حشو PKCS#7 القياسي للنص لضمان توافقه مع كتل الـ 8 بايت، ثم تولد المفاتيح وتشفر الكتل واحدة تلو الأخرى في وضع ECB.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def decrypt(ciphertext, key_bytes):
+    # استخدام subkeys[::-1] (عكس ترتيب المفاتيح)
+    return _pkcs7_unpad(decrypted_bytes)</td>
+                <td class="explain-text-cell"><strong>دالة فك التشفير الرئيسية:</strong> تستخدم نفس خوارزمية التشفير تماماً ولكن بتمرير المفاتيح الفرعية الـ 16 بترتيب عكسي، ثم إزالة بايتات الحشو PKCS#7.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-# 2. تشفير نص عادي مع حشو PKCS#7
-plaintext = "Hello, Academic Cryptography!"
-ciphertext = encrypt(plaintext, key)
-print("Ciphertext (Hex):", ciphertext.hex())
+        <div class="code-container" style="margin-top: 20px;">
+          <div class="code-header">
+            <span class="code-title">الكود اليدوي الكامل — des/des_manual.py</span>
+            <button class="btn-copy">📋 نسخ الكود</button>
+          </div>
+          <pre class="code-body"><code>from des_manual import encrypt, decrypt, derive_key
 
-# 3. فك التشفير واسترجاع النص
-decrypted = decrypt(ciphertext, key)
-print("Decrypted Plaintext:", decrypted.decode("utf-8"))</code></pre>
+# اشتقاق مفتاح 8 بايت وتشفير النص
+key = derive_key("Password123")
+cipher_bytes = encrypt("Hello World", key)
+print("Encrypted:", cipher_bytes.hex())
+
+# فك التشفير
+plain_bytes = decrypt(cipher_bytes, key)
+print("Decrypted:", plain_bytes.decode())</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 2: Libraries -->
+      <div id="tab-des-libs" class="tab-pane">
+        <h3>تحليل أسطر كود المكتبة الجاهزة (PyCryptodome)</h3>
+        <div class="table-responsive">
+          <table class="code-explain-table">
+            <thead>
+              <tr>
+                <th style="width: 40%;">السطر / المقطع البرمجي (Code Snippet)</th>
+                <th style="width: 60%;">ماذا يخدم هذا السطر وكيف يعمل؟ (Functionality & Purpose)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="code-snippet-cell">from Crypto.Cipher import DES
+from Crypto.Util.Padding import pad, unpad</td>
+                <td class="explain-text-cell"><strong>استيراد المكتبة القياسية:</strong> استيراد وحدة DES المسرعة برمجياً والمكتوبة بلغة C من مكتبة PyCryptodome، بالإضافة إلى دوال حشو البيانات القياسية.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def derive_key(password):
+    return hashlib.sha256(password.encode()).digest()[:8]</td>
+                <td class="explain-text-cell"><strong>اشتقاق المفتاح:</strong> تحويل كلمة السر المدخلة إلى تمثيل ثنائي واستخراج بصمة SHA-256 (32 بايت)، ثم اقتصاص أول 8 بايتات (64 بت) لتستخدم كمفتاح DES.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">cipher = DES.new(key, DES.MODE_ECB)</td>
+                <td class="explain-text-cell"><strong>إنشاء كائن التشفير:</strong> تهيئة محرك التشفير بالمفتاح المشتق وتحديد وضع التشغيل كـ ECB (Electronic Codebook) حيث تشفر كل كتلة بشكل مستقل.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">padded_data = pad(data, DES.block_size)
+ciphertext = cipher.encrypt(padded_data)</td>
+                <td class="explain-text-cell"><strong>الحشو والتشفير:</strong> حشو البيانات بحسب مواصفات PKCS#7 لتصبح من مضاعفات 8 بايت (Block Size)، ثم تنفيذ التشفير الفوري على كامل الكتل.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">decrypted_padded = cipher.decrypt(ciphertext)
+plaintext = unpad(decrypted_padded, DES.block_size)</td>
+                <td class="explain-text-cell"><strong>فك التشفير وإلغاء الحشو:</strong> فك تشفير الكتل المشفرة باستخدام نفس المفتاح والوضع، ثم فحص آخر بايتات وإزالتها لاسترجاع النص الأصلي كما هو.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="code-container" style="margin-top: 20px;">
+          <div class="code-header">
+            <span class="code-title">كود المكتبات الكامل — des/des_libs.py</span>
+            <button class="btn-copy">📋 نسخ الكود</button>
+          </div>
+          <pre class="code-body"><code>from Crypto.Cipher import DES
+from Crypto.Util.Padding import pad, unpad
+import hashlib
+
+def des_encrypt(plaintext, password):
+    key = hashlib.sha256(password.encode()).digest()[:8]
+    cipher = DES.new(key, DES.MODE_ECB)
+    data = plaintext.encode() if isinstance(plaintext, str) else plaintext
+    return cipher.encrypt(pad(data, DES.block_size))
+
+def des_decrypt(ciphertext, password):
+    key = hashlib.sha256(password.encode()).digest()[:8]
+    cipher = DES.new(key, DES.MODE_ECB)
+    return unpad(cipher.decrypt(ciphertext), DES.block_size)</code></pre>
+        </div>
+      </div>
     </div>
   </section>
 </main>

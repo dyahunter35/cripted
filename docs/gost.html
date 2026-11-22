@@ -38,6 +38,11 @@
       دراسة هندسية متعمقة لخوارزمية ماغما (Magma)، التي تعتمد شبكة فايستل من 32 دورة
       ومفتاحاً عملاقاً بحجم 256 بت مع دوران حلقي بمقدار 11 بتاً، محققة أعلى مستويات المناعة.
     </p>
+    <div style="margin-top: 20px;">
+      <a href="downloads/gost.zip" download class="btn-download">
+        📦 تحميل حزمة كود GOST كاملة (ZIP)
+      </a>
+    </div>
   </section>
 
   <!-- Interactive Playground -->
@@ -183,26 +188,192 @@
     <div class="section-header">
       <div class="section-title-wrap">
         <span class="section-icon">💻</span>
-        <h2>5. الكود البرمجي في المشروع (Python)</h2>
+        <h2>5. شرح الكود البرمجي سطر بسطر (Tabs)</h2>
       </div>
+      <a href="downloads/gost.zip" download class="btn-download" style="padding: 6px 14px; font-size: 0.85rem;">
+        📥 تحميل ملفات GOST
+      </a>
     </div>
-    <div class="code-container">
-      <div class="code-header">
-        <span class="code-title">gost/gost_manual.py (مثال تشغيل)</span>
-        <button class="btn-copy">📋 نسخ الكود</button>
+    <p>
+      اختر التبويب للاطلاع على تفكيك دقيق لكل سطر برمجي في الخوارزمية، سواء في التطبيق اليدوي المباشر أو باستخدام مكتبة gostcrypto المعيارية:
+    </p>
+
+    <!-- Tab Container -->
+    <div class="tab-container">
+      <div class="tab-nav">
+        <button class="tab-btn active" data-tab="tab-gost-manual">🛠️ الكود اليدوي من الصفر (gost_manual.py)</button>
+        <button class="tab-btn" data-tab="tab-gost-libs">📚 الكود بالمكتبات (gost_libs.py)</button>
       </div>
-      <pre class="code-body"><code>from gost_manual import gost_encrypt, gost_decrypt
 
-# تشفير نص باستخدام خوارزمية Magma (GOST R 34.12-2015)
-password = "StrongMasterKey2026"
-text = "بيانات أكاديمية مشفرة بمعيار ماغما"
+      <!-- Tab 1: Manual -->
+      <div id="tab-gost-manual" class="tab-pane active">
+        <h3>تحليل أسطر الكود اليدوي (Line-by-Line Breakdown)</h3>
+        <div class="table-responsive">
+          <table class="code-explain-table">
+            <thead>
+              <tr>
+                <th style="width: 40%;">السطر / المقطع البرمجي (Code Snippet)</th>
+                <th style="width: 60%;">ماذا يخدم هذا السطر وكيف يعمل؟ (Functionality & Purpose)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="code-snippet-cell">_S_BOX_MAGMA = (
+    (0x0c, 0x04, ..., 0x01),
+    ...
+)</td>
+                <td class="explain-text-cell"><strong>صناديق التعويض الثمانية الموحدة (RFC 7801):</strong> مصفوفة تحتوي على 8 صناديق S-box قياسية خاصة بمعيار Magma، يستبدل كل صندوق منها قيمة نيبل 4 بت بقيمة أخرى من 0 إلى 15 لتحقيق اللاخطية والارتباك.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def _expand_key(key_bytes):
+    iter_keys = []
+    for _ in range(3):
+        for j in range(8):
+            iter_keys.append(...)
+    for j in range(8):
+        iter_keys.append(...)
+    return iter_keys</td>
+                <td class="explain-text-cell"><strong>خوارزمية توسيع المفتاح:</strong> تقسم المفتاح (256 بت) إلى 8 كلمات ذات 32 بت ($K_0 \dots K_7$). للدورات 1–24 تكرر الكلمات 3 مرات متتالية، وللدورات 25–32 تعكس ترتيبها ($K_7 \dots K_0$) لتوليد 32 مفتاح دورة.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def _add32(a, b):
+    ...
+    internal = a[i] + b[i] + (internal >> 8)
+    result[i] = internal & 0xff
+    return result</td>
+                <td class="explain-text-cell"><strong>الجمع النمطي Modulo $2^{32}$:</strong> يجمع النصف الأيمن (32 بت) مع المفتاح الفرعي جمعاً حسابياً مع تجاهل الفائض (Overflow)، وهو ما يميز GOST عن DES التي تستخدم XOR فقط.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def _t(data):
+    for i in range(4):
+        first = _S_BOX_MAGMA[(3-i)*2][data[i] & 0x0f]
+        sec = _S_BOX_MAGMA[(3-i)*2+1][(data[i] & 0xf0) >> 4]
+        result[i] = (sec << 4) | first
+    return result</td>
+                <td class="explain-text-cell"><strong>دالة التعويض عبر S-Boxes:</strong> تقسم الكلمة المكونة من 4 بايتات إلى 8 أنصاف بايت (Nibbles 4-bit)، وتمرر كل نيبل عبر صندوق التعويض المخصص له.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def _g(k, a):
+    internal = _add32(k, a)
+    internal = _t(internal)
+    val = ((val << 11) | (val >> 21)) & 0xffffffff
+    return bytearray(pack(">I", val))</td>
+                <td class="explain-text-cell"><strong>دالة التحويل الدائرية الكاملة:</strong> تجمع النصف والمفتاح، ثم تمررهما عبر التعويض `_t`، ثم تطبق الدوران الحلقي جهة اليسار بمقدار 11 بتاً ($\lll 11$).</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def _g_prev(k, block):
+    a0, a1, gg = _g_iter(k, block)
+    return bytearray(a0 + gg)</td>
+                <td class="explain-text-cell"><strong>خطوة الدورة العادية (الدورات 1 إلى 31):</strong> تطبق دالة التحويل على النصف الأيمن، وتجمعه بـ XOR مع النصف الأيسر، ثم تبدل النصفين للتحضير للدورة التالية.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def _g_fin(k, block):
+    a0, a1, gg = _g_iter(k, block)
+    return bytearray(gg + a0)</td>
+                <td class="explain-text-cell"><strong>خطوة الدورة الـ 32 الختامية:</strong> تطبق دالة التحويل ومفتاح الدورة الأخير دون إجراء تبديل النصفين (وفقاً لمواصفات شبكة فايستل القياسية).</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def gost_encrypt(plaintext, password):
+    key = derive_key(password)
+    # حشو PKCS#7 وتشفير الكتل 8 بايت
+    return bytes(out)</td>
+                <td class="explain-text-cell"><strong>دالة التشفير الخارجية:</strong> تشتق مفتاح 32 بايت من كلمة السر، وتحشو النص ليكتمل إلى كتل من 8 بايت، وتشفر كل كتلة عبر الدورات الـ 32.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def gost_decrypt(ciphertext, password):
+    # تمرير المفاتيح بترتيب عكسي من keys[31] إلى keys[0]
+    return _pkcs7_unpad(decrypted)</td>
+                <td class="explain-text-cell"><strong>دالة فك التشفير:</strong> تعكس ترتيب مفاتيح الدورات الـ 32 تماماً لفك التشفير واستعادة الكتل الأصلية، ثم تزيل بايتات الحشو PKCS#7.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-ciphertext = gost_encrypt(text, password)
-print("GOST Ciphertext (Hex):", ciphertext.hex())
+        <div class="code-container" style="margin-top: 20px;">
+          <div class="code-header">
+            <span class="code-title">الكود اليدوي الكامل — gost/gost_manual.py</span>
+            <button class="btn-copy">📋 نسخ الكود</button>
+          </div>
+          <pre class="code-body"><code>from gost_manual import gost_encrypt, gost_decrypt
 
-# فك التشفير واسترجاع النص الأصلي
-recovered = gost_decrypt(ciphertext, password)
-print("Recovered Text:", recovered.decode("utf-8"))</code></pre>
+# تشفير نص بكلمة سر
+ciphertext = gost_encrypt("نص تعليمي لمشروع الماجستير", "MySecureKey2026")
+print("Ciphertext:", ciphertext.hex())
+
+# فك التشفير
+recovered = gost_decrypt(ciphertext, "MySecureKey2026")
+print("Plaintext:", recovered.decode("utf-8"))</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 2: Libraries -->
+      <div id="tab-gost-libs" class="tab-pane">
+        <h3>تحليل أسطر كود المكتبة الجاهزة (gostcrypto)</h3>
+        <div class="table-responsive">
+          <table class="code-explain-table">
+            <thead>
+              <tr>
+                <th style="width: 40%;">السطر / المقطع البرمجي (Code Snippet)</th>
+                <th style="width: 60%;">ماذا يخدم هذا السطر وكيف يعمل؟ (Functionality & Purpose)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="code-snippet-cell">from gostcrypto.gostcipher import GOST34122015Magma</td>
+                <td class="explain-text-cell"><strong>استيراد محرك ماغما الرسمي:</strong> استيراد كائن التشفير المعتمد لتطبيق معيار GOST R 34.12-2015 من مكتبة <code>gostcrypto</code> المتخصصة في الخوارزميات الروسية.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def derive_key(password):
+    return hashlib.sha256(password.encode()).digest()</td>
+                <td class="explain-text-cell"><strong>اشتقاق مفتاح 256 بت:</strong> توليد مفتاح بطول 32 بايت (256 بت كاملة) عبر خوارزمية SHA-256 ليتطابق مع متطلبات محرك Magma.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">cipher = GOST34122015Magma(bytearray(key))</td>
+                <td class="explain-text-cell"><strong>تهيئة المحرك بالمفتاح:</strong> إنشاء نسخة من المشفر وتزويدها بالمفتاح (32 بايت) حيث تتولى المكتبة بناء مصفوفات الدورات الـ 32 تلقائياً.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">for i in range(0, len(data), 8):
+    out += cipher.encrypt(bytearray(data[i:i + 8]))</td>
+                <td class="explain-text-cell"><strong>تشفير الكتل:</strong> تقسيم البيانات المحشوة إلى كتل متتابعة من 8 بايت وتمرير كل كتلة على دالة <code>cipher.encrypt</code> المسرعة.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">for i in range(0, len(ciphertext), 8):
+    out += cipher.decrypt(bytearray(ciphertext[i:i + 8]))</td>
+                <td class="explain-text-cell"><strong>فك تشفير الكتل:</strong> تمرير الكتل المشفرة على دالة <code>cipher.decrypt</code> ثم التحقق من سلامة بايتات حشو PKCS#7 قبل إزالتها.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="code-container" style="margin-top: 20px;">
+          <div class="code-header">
+            <span class="code-title">كود المكتبات الكامل — gost/gost_libs.py</span>
+            <button class="btn-copy">📋 نسخ الكود</button>
+          </div>
+          <pre class="code-body"><code>from gostcrypto.gostcipher import GOST34122015Magma
+import hashlib
+
+def gost_encrypt(plaintext, password):
+    key = hashlib.sha256(password.encode()).digest()
+    cipher = GOST34122015Magma(bytearray(key))
+    data = plaintext.encode() if isinstance(plaintext, str) else plaintext
+    pad_len = 8 - (len(data) % 8 or 8)
+    data = data + bytes([pad_len]) * pad_len
+    out = bytearray()
+    for i in range(0, len(data), 8):
+        out += cipher.encrypt(bytearray(data[i:i + 8]))
+    return bytes(out)
+
+def gost_decrypt(ciphertext, password):
+    key = hashlib.sha256(password.encode()).digest()
+    cipher = GOST34122015Magma(bytearray(key))
+    out = bytearray()
+    for i in range(0, len(ciphertext), 8):
+        out += cipher.decrypt(bytearray(ciphertext[i:i + 8]))
+    pad_len = out[-1]
+    return bytes(out[:-pad_len])</code></pre>
+        </div>
+      </div>
     </div>
   </section>
 </main>

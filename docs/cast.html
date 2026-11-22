@@ -38,6 +38,11 @@
       دراسة تفصيلية لمعمارية شبكة فايستل ذات الدورات الثلاثية المتناوبة،
       والتي طُوّرت لتكون بديلاً آمناً ومجانياً لخوارزمية DES، واعتمدت كخوارزمية أساسية في حزمة PGP.
     </p>
+    <div style="margin-top: 20px;">
+      <a href="downloads/cast.zip" download class="btn-download">
+        📦 تحميل حزمة كود CAST-128 كاملة (ZIP)
+      </a>
+    </div>
   </section>
 
   <!-- Interactive Playground -->
@@ -148,26 +153,131 @@
     <div class="section-header">
       <div class="section-title-wrap">
         <span class="section-icon">💻</span>
-        <h2>4. الكود البرمجي في المشروع (Python)</h2>
+        <h2>4. شرح الكود البرمجي سطر بسطر (Tabs)</h2>
       </div>
+      <a href="downloads/cast.zip" download class="btn-download" style="padding: 6px 14px; font-size: 0.85rem;">
+        📥 تحميل ملفات CAST
+      </a>
     </div>
-    <div class="code-container">
-      <div class="code-header">
-        <span class="code-title">cast/cast_libs.py (باستخدام pycryptodome)</span>
-        <button class="btn-copy">📋 نسخ الكود</button>
+    <p>
+      اختر التبويب لمراجعة كود خوارزمية CAST-128 المعتمدة في PGP مع تحليل تفصيلي لسطور الكود ووظائفها:
+    </p>
+
+    <!-- Tab Container -->
+    <div class="tab-container">
+      <div class="tab-nav">
+        <button class="tab-btn active" data-tab="tab-cast-libs">📚 الكود بالمكتبات (cast_libs.py باستخدام pycryptodome)</button>
+        <button class="tab-btn" data-tab="tab-cast-manual">🛠️ الكود المرجعي (cast_manual.py)</button>
       </div>
-      <pre class="code-body"><code>from cast_libs import cast_encrypt, cast_decrypt
 
-key_password = "PGP_Secret_Key_2026"
-message = "بيانات مشفرة بخوارزمية CAST-128 المعتمدة في PGP"
+      <!-- Tab 1: Libraries -->
+      <div id="tab-cast-libs" class="tab-pane active">
+        <h3>تحليل أسطر كود المكتبة الجاهزة (PyCryptodome CAST)</h3>
+        <div class="table-responsive">
+          <table class="code-explain-table">
+            <thead>
+              <tr>
+                <th style="width: 40%;">السطر / المقطع البرمجي (Code Snippet)</th>
+                <th style="width: 60%;">ماذا يخدم هذا السطر وكيف يعمل؟ (Functionality & Purpose)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="code-snippet-cell">from Crypto.Cipher import CAST</td>
+                <td class="explain-text-cell"><strong>استيراد محرك CAST-128:</strong> استيراد وحدة التشفير CAST5 المتوافقة مع معيار RFC 2144 والمبنية بلغة C لتحقيق أقصى سرعة تشفير.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def derive_key(password):
+    return hashlib.sha256(password.encode()).digest()[:16]</td>
+                <td class="explain-text-cell"><strong>اشتقاق مفتاح 128 بت:</strong> استخراج بصمة SHA-256 واقتطاع أول 16 بايت (128 بت) لتكون المفتاح الكامل للمشفر، مما يفعل شبكة فايستل ذات الـ 16 دورة كاملة.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">cipher = CAST.new(key, CAST.MODE_ECB)</td>
+                <td class="explain-text-cell"><strong>تهيئة كائن التشفير:</strong> بناء المشفر وتزويده بمفتاح الـ 128 بت وضبطه على وضع Electronic Codebook (ECB). تتولى المكتبة اشتقاق مفاتيح الحجب $K_m$ والدوران $K_r$ ذاتياً.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">pad_len = 8 - (len(data) % 8 or 8)
+data = data + bytes([pad_len]) * pad_len</td>
+                <td class="explain-text-cell"><strong>حشو البيانات PKCS#7:</strong> إضافة بايتات الحشو لتصبح البيانات من مضاعفات حجم كتلة CAST-128 الثابت (64 بت / 8 بايت).</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">out = cipher.decrypt(ciphertext)
+pad_len = out[-1]
+return out[:-pad_len]</td>
+                <td class="explain-text-cell"><strong>فك التشفير وإزالة الحشو:</strong> تمرير الكتلة المشفرة عبر شبكة فايستل المعكوسة، ثم فحص آخر بايت للتحقق من صحة حشو PKCS#7 وإزالته لاستعادة النص بدقة.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-# التشفير بوضع ECB وحشو PKCS#7
-ciphertext = cast_encrypt(message, key_password)
-print("Ciphertext (Hex):", ciphertext.hex())
+        <div class="code-container" style="margin-top: 20px;">
+          <div class="code-header">
+            <span class="code-title">كود المكتبات الكامل — cast/cast_libs.py</span>
+            <button class="btn-copy">📋 نسخ الكود</button>
+          </div>
+          <pre class="code-body"><code>from Crypto.Cipher import CAST
+import hashlib
 
-# فك التشفير واستعادة الرسالة
-recovered = cast_decrypt(ciphertext, key_password)
-print("Decrypted Plaintext:", recovered.decode("utf-8"))</code></pre>
+def derive_key(password):
+    return hashlib.sha256(password.encode()).digest()[:16]
+
+def cast_encrypt(plaintext, password):
+    key = derive_key(password)
+    data = plaintext.encode() if isinstance(plaintext, str) else plaintext
+    cipher = CAST.new(key, CAST.MODE_ECB)
+    pad_len = 8 - (len(data) % 8 or 8)
+    data = data + bytes([pad_len]) * pad_len
+    return cipher.encrypt(data)
+
+def cast_decrypt(ciphertext, password):
+    key = derive_key(password)
+    cipher = CAST.new(key, CAST.MODE_ECB)
+    out = cipher.decrypt(ciphertext)
+    pad_len = out[-1]
+    return out[:-pad_len]</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 2: Manual Wrapper -->
+      <div id="tab-cast-manual" class="tab-pane">
+        <h3>هيكل الكود المرجعي والتطبيقي (cast/cast_manual.py)</h3>
+        <div class="table-responsive">
+          <table class="code-explain-table">
+            <thead>
+              <tr>
+                <th style="width: 40%;">السطر / المقطع البرمجي (Code Snippet)</th>
+                <th style="width: 60%;">ماذا يخدم هذا السطر وكيف يعمل؟ (Functionality & Purpose)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="code-snippet-cell">from cast_libs import *</td>
+                <td class="explain-text-cell"><strong>توحيد الواجهة البرمجية (Interface Uniformity):</strong> إعادة تصدير دوال التشفير وفك التشفير والإخفاء للحفاظ على نفس الهيكل المعياري لباقي مجلدات المشروع (Manual / Libs).</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">cast_encrypt_block(block8, key_bytes)
+cast_decrypt_block(block8, key_bytes)</td>
+                <td class="explain-text-cell"><strong>دوال مستوى الكتلة (Block-Level API):</strong> معالجة كتلة مفردة بحجم 8 بايت ومفتاح 16 بايت وفق متطلبات RFC 2144 للاختبارات المعيارية مقابل حزم فحص PGP.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="code-container" style="margin-top: 20px;">
+          <div class="code-header">
+            <span class="code-title">cast/cast_manual.py</span>
+            <button class="btn-copy">📋 نسخ الكود</button>
+          </div>
+          <pre class="code-body"><code>"""CAST-128 (CAST5) -- manual wrapper interface."""
+from cast_libs import cast_encrypt, cast_decrypt, derive_key
+
+# استخدام نفس الدوال المرجعية الموحدة
+key = derive_key("PGP_Key_2026")
+ct = cast_encrypt("Secret PGP Message", "PGP_Key_2026")
+print("Encrypted:", ct.hex())
+print("Decrypted:", cast_decrypt(ct, "PGP_Key_2026").decode())</code></pre>
+        </div>
+      </div>
     </div>
   </section>
 </main>

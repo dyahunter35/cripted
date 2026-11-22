@@ -319,10 +319,29 @@
     }
   }
 
+  // --- Tab Switching Logic ---
+  function initTabs() {
+    document.querySelectorAll('.tab-container').forEach(container => {
+      const navButtons = container.querySelectorAll('.tab-btn');
+      const panes = container.querySelectorAll('.tab-pane');
+      navButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.dataset.tab;
+          navButtons.forEach(b => b.classList.remove('active'));
+          panes.forEach(p => p.classList.remove('active'));
+          btn.classList.add('active');
+          const targetPane = container.querySelector('#' + target);
+          if (targetPane) targetPane.classList.add('active');
+        });
+      });
+    });
+  }
+
   // --- Initialize on DOM ready ---
   document.addEventListener('DOMContentLoaded', () => {
     initCodeCopy();
     initPlayground();
     initStegoCanvas();
+    initTabs();
   });
 })();
