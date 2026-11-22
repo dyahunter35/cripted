@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>خوارزمية RC4 — التشفير التدفقي الكلاسيكي</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<!-- Header -->
+<header class="site-header">
+  <div class="container nav-wrap">
+    <a href="index.html" class="brand-logo">
+      <div class="brand-icon">🌊</div>
+      <div class="brand-text">Crypto Lab</div>
+      <span class="brand-badge">RC4</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link">الرئيسية</a></li>
+      <li><a href="des.html" class="nav-link">DES</a></li>
+      <li><a href="gost.html" class="nav-link">GOST Magma</a></li>
+      <li><a href="rc4.html" class="nav-link active">RC4</a></li>
+      <li><a href="cast.html" class="nav-link">CAST-128</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="https://github.com/" target="_blank" class="btn-github"><span>⭐ GitHub</span></a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-pill">خوارزمية التشفير التدفقي الأكثر انتشاراً في التاريخ</div>
+    <h1>خوارزمية <span class="highlight">RC4 (Rivest Cipher 4)</span></h1>
+    <p class="lead">
+      تحليل شامل لمعمارية التشفير التدفقي المعتمدة على خوارزميتي KSA و PRGA،
+      مع توضيح أسباب سقوطها في بروتوكولات الشبكات اللاسلكية وتجربة تفاعلية مباشرة لتوليد تيار المفاتيح.
+    </p>
+  </section>
+
+  <!-- Interactive Playground -->
+  <section class="playground-box" data-cipher="rc4">
+    <div class="playground-header">
+      <div class="playground-title">
+        <span>🧪</span>
+        <h3>المختبر التفاعلي المباشر لخوارزمية RC4</h3>
+      </div>
+      <span class="badge-tag badge-warning">تشفير تدفقي (Stream Cipher)</span>
+    </div>
+
+    <div class="grid-2">
+      <div class="control-group">
+        <label for="plain-input">النص الأصلي (Plaintext):</label>
+        <textarea id="plain-input" class="textarea-field" placeholder="أدخل النص هنا...">Crypto Lab 2026</textarea>
+      </div>
+      <div class="control-group">
+        <label for="key-input">المفتاح السري (Password):</label>
+        <input type="text" id="key-input" class="input-field" value="SecretKey@123" />
+        
+        <div class="btn-group">
+          <button id="btn-encrypt" class="btn btn-primary">🔒 تشفير تدفقي (Encrypt)</button>
+          <button id="btn-decrypt" class="btn btn-secondary">🔓 فك التشفير (Decrypt)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="output-panel">
+      <div class="output-header">
+        <span class="label">الناتج المشفر (Hex Stream / Plaintext):</span>
+      </div>
+      <div id="output-box" class="output-box">في انتظار إدخال البيانات...</div>
+      <div id="trace-box" class="trace-log">بيانات تيار المفاتيح المستمر ستظهر هنا فور الضغط على التشفير.</div>
+    </div>
+  </section>
+
+  <!-- Theory & Concepts -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">📜</span>
+        <h2>1. النشأة وفلسفة التشفير التدفقي</h2>
+      </div>
+    </div>
+    <p>
+      صمم عالم التشفير الشهير <strong>Ron Rivest</strong> خوارزمية RC4 عام 1987 لصالح شركة RSA Security.
+      ظلت الخوارزمية سراً تجارياً حتى عام 1994 عندما نُشرت تفاصيلها مجهولة المصدر على القائمة البريدية <em>Cypherpunks</em>.
+    </p>
+    <p>
+      على عكس خوارزميات الكتل (مثل DES و GOST) التي تقسم البيانات إلى مجموعات من 8 أو 16 بايت،
+      فإن التشفير التدفقي يعالج البيانات <strong>بايتاً ببايت أو بتاً ببت</strong> عبر توليد تيار من البايتات شبه العشوائية (Keystream)
+      ثم دمجه مع النص الأصلي عبر بوابة <strong>XOR</strong> البسيطة.
+    </p>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">⚙️</span>
+        <h2>2. خوارزميتي العمل الأساسيتين: KSA و PRGA</h2>
+      </div>
+    </div>
+    <p>تحتوي الخوارزمية داخلياً على مصفوفة تباديل $S$ بحجم 256 بايت ($0 \dots 255$) ومؤشرين $i, j$:</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>خوارزمية جدولة المفتاح (KSA)</h3>
+        <p>تهيئة وخلط المصفوفة $S$ بالاعتماد على المفتاح السري:</p>
+        <ol style="margin-right: 20px; line-height: 1.8; color: var(--text-muted);">
+          <li>تهيئة المصفوفة: <code>S[i] = i</code> لكل قيم $i$ من 0 إلى 255.</li>
+          <li>ضبط المؤشر <code>j = 0</code>.</li>
+          <li>خلط العناصر عبر 256 تكراراً:
+            <br>
+            <code>j = (j + S[i] + Key[i mod key_len]) mod 256</code>
+            <br>
+            تبديل <code>swap(S[i], S[j])</code>.
+          </li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3>خوارزمية توليد التيار العشوائي (PRGA)</h3>
+        <p>توليد بايت تيار المفتاح لكل بايت من النص المراد تشفيره:</p>
+        <ol style="margin-right: 20px; line-height: 1.8; color: var(--text-muted);">
+          <li><code>i = (i + 1) mod 256</code></li>
+          <li><code>j = (j + S[i]) mod 256</code></li>
+          <li>تبديل <code>swap(S[i], S[j])</code></li>
+          <li>استخراج بايت المفتاح: <code>K = S[(S[i] + S[j]) mod 256]</code></li>
+          <li>التشفير / فك التشفير: <code>CipherByte = PlainByte ⊕ K</code></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">⚠️</span>
+        <h2>3. الثغرات الأمنية وسبب الإيقاف الرسمي</h2>
+      </div>
+    </div>
+    <p>
+      شكلت RC4 لسنوات العمود الفقري لأمن الإنترنت (في أنظمة SSL/TLS وشبكات Wi-Fi WEP)،
+      لكن الدراسات الأكاديمية كشفت انحيازات إحصائية خطيرة (Biases) في البايتات الأولى من تيار المفاتيح:
+    </p>
+
+    <div class="alert-box danger">
+      <div class="alert-icon">🚫</div>
+      <div>
+        <strong>أبرز الهجمات المكتشفة:</strong>
+        <ul>
+          <li><strong>هجوم FMS (Fluhrer, Mantin, Shamir 2001):</strong> أدى إلى كسر مفاتيح WEP في دقائق بسبب ضعف دمج ناقل التهيئة (IV) مع المفتاح.</li>
+          <li><strong>انحياز البايت الثاني (Mantin-Shamir Bias):</strong> احتمالية ظهور الصفر في البايت الثاني تبلغ ضعف الاحتمالية العادية (1/128 بدلاً من 1/256).</li>
+          <li><strong>حظر المعيار في TLS (RFC 7465 عام 2015):</strong> حظرت هيئة معايير الإنترنت IETF استخدام جميع مجموعات تشفير RC4 في بروتوكولات TLS نهائياً.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">💻</span>
+        <h2>4. الكود البرمجي في المشروع (Python)</h2>
+      </div>
+    </div>
+    <div class="code-container">
+      <div class="code-header">
+        <span class="code-title">rc4/rc4_manual.py (مثال تشغيل)</span>
+        <button class="btn-copy">📋 نسخ الكود</button>
+      </div>
+      <pre class="code-body"><code>from rc4_manual import rc4_encrypt, rc4_decrypt
+
+password = "StreamPassword2026"
+text = "بث مشفر باستخدام RC4 التدفقي"
+
+# تشفير النص
+ciphertext = rc4_encrypt(text, password)
+print("RC4 Ciphertext (Hex):", ciphertext.hex())
+
+# فك التشفير (نفس العملية الرياضية بسبب تماثل XOR)
+recovered = rc4_decrypt(ciphertext, password)
+print("Decrypted Plaintext:", recovered.decode("utf-8"))</code></pre>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-content">
+    <div class="brand-text">🔐 Crypto Lab — RC4 Stream Guide</div>
+    <div class="footer-links">
+      <a href="index.html">الرئيسية</a>
+      <a href="des.html">DES</a>
+      <a href="gost.html">GOST Magma</a>
+      <a href="rc4.html">RC4</a>
+      <a href="cast.html">CAST-128</a>
+    </div>
+    <p>© 2026 Crypto Lab</p>
+  </div>
+</footer>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

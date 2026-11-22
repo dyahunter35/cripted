@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>مختبر التشفير وإخفاء البيانات — Crypto & Stego Lab</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<!-- Header & Navigation -->
+<header class="site-header">
+  <div class="container nav-wrap">
+    <a href="index.html" class="brand-logo">
+      <div class="brand-icon">🔐</div>
+      <div class="brand-text">Crypto Lab</div>
+      <span class="brand-badge">v2.0</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link active">الرئيسية</a></li>
+      <li><a href="des.html" class="nav-link">DES</a></li>
+      <li><a href="gost.html" class="nav-link">GOST Magma</a></li>
+      <li><a href="rc4.html" class="nav-link">RC4</a></li>
+      <li><a href="cast.html" class="nav-link">CAST-128</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="https://github.com/" target="_blank" class="btn-github">
+        <span>⭐ مستودع المشروع</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-pill">⚡ منصة أكاديمية تفاعلية شاملة</div>
+    <h1>دراسة وتطبيق <span class="highlight">خوارزميات التشفير وإخفاء البيانات</span></h1>
+    <p class="lead">
+      دليل علمي وعملي مفصل يجمع بين دراسة معماريات التشفير المتناظر (كتل وتدفق)
+      وتقنيات إخفاء الرسائل السرية (Steganography) بالوسائط المتعددة، مع تطبيق كامل بلغتي Python و JavaScript.
+    </p>
+    <div class="hero-meta">
+      <div class="meta-item">📦 <strong>4 خوارزميات كلاسيكية وحديثة</strong></div>
+      <div class="meta-item">🖼️ <strong>إخفاء LSB في الصور (BMP) والصوت (WAV)</strong></div>
+      <div class="meta-item">🧪 <strong>تطبيق يدوي من الصفر + مكتبات معيارية</strong></div>
+    </div>
+  </section>
+
+  <!-- Algorithm Cards Grid -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">📚</span>
+        <h2>الخوارزميات المدعومة في المشروع</h2>
+      </div>
+      <span class="badge-tag badge-strong">شرح تفصيلي + كود</span>
+    </div>
+
+    <div class="grid-4">
+      <!-- DES Card -->
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-icon">🏛️</div>
+          <span class="badge-tag badge-insecure">تاريخي / تعليمي</span>
+        </div>
+        <h3>DES (FIPS 46)</h3>
+        <p>معيار التشفير الفيدرالي الكلاسيكي (1977). شبكة فايستل من 16 دورة، حجم كتلة 64 بت ومفتاح 56 بت.</p>
+        <div class="cipher-specs">
+          <div class="cipher-spec-item"><span class="label">حجم الكتلة:</span><span class="val">64-bit</span></div>
+          <div class="cipher-spec-item"><span class="label">طول المفتاح:</span><span class="val">56-bit</span></div>
+          <div class="cipher-spec-item"><span class="label">الهيكل:</span><span class="val">Feistel</span></div>
+          <div class="cipher-spec-item"><span class="label">الدورات:</span><span class="val">16 Round</span></div>
+        </div>
+        <div class="cipher-card-footer">
+          <a href="des.html">استكشف DES بالتفصيل ←</a>
+        </div>
+      </div>
+
+      <!-- GOST Card -->
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-icon">🛡️</div>
+          <span class="badge-tag badge-strong">معيار روسي حديث</span>
+        </div>
+        <h3>GOST Magma</h3>
+        <p>المعيار الروسي GOST R 34.12-2015. شبكة فايستل ذات 32 دورة ومفتاح ضخم 256 بت مع 8 صناديق S-box.</p>
+        <div class="cipher-specs">
+          <div class="cipher-spec-item"><span class="label">حجم الكتلة:</span><span class="val">64-bit</span></div>
+          <div class="cipher-spec-item"><span class="label">طول المفتاح:</span><span class="val">256-bit</span></div>
+          <div class="cipher-spec-item"><span class="label">الهيكل:</span><span class="val">Feistel</span></div>
+          <div class="cipher-spec-item"><span class="label">الدورات:</span><span class="val">32 Round</span></div>
+        </div>
+        <div class="cipher-card-footer">
+          <a href="gost.html">استكشف GOST بالتفصيل ←</a>
+        </div>
+      </div>
+
+      <!-- RC4 Card -->
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-icon">🌊</div>
+          <span class="badge-tag badge-warning">تشفير تدفقي متقادم</span>
+        </div>
+        <h3>RC4 (ARC4)</h3>
+        <p>أشهر خوارزمية تشفير تدفقي في التاريخ (Ron Rivest 1987). تعتمد خوارزميتي KSA و PRGA لتوليد تيار المفاتيح.</p>
+        <div class="cipher-specs">
+          <div class="cipher-spec-item"><span class="label">النوع:</span><span class="val">Stream</span></div>
+          <div class="cipher-spec-item"><span class="label">طول المفتاح:</span><span class="val">40-2048 b</span></div>
+          <div class="cipher-spec-item"><span class="label">المصفوفة:</span><span class="val">256 Byte</span></div>
+          <div class="cipher-spec-item"><span class="label">السرعة:</span><span class="val">فائقة جداً</span></div>
+        </div>
+        <div class="cipher-card-footer">
+          <a href="rc4.html">استكشف RC4 بالتفصيل ←</a>
+        </div>
+      </div>
+
+      <!-- CAST-128 Card -->
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-icon">🗝️</div>
+          <span class="badge-tag badge-strong">RFC 2144 معتمد</span>
+        </div>
+        <h3>CAST-128 (CAST5)</h3>
+        <p>خوارزمية كتل قوية ومجانية الملكية من 16 دورة. استخدمت افتراضياً في أنظمة PGP و GPG ذات أمان مثبت.</p>
+        <div class="cipher-specs">
+          <div class="cipher-spec-item"><span class="label">حجم الكتلة:</span><span class="val">64-bit</span></div>
+          <div class="cipher-spec-item"><span class="label">طول المفتاح:</span><span class="val">128-bit</span></div>
+          <div class="cipher-spec-item"><span class="label">الدوال:</span><span class="val">3 دورية</span></div>
+          <div class="cipher-spec-item"><span class="label">الدورات:</span><span class="val">16 Round</span></div>
+        </div>
+        <div class="cipher-card-footer">
+          <a href="cast.html">استكشف CAST بالتفصيل ←</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comprehensive Comparison Table -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">📊</span>
+        <h2>مقارنة معيارية شاملة بين الخوارزميات</h2>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="crypto-table">
+        <thead>
+          <tr>
+            <th>الخوارزمية</th>
+            <th>نوع التشفير</th>
+            <th>حجم الكتلة</th>
+            <th>طول المفتاح</th>
+            <th>عدد الدورات</th>
+            <th>الحالة الأمنية المعاصرة</th>
+            <th>الاستخدام الميداني الشائع</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>DES</strong></td>
+            <td>تشفير كتل (Feistel)</td>
+            <td>64 بت (8 بايت)</td>
+            <td>56 بت فعلي</td>
+            <td>16 دورة</td>
+            <td><span class="badge-tag badge-insecure">مكسورة بالهجوم الشامل</span></td>
+            <td>الأغراض الأكاديمية والتعليمية</td>
+          </tr>
+          <tr>
+            <td><strong>GOST Magma</strong></td>
+            <td>تشفير كتل (Feistel)</td>
+            <td>64 بت (8 بايت)</td>
+            <td>256 بت</td>
+            <td>32 دورة</td>
+            <td><span class="badge-tag badge-strong">آمنة وقوية جداً</span></td>
+            <td>القطاع المصرفي والحكومي الروسي</td>
+          </tr>
+          <tr>
+            <td><strong>RC4</strong></td>
+            <td>تشفير تدفقي (Stream)</td>
+            <td>بايت واحد (تيار مستمر)</td>
+            <td>متغير (128 بت قياسي)</td>
+            <td>KSA (256) + PRGA</td>
+            <td><span class="badge-tag badge-warning">ممنوعة في بروتوكول TLS</span></td>
+            <td>سابقاً في بروتوكولات WEP و SSL</td>
+          </tr>
+          <tr>
+            <td><strong>CAST-128</strong></td>
+            <td>تشفير كتل (Feistel)</td>
+            <td>64 بت (8 بايت)</td>
+            <td>40 - 128 بت</td>
+            <td>12 أو 16 دورة</td>
+            <td><span class="badge-tag badge-strong">آمنة هندسياً</span></td>
+            <td>برمجيات البريد المشفر PGP / GPG</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Steganography Section & Live Canvas Demo -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">🖼️</span>
+        <h2>تقنية إخفاء البيانات (Steganography - LSB)</h2>
+      </div>
+      <span class="badge-tag badge-strong">تجربة تفاعلية مباشرة</span>
+    </div>
+    <p>
+      تعتمد تقنية <strong>LSB (Least Significant Bit)</strong> على استبدال البت الأقل وزناً في بيانات الوسيط الحامل
+      (سواء كان قناة لونية في بكسل الصورة أو عينة صوتية في ملف WAV) ببت من بتات النص السري المشفر.
+      نظراً لأن التغيير يطرأ فقط على القيمة العددية بمقدار ±1، فإن العين البشرية أو الأذن تعجز عن ملاحظة أي فرق.
+    </p>
+
+    <div class="alert-box info">
+      <div class="alert-icon">💡</div>
+      <div>
+        <strong>هيكل ترويسة الإخفاء في المشروع:</strong>
+        نقوم بإدراج 4 بايتات (32-bit Big-Endian) في بداية البث لتخزين طول الرسالة المشفرة،
+        مما يسمح لعملية الاسترجاع بقراءة عدد البايتات الدقيق دون قراءة نفايات الوسيط.
+      </div>
+    </div>
+
+    <!-- Stego Interactive Playground -->
+    <div class="stego-container">
+      <div class="canvas-card">
+        <h4>لوحة الصورة الحاملة (Canvas LSB Carrier)</h4>
+        <canvas id="stego-canvas" class="stego-canvas"></canvas>
+      </div>
+
+      <div class="canvas-card" style="text-align: right;">
+        <h4>أدخل رسالة سرية للإخفاء</h4>
+        <div class="control-group">
+          <input type="text" id="stego-text" class="input-field" value="سر أكاديمي: 2026" placeholder="اكتب نصاً لإخفائه..." />
+        </div>
+        <div class="btn-group">
+          <button id="btn-stego-hide" class="btn btn-primary">🔒 إخفاء في بكسلات الصورة</button>
+          <button id="btn-stego-extract" class="btn btn-secondary">🔓 قراءة النص المخفي</button>
+        </div>
+        <div id="stego-result" class="output-panel" style="margin-top: 14px; min-height: 50px;">
+          النتيجة ستظهر هنا...
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Project Structure & Setup -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">⚙️</span>
+        <h2>تشغيل المشروع عبر بيئة Python</h2>
+      </div>
+    </div>
+    
+    <div class="code-container">
+      <div class="code-header">
+        <span class="code-title">تثبيت الاعتماديات وتشغيل أوامر الفحص</span>
+        <button class="btn-copy">📋 نسخ الأمر</button>
+      </div>
+      <pre class="code-body"><code># 1. تثبيت الحزم المطلوبة
+python3 -m pip install pycryptodome Pillow gostcrypto
+
+# 2. التحقق من سلامة التثبيت
+python3 -c "import Crypto, PIL, gostcrypto; print('All libraries verified successfully!')"
+
+# 3. تشغيل العروض التجريبية
+python3 des/des_manual.py
+python3 gost/gost_manual.py demo
+python3 rc4/rc4_manual.py demo
+python3 cast/cast_libs.py demo</code></pre>
+    </div>
+  </section>
+
+  <!-- GitHub Pages & Automation Workflow -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">🚀</span>
+        <h2>النشر التلقائي عبر GitHub Pages</h2>
+      </div>
+    </div>
+    <p>
+      المستودع مجهز بملف سير عمل أوتوماتيكي كامل في المسار:
+      <code>.github/workflows/pages.yml</code>.
+      بمجرد تنفيذ أمر دفع التعديلات <code>git push</code> إلى الفرع الرئيسي (main)،
+      يقوم سير العمل (GitHub Actions) ببناء مجلد <code>docs/</code> ورفعه تلقائياً إلى خوادم GitHub Pages.
+    </p>
+    <div class="alert-box warning">
+      <div class="alert-icon">⚠️</div>
+      <div>
+        <strong>لتفعيل النشر على حسابك في GitHub:</strong>
+        توجه إلى إعدادات المستودع <em>Settings</em> ثم اختر <em>Pages</em>، وتأكد من تحديد المصدر كـ <strong>GitHub Actions</strong>.
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Footer -->
+<footer class="site-footer">
+  <div class="container footer-content">
+    <div class="brand-text" style="font-size: 1.2rem; font-weight: 800;">🔐 مختبر التشفير وإخفاء البيانات</div>
+    <div class="footer-links">
+      <a href="index.html">الرئيسية</a>
+      <a href="des.html">DES</a>
+      <a href="gost.html">GOST Magma</a>
+      <a href="rc4.html">RC4</a>
+      <a href="cast.html">CAST-128</a>
+    </div>
+    <p>© 2026 Crypto Lab — مشروع أكاديمي تفاعلي متقدم</p>
+  </div>
+</footer>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>خوارزمية DES — دراسة معمارية ورياضية شاملة</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<!-- Header -->
+<header class="site-header">
+  <div class="container nav-wrap">
+    <a href="index.html" class="brand-logo">
+      <div class="brand-icon">🏛️</div>
+      <div class="brand-text">Crypto Lab</div>
+      <span class="brand-badge">DES</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link">الرئيسية</a></li>
+      <li><a href="des.html" class="nav-link active">DES</a></li>
+      <li><a href="gost.html" class="nav-link">GOST Magma</a></li>
+      <li><a href="rc4.html" class="nav-link">RC4</a></li>
+      <li><a href="cast.html" class="nav-link">CAST-128</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="https://github.com/" target="_blank" class="btn-github"><span>⭐ GitHub</span></a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-pill">معيار التشفير الفيدرالي الكلاسيكي — FIPS PUB 46</div>
+    <h1>خوارزمية <span class="highlight">DES (Data Encryption Standard)</span></h1>
+    <p class="lead">
+      دراسة تفصيلية لهيكل شبكة فايستل (Feistel Network)، وصناديق التعويض S-Boxes،
+      وجدول توليد المفاتيح الفرعية، مع تحليل نقاط الضعف التاريخية ونموذج تجريبي تفاعلي مباشر.
+    </p>
+  </section>
+
+  <!-- Interactive Playground Component -->
+  <section class="playground-box" data-cipher="des">
+    <div class="playground-header">
+      <div class="playground-title">
+        <span>🧪</span>
+        <h3>المختبر التفاعلي المباشر لخوارزمية DES</h3>
+      </div>
+      <span class="badge-tag badge-insecure">محاكاة تعليمية فورية</span>
+    </div>
+
+    <div class="grid-2">
+      <div class="control-group">
+        <label for="plain-input">النص الأصلي (Plaintext): <span class="hint">نص مراد تشفيره</span></label>
+        <textarea id="plain-input" class="textarea-field" placeholder="أدخل النص هنا...">Crypto Lab 2026</textarea>
+      </div>
+      <div class="control-group">
+        <label for="key-input">المفتاح السري (Password / Key): <span class="hint">سيشتق منه 56 بت</span></label>
+        <input type="text" id="key-input" class="input-field" value="SecretKey@123" />
+        
+        <div class="btn-group">
+          <button id="btn-encrypt" class="btn btn-primary">🔒 تشفير الكتلة (Encrypt)</button>
+          <button id="btn-decrypt" class="btn btn-secondary">🔓 فك التشفير (Decrypt)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="output-panel">
+      <div class="output-header">
+        <span class="label">الناتج المشفر (Hex / Plaintext):</span>
+      </div>
+      <div id="output-box" class="output-box">في انتظار إدخال البيانات والتشفير...</div>
+      <div id="trace-box" class="trace-log">سجل التتبع وتفاصيل الدورات سيظهر هنا فور الضغط على التشفير.</div>
+    </div>
+  </section>
+
+  <!-- Detailed Academic Sections -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">📖</span>
+        <h2>1. النشأة والسياق التاريخي</h2>
+      </div>
+    </div>
+    <p>
+      تم تطوير خوارزمية <strong>DES</strong> في مطلع السبعينيات داخل شركة <strong>IBM</strong> تحت اسم مشروع <em>Lucifer</em> بقيادة العالم <strong>Horst Feistel</strong>.
+      في عام 1977، تبناها المعهد الوطني للمعايير والتقنية (NIST/NBS سابقاً) في الولايات المتحدة كمعيار رسمي <strong>FIPS PUB 46</strong>
+      لتأمين المعاملات والاتصالات غير المصنفة في الأجهزة الفيدرالية والمؤسسات المالية.
+    </p>
+    <p>
+      شهدت الخوارزمية نقاشاً علمياً واسعاً إثر تدخل وكالة الأمن القومي الأمريكية (NSA) بتعديل محتويات صناديق التعويض (S-Boxes)
+      وتقليص طول المفتاح من 128 أو 64 بت إلى 56 بت فقط، وهو ما جعلها موضع جدل تاريخي حتى تم فك شيفرتها عملياً في أواخر التسعينيات.
+    </p>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">📐</span>
+        <h2>2. المعمارية الهندسية وشبكة فايستل (Feistel Network)</h2>
+      </div>
+    </div>
+    <p>
+      تعمل DES كخوارزمية تشفير كتل متناظر (Symmetric Block Cipher). البيانات تعالج في كتل ثابتة بحجم <strong>64 بت (8 بايتات)</strong>،
+      وتمر عبر <strong>16 دورة تكرارية متطابقة</strong>. ميزة شبكة فايستل الجوهرية هي أن خوارزمية التشفير وفك التشفير تكونان متطابقتين تقريباً،
+      حيث لا يشترط أن تكون دالة الدورة $F$ قابلة للعكس رياضياً.
+    </p>
+
+    <ul class="step-list">
+      <li>
+        <h4>التبديل الابتدائي (Initial Permutation - IP):</h4>
+        <p>تتم إعادة ترتيب بتات الكتلة المدخلة الـ 64 وفق جدول تبديل ثابت، دون أي تغيير في قيم البتات، لكسر الارتباطات المباشرة مع النص الأصلي.</p>
+      </li>
+      <li>
+        <h4>التقسيم إلى نصفين متساويين:</h4>
+        <p>يتم شطر الكتلة الناتجة إلى نصف أيسر $L_0$ ونصف أيمن $R_0$، حجم كل منهما 32 بت.</p>
+      </li>
+      <li>
+        <h4>الدورات الست عشرة (16 Rounds):</h4>
+        <p>
+          في كل دورة $i$ من 1 إلى 16، يتم حساب النصفين الجديدين عبر المعادلتين:
+          <br>
+          <code>L_i = R_{i-1}</code>
+          <br>
+          <code>R_i = L_{i-1} ⊕ F(R_{i-1}, K_i)</code>
+          <br>
+          حيث يمثل $K_i$ المفتاح الفرعي المخصص للدورة (بحجم 48 بت)، وعلامة ⊕ تمثل عملية XOR البتية.
+        </p>
+      </li>
+      <li>
+        <h4>التبديل النهائي (Final Permutation - FP):</h4>
+        <p>
+          بعد انتهاء الدورة الـ 16، يتم دمج النصفين بشكل معكوس $(R_{16}, L_{16})$،
+          ثم تطبق مصفوفة التبديل المعاكسة تماماً لـ IP والتي يرمز لها بـ $IP^{-1}$.
+        </p>
+      </li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">⚙️</span>
+        <h2>3. دالة الدورة F وتوزيع المفاتيح (Key Schedule)</h2>
+      </div>
+    </div>
+    <p>تعد الدالة $F$ جوهر القوة الرياضية لخوارزمية DES، وتتكون داخلياً من 4 مراحل متسلسلة:</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>مراحل دالة الدورة $F(R, K)$</h3>
+        <ol style="margin-right: 20px; line-height: 1.8;">
+          <li><strong>جدول التمدد (Expansion E):</strong> توسيع النصف الأيمن من 32 بت إلى 48 بت بتكرار 16 بتاً استراتيجياً.</li>
+          <li><strong>الخلط بالمفتاح (Key Mixing):</strong> جمع ناتج التمدد مع المفتاح الفرعي $K_i$ عبر بوابة XOR (48 بت).</li>
+          <li><strong>صناديق التعويض (S-Boxes):</strong> تقسيم الـ 48 بت إلى 8 مجموعات (كل منها 6 بت)، يمر كل منها بصندوق خاص $S_1 \dots S_8$ ليخرج 4 بت، وهو العنصر اللاخطي الوحيد في الخوارزمية.</li>
+          <li><strong>التبديل (Permutation P):</strong> إعادة ترتيب مخرجات الصناديق الـ 32 بت لضمان انتشار التأثير (Diffusion) في الدورة التالية.</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3>جدول توليد المفاتيح (Key Schedule)</h3>
+        <ol style="margin-right: 20px; line-height: 1.8;">
+          <li><strong>إسقاط بتات التماثل (PC-1):</strong> تحويل المفتاح من 64 بت إلى 56 بت (تجاهل البت الثامن من كل بايت).</li>
+          <li><strong>التقسيم والدوران الأيسر (Circular Shifts):</strong> شطر المفتاح إلى نصفين (28 بت لكل منهما)، وإجراء دوران يساري بمقدار 1 أو 2 بت بحسب رقم الدورة.</li>
+          <li><strong>ضغط التبديل (PC-2):</strong> اختيار 48 بت من الـ 56 بت لتكوين المفتاح الفرعي $K_i$ لكل دورة من الـ 16.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">🛡️</span>
+        <h2>4. التحليل الأمني ومحطات كسر الخوارزمية</h2>
+      </div>
+    </div>
+    <p>
+      على الرغم من مناعة صناديق التعويض في DES ضد هجمات التحليل التفاضلي (Differential Cryptanalysis) التي اكتشفها العالم إيلي بيهام وأدي شامير،
+      إلا أن نقطة الضعف القاتلة في DES كانت طول مفتاحها القصير: <strong>56 بت فقط</strong>.
+    </p>
+
+    <div class="alert-box danger">
+      <div class="alert-icon">🚨</div>
+      <div>
+        <strong>أسباب توقف استخدام DES معيارياً:</strong>
+        فضاء المفاتيح المتاح هو $2^{56} \approx 7.2 \times 10^{16}$ مفتاح.
+        في عام 1998، صممت مؤسسة الجبهة الإلكترونية (EFF) جهاز <em>Deep Crack</em> الذي استطاع فك تشفير رسالة DES في أقل من 56 ساعة،
+        والآن يمكن كسرها في دقائق باستخدام كروت الشاشة الحديثة (GPUs)، ولذلك استبدلت بمعيار AES وحلت محلها Triple DES مؤقتاً.
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">💻</span>
+        <h2>5. الكود البرمجي في المشروع (Python)</h2>
+      </div>
+    </div>
+    <p>
+      يتضمن هذا المشروع نسختين من DES: الأولى من الصفر (Manual) في ملف <code>des/des_manual.py</code>،
+      والثانية باستخدام المكتبة المعيارية في ملف <code>des/des_libs.py</code>، مع دعم كامل للإخفاء في صور BMP وملفات الصوت WAV.
+    </p>
+
+    <div class="code-container">
+      <div class="code-header">
+        <span class="code-title">des/des_manual.py (مثال تشغيل)</span>
+        <button class="btn-copy">📋 نسخ الكود</button>
+      </div>
+      <pre class="code-body"><code>from des_manual import encrypt, decrypt, derive_key
+
+# 1. اشتقاق مفتاح 8 بايت (56 بت فعلي) عبر SHA-256
+key = derive_key("SecretPassword")
+
+# 2. تشفير نص عادي مع حشو PKCS#7
+plaintext = "Hello, Academic Cryptography!"
+ciphertext = encrypt(plaintext, key)
+print("Ciphertext (Hex):", ciphertext.hex())
+
+# 3. فك التشفير واسترجاع النص
+decrypted = decrypt(ciphertext, key)
+print("Decrypted Plaintext:", decrypted.decode("utf-8"))</code></pre>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-content">
+    <div class="brand-text">🔐 Crypto Lab — DES Study Guide</div>
+    <div class="footer-links">
+      <a href="index.html">الرئيسية</a>
+      <a href="des.html">DES</a>
+      <a href="gost.html">GOST Magma</a>
+      <a href="rc4.html">RC4</a>
+      <a href="cast.html">CAST-128</a>
+    </div>
+    <p>© 2026 Crypto Lab</p>
+  </div>
+</footer>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

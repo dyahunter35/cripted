@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>خوارزمية CAST-128 — المعيار الحر المعتمد في PGP</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<!-- Header -->
+<header class="site-header">
+  <div class="container nav-wrap">
+    <a href="index.html" class="brand-logo">
+      <div class="brand-icon">🗝️</div>
+      <div class="brand-text">Crypto Lab</div>
+      <span class="brand-badge">CAST-128</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link">الرئيسية</a></li>
+      <li><a href="des.html" class="nav-link">DES</a></li>
+      <li><a href="gost.html" class="nav-link">GOST Magma</a></li>
+      <li><a href="rc4.html" class="nav-link">RC4</a></li>
+      <li><a href="cast.html" class="nav-link active">CAST-128</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="https://github.com/" target="_blank" class="btn-github"><span>⭐ GitHub</span></a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-pill">معيار التشفير المفتوح — RFC 2144</div>
+    <h1>خوارزمية <span class="highlight">CAST-128 (CAST5)</span></h1>
+    <p class="lead">
+      دراسة تفصيلية لمعمارية شبكة فايستل ذات الدورات الثلاثية المتناوبة،
+      والتي طُوّرت لتكون بديلاً آمناً ومجانياً لخوارزمية DES، واعتمدت كخوارزمية أساسية في حزمة PGP.
+    </p>
+  </section>
+
+  <!-- Interactive Playground -->
+  <section class="playground-box" data-cipher="cast">
+    <div class="playground-header">
+      <div class="playground-title">
+        <span>🧪</span>
+        <h3>المختبر التفاعلي المباشر لخوارزمية CAST-128</h3>
+      </div>
+      <span class="badge-tag badge-strong">شبكة فايستل 16 دورة ثلاثية</span>
+    </div>
+
+    <div class="grid-2">
+      <div class="control-group">
+        <label for="plain-input">النص الأصلي (Plaintext):</label>
+        <textarea id="plain-input" class="textarea-field" placeholder="أدخل النص هنا...">Crypto Lab 2026</textarea>
+      </div>
+      <div class="control-group">
+        <label for="key-input">المفتاح السري (128-bit Key / Password):</label>
+        <input type="text" id="key-input" class="input-field" value="SecretKey@123" />
+        
+        <div class="btn-group">
+          <button id="btn-encrypt" class="btn btn-primary">🔒 تشفير الكتلة (Encrypt)</button>
+          <button id="btn-decrypt" class="btn btn-secondary">🔓 فك التشفير (Decrypt)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="output-panel">
+      <div class="output-header">
+        <span class="label">الناتج المشفر (Hex / Plaintext):</span>
+      </div>
+      <div id="output-box" class="output-box">في انتظار إدخال البيانات والتشفير...</div>
+      <div id="trace-box" class="trace-log">سجل تحويلات الدورات الـ 16 سيظهر هنا فور التشغيل.</div>
+    </div>
+  </section>
+
+  <!-- Theory & Architectural Details -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">📜</span>
+        <h2>1. خلفية التصميم ومعيار RFC 2144</h2>
+      </div>
+    </div>
+    <p>
+      صُممت خوارزمية <strong>CAST-128</strong> في عام 1996 على يد العالمين <strong>Carlisle Adams</strong> و <strong>Stafford Tavares</strong>
+      (وحروف اسمها مشتقة من اسميهما: C. Adams & S. Tavares).
+      نُشرت الخوارزمية كمعيار مفتوح مجاني الاستخدام في وثيقة <strong>RFC 2144</strong>،
+      واكتسبت شهرة وموثوقية عالمية واسعة عندما اختارها <em>Phil Zimmermann</em> لتكون الخوارزمية الافتراضية في حزمة الخصوصية الشهيرة <strong>PGP 5.0</strong> وتلتها <strong>GNU Privacy Guard (GPG)</strong>.
+    </p>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">⚙️</span>
+        <h2>2. الخصائص الهندسية والدورات المتناوبة</h2>
+      </div>
+    </div>
+    <p>
+      تعتمد الخوارزمية بنية شبكة فايستل (Feistel Network) مع حجم كتلة ثابت يبلغ <strong>64 بت (8 بايت)</strong>،
+      وطول مفتاح متغير يتراوح بين 40 بت و 128 بت (في مشروعنا يتم اشتقاق 128 بت كاملة).
+    </p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>عدد الدورات والمفاتيح الفرعية</h3>
+        <ul class="feature-list">
+          <li><strong>12 دورة:</strong> للمفاتيح التي لا تتجاوز 80 بت.</li>
+          <li><strong>16 دورة:</strong> للمفاتيح الأكبر من 80 بت (بما فيها مفتاح الـ 128 بت القياسي).</li>
+          <li><strong>مفاتيح الحجب (Masking Subkeys $K_m$):</strong> 16 مفتاحاً بحجم 32 بت لكل دورة.</li>
+          <li><strong>مفاتيح الدوران (Rotation Subkeys $K_r$):</strong> 16 مفتاحاً بحجم 5 بت لتحديد مقدار الإزاحة الدورانية (0 إلى 31).</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>الأنماط الثلاثة لدوال الدورات ($f_1, f_2, f_3$)</h3>
+        <p>لمنع الهجمات التناظرية، تتناوب الخوارزمية بين ثلاثة أنواع مختلفة من الدوال:</p>
+        <ol style="margin-right: 20px; line-height: 1.8; color: var(--text-muted);">
+          <li><strong>النوع 1 (Type 1):</strong> جمع نمطي مع المفتاح $K_m$ ثم دوران يساري بـ $K_r$، ثم دمج مخرجات الصناديق الأربعة بالعمليات $(S_1 \oplus S_2) - S_3 + S_4$.</li>
+          <li><strong>النوع 2 (Type 2):</strong> خلط بـ XOR مع المفتاح ثم دوران، ودمج الصناديق بالعمليات $(S_1 - S_2) + S_3 \oplus S_4$.</li>
+          <li><strong>النوع 3 (Type 3):</strong> طرح نمطي ثم دوران، ودمج الصناديق بالعمليات $(S_1 + S_2) \oplus S_3 - S_4$.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">🛡️</span>
+        <h2>3. القوة الأمنية والمناعة ضد الاختراق</h2>
+      </div>
+    </div>
+    <div class="alert-box info">
+      <div class="alert-icon">🔒</div>
+      <div>
+        <strong>أمان تام ومقاومة مثبتة:</strong>
+        صناديق التعويض الكبيرة (8 صناديق بحجم $8 \times 32$ بت) وتنوع العمليات الحسابية (جمع وطرح ودوران وXOR)
+        يمنحان CAST-128 مناعة كاملة ضد هجمات التحليل الخطي والتفاضلي.
+        وحتى اليوم، لا يوجد أي هجوم رياضي معروف أفضل من تجربة جميع الاحتمالات (Brute-force على $2^{128}$ مفتاح).
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">💻</span>
+        <h2>4. الكود البرمجي في المشروع (Python)</h2>
+      </div>
+    </div>
+    <div class="code-container">
+      <div class="code-header">
+        <span class="code-title">cast/cast_libs.py (باستخدام pycryptodome)</span>
+        <button class="btn-copy">📋 نسخ الكود</button>
+      </div>
+      <pre class="code-body"><code>from cast_libs import cast_encrypt, cast_decrypt
+
+key_password = "PGP_Secret_Key_2026"
+message = "بيانات مشفرة بخوارزمية CAST-128 المعتمدة في PGP"
+
+# التشفير بوضع ECB وحشو PKCS#7
+ciphertext = cast_encrypt(message, key_password)
+print("Ciphertext (Hex):", ciphertext.hex())
+
+# فك التشفير واستعادة الرسالة
+recovered = cast_decrypt(ciphertext, key_password)
+print("Decrypted Plaintext:", recovered.decode("utf-8"))</code></pre>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-content">
+    <div class="brand-text">🔐 Crypto Lab — CAST-128 Study Guide</div>
+    <div class="footer-links">
+      <a href="index.html">الرئيسية</a>
+      <a href="des.html">DES</a>
+      <a href="gost.html">GOST Magma</a>
+      <a href="rc4.html">RC4</a>
+      <a href="cast.html">CAST-128</a>
+    </div>
+    <p>© 2026 Crypto Lab</p>
+  </div>
+</footer>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

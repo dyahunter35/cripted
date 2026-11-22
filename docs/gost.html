@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>خوارزمية GOST Magma — المعيار الروسي الحديث</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<!-- Header -->
+<header class="site-header">
+  <div class="container nav-wrap">
+    <a href="index.html" class="brand-logo">
+      <div class="brand-icon">🛡️</div>
+      <div class="brand-text">Crypto Lab</div>
+      <span class="brand-badge">GOST</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link">الرئيسية</a></li>
+      <li><a href="des.html" class="nav-link">DES</a></li>
+      <li><a href="gost.html" class="nav-link active">GOST Magma</a></li>
+      <li><a href="rc4.html" class="nav-link">RC4</a></li>
+      <li><a href="cast.html" class="nav-link">CAST-128</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="https://github.com/" target="_blank" class="btn-github"><span>⭐ GitHub</span></a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-pill">معيار التشفير الوطني الروسي — GOST R 34.12-2015</div>
+    <h1>خوارزمية <span class="highlight">GOST Magma (ГОСТ)</span></h1>
+    <p class="lead">
+      دراسة هندسية متعمقة لخوارزمية ماغما (Magma)، التي تعتمد شبكة فايستل من 32 دورة
+      ومفتاحاً عملاقاً بحجم 256 بت مع دوران حلقي بمقدار 11 بتاً، محققة أعلى مستويات المناعة.
+    </p>
+  </section>
+
+  <!-- Interactive Playground -->
+  <section class="playground-box" data-cipher="gost">
+    <div class="playground-header">
+      <div class="playground-title">
+        <span>🧪</span>
+        <h3>المختبر التفاعلي المباشر لخوارزمية GOST Magma</h3>
+      </div>
+      <span class="badge-tag badge-strong">شبكة فايستل 32 دورة</span>
+    </div>
+
+    <div class="grid-2">
+      <div class="control-group">
+        <label for="plain-input">النص المراد تشفيره (Plaintext):</label>
+        <textarea id="plain-input" class="textarea-field" placeholder="أدخل النص هنا...">Crypto Lab 2026</textarea>
+      </div>
+      <div class="control-group">
+        <label for="key-input">المفتاح السري (256-bit Password / Key):</label>
+        <input type="text" id="key-input" class="input-field" value="SecretKey@123" />
+        
+        <div class="btn-group">
+          <button id="btn-encrypt" class="btn btn-primary">🔒 تشفير الكتلة (Encrypt)</button>
+          <button id="btn-decrypt" class="btn btn-secondary">🔓 فك التشفير (Decrypt)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="output-panel">
+      <div class="output-header">
+        <span class="label">الناتج المشفر (Hex Dump / Plaintext):</span>
+      </div>
+      <div id="output-box" class="output-box">في انتظار تنفيذ التشفير...</div>
+      <div id="trace-box" class="trace-log">سجل التتبع وتفاصيل الدورات الـ 32 سيظهر هنا فور التشغيل.</div>
+    </div>
+  </section>
+
+  <!-- Academic Theory & Architecture -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">📜</span>
+        <h2>1. تاريخ ونشأة المعيار السوفيتي / الروسي</h2>
+      </div>
+    </div>
+    <p>
+      طُوّرت خوارزمية GOST في الأصل خلال حقبة السبعينيات داخل الاتحاد السوفيتي كمعيار تشفير عسكري حكومي سري عالي الحماية.
+      رُفعت عنها السرية لاحقاً في عام 1989 تحت اسم <strong>GOST 28147-89</strong>،
+      وفي عام 2015 تم تحديث المعيار وصياغته رسمياً تحت اسم <strong>GOST R 34.12-2015</strong> متضمناً نسختين:
+      خوارزمية <em>Kuznyechik</em> (كتلة 128 بت)، وخوارزمية <strong>Magma</strong> الكلاسيكية (كتلة 64 بت).
+    </p>
+    <p>
+      الهدف الرئيسي من تصميم GOST كان توفير معيار وطني مستقل يضمن حماية فائقة للمعاملات السيادية والمصرفية
+      ضد إمكانيات أجهزة الاستخبارات الغربية، مع كفاءة برمجية عالية في المعالجات البسيطة.
+    </p>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">⚙️</span>
+        <h2>2. الهيكل المعماري والخصائص التقنية</h2>
+      </div>
+    </div>
+    <p>
+      تتميز GOST Magma بمواصفات فريدة تمنحها تفوقاً حاسماً على نظيراتها في تلك الحقبة (مثل DES):
+    </p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>المواصفات الأساسية</h3>
+        <ul class="feature-list">
+          <li><strong>حجم الكتلة:</strong> 64 بت (8 بايت) مقسمة إلى نصفين متساويين ($A_1, A_0$).</li>
+          <li><strong>طول المفتاح:</strong> 256 بت (32 بايت)، مما يجعل الهجوم الشامل مستحيلاً حاسوبياً.</li>
+          <li><strong>عدد الدورات:</strong> 32 دورة كاملة (ضعف عدد دورات DES).</li>
+          <li><strong>صناديق التعويض:</strong> 8 صناديق S-box (كل صندوق يستبدل 4 بت بـ 4 بت).</li>
+          <li><strong>الدوران الحلقي:</strong> دوران دوراني يساري بمقدار 11 بتاً في كل دورة.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>خوارزمية توزيع المفاتيح (Key Schedule)</h3>
+        <p>يتم تقسيم المفتاح الأصلي (256 بت) إلى 8 كلمات فرعية $K_0, K_1, \dots, K_7$ بحجم 32 بت لكل منها، وتستخدم كالتالي:</p>
+        <ul style="margin-right: 20px; line-height: 1.8; color: var(--text-muted);">
+          <li><strong>الدورات 1 إلى 24:</strong> تكرار ترتيب الكلمات الثلاث الأولى: $K_0 \dots K_7$ ثلاث مرات متتالية (8 × 3 = 24).</li>
+          <li><strong>الدورات 25 إلى 32:</strong> عكس ترتيب الكلمات في الدورات الثماني الأخيرة: $K_7, K_6, \dots, K_0$.</li>
+          <li><strong>فك التشفير:</strong> مجرد عكس مسار ترتيب المفاتيح دون أي تعديل في المعمارية.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">🔄</span>
+        <h2>3. دالة التحويل غير الخطية $g(k, a)$</h2>
+      </div>
+    </div>
+    <p>في كل دورة من الدورات الـ 32، يتم تطبيق دالة التحويل $g$ على النصف الأيمن $a$ والمفتاح الفرعي $k$ عبر الخطوات التالية:</p>
+
+    <ul class="step-list">
+      <li>
+        <h4>الجمع النمطي Modulo $2^{32}$:</h4>
+        <p>يتم جمع النصف الأيمن مع المفتاح الفرعي جمعاً حسابياً نمطياً: <code>(a + k) mod 2^32</code> بدلاً من عملية XOR البسيطة.</p>
+      </li>
+      <li>
+        <h4>التعويض عبر الصناديق الثمانية (S-Boxes):</h4>
+        <p>
+          يتم تقسيم الناتج (32 بت) إلى 8 قيم نيبل (Nibbles) بحجم 4 بت لكل قيمة.
+          تمر كل قيمة عبر صندوق S-Box مخصص لإنتاج 4 بت مقابلة، ما يحقق مستوى عالياً من الارتباك (Confusion).
+        </p>
+      </li>
+      <li>
+        <h4>الدوران الحلقي لليسار 11 بت ($\lll 11$):</h4>
+        <p>يتم تدوير الناتج المجمع ذي الـ 32 بت بمقدار 11 خانة جهة اليسار لتحقيق أقصى درجات الانتشار (Diffusion) السريع عبر البتات.</p>
+      </li>
+      <li>
+        <h4>الدمج مع النصف الأيسر:</h4>
+        <p>يطبق ناتج الدالة عبر بوابة XOR مع النصف الآخر للكتلة، ثم يتم تبديل النصفين استعداداً للدورة التالية.</p>
+      </li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">🛡️</span>
+        <h2>4. التحليل الأمني ومقارنتها مع المعايير الدولية</h2>
+      </div>
+    </div>
+    <div class="alert-box info">
+      <div class="alert-icon">💎</div>
+      <div>
+        <strong>قوة الحصانة الرياضية:</strong>
+        يوفر طول المفتاح (256 بت) فضاء بحث يبلغ $2^{256}$، وهو رقم فلكي يستحيل تجاوزه عبر الهجوم الشامل (Brute-force) حتى بوجود أقوى الحواسيب الكمومية الحالية.
+        بالإضافة إلى ذلك، فإن عدد الدورات الكبير (32 دورة) مع الدوران غير المتناظر (11 بت) يوفر حماية مطلقة ضد التحليل التفاضلي والخطي.
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">💻</span>
+        <h2>5. الكود البرمجي في المشروع (Python)</h2>
+      </div>
+    </div>
+    <div class="code-container">
+      <div class="code-header">
+        <span class="code-title">gost/gost_manual.py (مثال تشغيل)</span>
+        <button class="btn-copy">📋 نسخ الكود</button>
+      </div>
+      <pre class="code-body"><code>from gost_manual import gost_encrypt, gost_decrypt
+
+# تشفير نص باستخدام خوارزمية Magma (GOST R 34.12-2015)
+password = "StrongMasterKey2026"
+text = "بيانات أكاديمية مشفرة بمعيار ماغما"
+
+ciphertext = gost_encrypt(text, password)
+print("GOST Ciphertext (Hex):", ciphertext.hex())
+
+# فك التشفير واسترجاع النص الأصلي
+recovered = gost_decrypt(ciphertext, password)
+print("Recovered Text:", recovered.decode("utf-8"))</code></pre>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-content">
+    <div class="brand-text">🔐 Crypto Lab — GOST Magma Guide</div>
+    <div class="footer-links">
+      <a href="index.html">الرئيسية</a>
+      <a href="des.html">DES</a>
+      <a href="gost.html">GOST Magma</a>
+      <a href="rc4.html">RC4</a>
+      <a href="cast.html">CAST-128</a>
+    </div>
+    <p>© 2026 Crypto Lab</p>
+  </div>
+</footer>
+
+<script src="assets/app.js"></script>
+</body>
+</html>
