@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>خوارزمية RC6 — المتأهلة لنهائيات معيار AES</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<!-- Header -->
+<header class="site-header">
+  <div class="container nav-wrap">
+    <a href="index.html" class="brand-logo">
+      <div class="brand-icon">⚡</div>
+      <div class="brand-text">Crypto Lab</div>
+      <span class="brand-badge">RC6</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link">الرئيسية</a></li>
+      <li><a href="des.html" class="nav-link">DES</a></li>
+      <li><a href="gost.html" class="nav-link">GOST Magma</a></li>
+      <li><a href="rc4.html" class="nav-link">RC4</a></li>
+      <li><a href="rc5.html" class="nav-link">RC5</a></li>
+      <li><a href="rc6.html" class="nav-link active">RC6</a></li>
+      <li><a href="cast.html" class="nav-link">CAST-128</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="https://github.com/dyahunter35/cripted" target="_blank" class="btn-github"><span>⭐ GitHub</span></a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-pill">مرشحة نهائيات المعيار المتقدم — AES Finalist (1998)</div>
+    <h1>خوارزمية <span class="highlight">RC6 (Rivest Cipher 6)</span></h1>
+    <p class="lead">
+      دراسة هندسية معمقة لخوارزمية RC6 المتطورة، التي تجمع بين أربعة مسجلات تشغيل (128-bit Block)
+      ودالة تربيعية لاخطية $f(x) = x(2x + 1) \lll 5$ لتأمين أعلى معدلات الحصانة والسرعة.
+    </p>
+    <div style="margin-top: 20px;">
+      <a href="downloads/rc6.zip" download class="btn-download">
+        📦 تحميل حزمة كود RC6 كاملة (ZIP)
+      </a>
+    </div>
+  </section>
+
+  <!-- Interactive Playground -->
+  <section class="playground-box" data-cipher="rc6">
+    <div class="playground-header">
+      <div class="playground-title">
+        <span>🧪</span>
+        <h3>المختبر التفاعلي المباشر لخوارزمية RC6</h3>
+      </div>
+      <span class="badge-tag badge-strong">RC6-32/20/16 (كتلة 128 بت - 4 مسجلات)</span>
+    </div>
+
+    <div class="grid-2">
+      <div class="control-group">
+        <label for="plain-input">النص الأصلي (Plaintext):</label>
+        <textarea id="plain-input" class="textarea-field" placeholder="أدخل النص هنا...">Crypto Lab 2026</textarea>
+      </div>
+      <div class="control-group">
+        <label for="key-input">المفتاح السري (Password / Key):</label>
+        <input type="text" id="key-input" class="input-field" value="SecretRC6Key@2026" />
+        
+        <div class="btn-group">
+          <button id="btn-encrypt" class="btn btn-primary">🔒 تشفير الكتلة (Encrypt)</button>
+          <button id="btn-decrypt" class="btn btn-secondary">🔓 فك التشفير (Decrypt)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="output-panel">
+      <div class="output-header">
+        <span class="label">الناتج المشفر (Hex Dump / Plaintext):</span>
+      </div>
+      <div id="output-box" class="output-box">في انتظار إدخال البيانات والتشفير...</div>
+      <div id="trace-box" class="trace-log">سجل التحويلات التربيعية والدورات الـ 20 سيظهر هنا فور التشغيل.</div>
+    </div>
+  </section>
+
+  <!-- Theory & Architectural Details -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">📜</span>
+        <h2>1. خلفية التصميم ومسابقة معيار AES</h2>
+      </div>
+    </div>
+    <p>
+      قُدمت خوارزمية <strong>RC6</strong> عام 1998 كمرشحة رسمية لمسابقة اختيار معيار التشفير المتقدم (AES)
+      التي أطلقها المعهد الوطني للمعايير والتقنية الأمريكي (NIST) لاستبدال خوارزمية DES المتقادمة.
+      صمم الخوارزمية نخبة من علماء التشفير في شركة RSA: <strong>Ronald Rivest, Matt Robshaw, Ray Sidney, و Yiqun Lisa Yin</strong>.
+    </p>
+    <p>
+      نجحت RC6 في اجتياز كافة مراحل التقييم الصارمة لتصل إلى المرحلة النهائية كواحدة من أفضل 5 خوارزميات في العالم
+      (إلى جانب Rijndael و Twofish و Serpent و MARS)، وأشادت لجان التحكيم بسرعتها الفائقة وتصميمها الرياضي الأنيق.
+    </p>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">⚙️</span>
+        <h2>2. المعمارية الهندسية ومسجلات العمل الأربعة</h2>
+      </div>
+    </div>
+    <p>
+      صُممت RC6 كترقية جوهرية لمعمارية RC5، حيث تغلبت على هجمات التحليل التفاضلي عبر الانتقال من مسجلين إلى أربعة مسجلات وإضافة عملية الضرب الحسابي:
+    </p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>المواصفات القياسية (RC6-32/20/16)</h3>
+        <ul class="feature-list">
+          <li><strong>حجم الكتلة:</strong> 128 بت كاملة، مقسمة إلى أربع كلمات ذات 32 بت: $(A, B, C, D)$.</li>
+          <li><strong>عدد الدورات:</strong> 20 دورة تكرارية ($r = 20$).</li>
+          <li><strong>طول المفتاح:</strong> يدعم 128 أو 192 أو 256 بت (16 بايت في التطبيق القياسي للمشروع).</li>
+          <li><strong>عدد المفاتيح الفرعية:</strong> $2r + 4 = 44$ كلمة مفتاحية بحجم 32 بت لكل منها.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>الدالة التربيعية غير الخطية $f(x)$</h3>
+        <p>لتوليد دوران معتمد على البيانات شديد التعقيد، تستخدم RC6 دالة تربيعية لاخطية سريعة:</p>
+        <div class="alert-box info" style="margin: 10px 0;">
+          $$f(x) = (x \times (2x + 1)) \lll 5 \pmod{2^{32}}$$
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">
+          الضرب في $(2x + 1)$ يضمن أن الناتج فردي دائماً، وبالتالي تظل جميع البتات محتفظة بإنتروبيا عالية وتمنع أي انحيازات صفرية.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">🔄</span>
+        <h2>3. خوارزمية التشفير في الـ 20 دورة</h2>
+      </div>
+    </div>
+    <p>تسير خطوات التشفير لكتلة 128 بت $(A, B, C, D)$ كالتالي:</p>
+
+    <ul class="step-list">
+      <li>
+        <h4>التهيئة الأولية (Pre-whitening):</h4>
+        <p>
+          <code>B = (B + S[0]) mod 2^32</code>
+          <br>
+          <code>D = (D + S[1]) mod 2^32</code>
+        </p>
+      </li>
+      <li>
+        <h4>الدورات الـ 20 التكرارية:</h4>
+        <p>في كل دورة $i$ من 1 إلى 20:
+          <br>
+          1. حساب دالة التحويل التربيعي: <code>t = ((B * (2B + 1)) mod 2^32) ⋘ 5</code>
+          <br>
+          2. حساب دالة التحويل للمسجل الرابع: <code>u = ((D * (2D + 1)) mod 2^32) ⋘ 5</code>
+          <br>
+          3. تعديل المسجل الأول: <code>A = ((A ⊕ t) ⋘ u) + S[2i] mod 2^32</code>
+          <br>
+          4. تعديل المسجل الثالث: <code>C = ((C ⊕ u) ⋘ t) + S[2i + 1] mod 2^32</code>
+          <br>
+          5. تدوير المسجلات دورياً: <code>(A, B, C, D) = (B, C, D, A)</code>
+        </p>
+      </li>
+      <li>
+        <h4>المعالجة الختامية (Post-whitening):</h4>
+        <p>
+          <code>A = (A + S[2r + 2]) mod 2^32</code>
+          <br>
+          <code>C = (C + S[2r + 3]) mod 2^32</code>
+        </p>
+      </li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">🛡️</span>
+        <h2>4. التحليل الأمني ومقاومة التحليل الرياضي</h2>
+      </div>
+    </div>
+    <div class="alert-box info">
+      <div class="alert-icon">💎</div>
+      <div>
+        <strong>حصانة استثنائية:</strong>
+        خلال اختبارات NIST المكثفة لمسابقة AES، أثبتت RC6 مناعة كاملة ضد هجمات التحليل التفاضلي والخطي.
+        عملية الضرب الحسابي التربيعي $x(2x+1)$ تلغي أي احتمالية لوجود فروق بتية خطية يمكن للمهاجم استغلالها عبر الدورات الـ 20.
+      </div>
+    </div>
+  </section>
+
+  <!-- Line-by-Line Code Explanation Tabs -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">💻</span>
+        <h2>5. شرح الكود البرمجي سطر بسطر (Tabs)</h2>
+      </div>
+      <a href="downloads/rc6.zip" download class="btn-download" style="padding: 6px 14px; font-size: 0.85rem;">
+        📥 تحميل ملفات RC6
+      </a>
+    </div>
+    <p>
+      اختر التبويب لمراجعة كود خوارزمية RC6 المتأهلة لنهائيات AES مع تحليل مفصل لدور كل سطر في معالجة الكلمات وتطبيق التحويلات:
+    </p>
+
+    <!-- Tab Container -->
+    <div class="tab-container">
+      <div class="tab-nav">
+        <button class="tab-btn active" data-tab="tab-rc6-manual">🛠️ الكود اليدوي من الصفر (rc6_manual.py)</button>
+        <button class="tab-btn" data-tab="tab-rc6-libs">📚 الكود المرجعي والمكتبات (rc6_libs.py)</button>
+      </div>
+
+      <!-- Tab 1: Manual -->
+      <div id="tab-rc6-manual" class="tab-pane active">
+        <h3>تحليل أسطر الكود اليدوي (Line-by-Line Breakdown)</h3>
+        <div class="table-responsive">
+          <table class="code-explain-table">
+            <thead>
+              <tr>
+                <th style="width: 40%;">السطر / المقطع البرمجي (Code Snippet)</th>
+                <th style="width: 60%;">ماذا يخدم هذا السطر وكيف يعمل؟ (Functionality & Purpose)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="code-snippet-cell">P32 = 0xb7e15163
+Q32 = 0x9e3779b9</td>
+                <td class="explain-text-cell"><strong>ثوابت توسيع المفتاح:</strong> نفس الثوابت السحرية الرياضية المشتقة من $e$ و $\phi$ لضمان تشتيت عالي الإنتروبيا في جدول المفاتيح الموسع.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def rc6_setup(key_bytes, r=20):
+    t = 2 * r + 4
+    S = [0] * t
+    ...</td>
+                <td class="explain-text-cell"><strong>جدولة مفاتيح RC6:</strong> توليد 44 مفتاحاً فرعياً بحجم 32 بت (مفتاحان للتهيئة، و 40 مفتاحاً للدورات الـ 20، ومفتاحان للمعالجة الختامية).</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">t = rotl32((B * (2 * B + 1)) & 0xffffffff, 5)
+u = rotl32((D * (2 * D + 1)) & 0xffffffff, 5)</td>
+                <td class="explain-text-cell"><strong>حساب دوال التحويل التربيعية:</strong> ضرب كل مسجل في $(2x+1)$ ثم إجراء دوران أيسر بمقدار 5 بتات، ما يخلق لاخطية قوية جداً تحمي ضد التحليل التفاضلي.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">A = (rotl32(A ^ t, u) + S[2 * i]) & 0xffffffff
+C = (rotl32(C ^ u, t) + S[2 * i + 1]) & 0xffffffff</td>
+                <td class="explain-text-cell"><strong>تطبيق الدوران المعقد وجمع المفاتيح:</strong> تطبيق XOR مع $t$ والدوران بمقدار $u$ للمسجل الأول، والعكس للمسجل الثالث، ثم جمع المفاتيح الفرعية الخاصة بالدورة.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">A, B, C, D = B, C, D, A</td>
+                <td class="explain-text-cell"><strong>تدوير المسجلات الأربعة:</strong> تبديل دوري لمواقع المسجلات لضمان خلط جميع الكلمات الأربع بالتناوب خلال الـ 20 دورة.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">A = (A + S[2 * r + 2]) & 0xffffffff
+C = (C + S[2 * r + 3]) & 0xffffffff</td>
+                <td class="explain-text-cell"><strong>المعالجة الختامية (Post-whitening):</strong> إضافة آخر مفتاحين فرعيين إلى المسجلين $A$ و $C$ لإخفاء مدخلات آخر دورة وإنهاء تشفير الكتلة (128 بت).</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def rc6_decrypt_block(ct16, S, r=20):
+    ...
+    A, B, C, D = D, A, B, C</td>
+                <td class="explain-text-cell"><strong>فك التشفير المعكوس:</strong> طرح مفاتيح النهاية، ثم تدوير المسجلات بالعكس $(D, A, B, C)$ وتطبيق الدوران لليمين ($\ggg$) وطرح المفاتيح لاسترجاع الكتلة الأصلية.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="code-container" style="margin-top: 20px;">
+          <div class="code-header">
+            <span class="code-title">rc6/rc6_manual.py (مثال تشغيل كامل)</span>
+            <button class="btn-copy">📋 نسخ الكود</button>
+          </div>
+          <pre class="code-body"><code>from rc6_manual import rc6_encrypt, rc6_decrypt
+
+# تشفير نص باستخدام RC6-32/20/16
+key = "AES_Finalist_Key_2026"
+text = "تشفير كتل 128 بت بخوارزمية RC6 المتقدمة"
+
+ciphertext = rc6_encrypt(text, key)
+print("RC6 Ciphertext (hex):", ciphertext.hex())
+
+plaintext = rc6_decrypt(ciphertext, key).decode("utf-8")
+print("RC6 Decrypted:", plaintext)</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 2: Libs -->
+      <div id="tab-rc6-libs" class="tab-pane">
+        <h3>هيكل الواجهة البرمجية (rc6/rc6_libs.py)</h3>
+        <div class="table-responsive">
+          <table class="code-explain-table">
+            <thead>
+              <tr>
+                <th style="width: 40%;">السطر / المقطع البرمجي (Code Snippet)</th>
+                <th style="width: 60%;">ماذا يخدم هذا السطر وكيف يعمل؟ (Functionality & Purpose)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="code-snippet-cell">from rc6_manual import rc6_setup, rc6_encrypt, rc6_decrypt</td>
+                <td class="explain-text-cell"><strong>توفير الواجهة الموحدة:</strong> تصدير واجهات التشفير وفك التشفير مع دعم Steganography بنفس النمط القياسي المعتمد في باقي مجلدات المشروع.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">pad_len = 16 - (len(data) % 16)</td>
+                <td class="explain-text-cell"><strong>حشو PKCS#7 لكُتل 16 بايت:</strong> تكملة البيانات إلى مضاعفات 16 بايت لضمان التوافق مع كتلة RC6 ذات الـ 128 بت في نمط ECB.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="code-container" style="margin-top: 20px;">
+          <div class="code-header">
+            <span class="code-title">rc6/rc6_libs.py</span>
+            <button class="btn-copy">📋 نسخ الكود</button>
+          </div>
+          <pre class="code-body"><code>from rc6_manual import rc6_encrypt, rc6_decrypt
+
+ct = rc6_encrypt("Hello RC6 AES Finalist", "MasterKey2026")
+print(rc6_decrypt(ct, "MasterKey2026").decode())</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-content">
+    <div class="brand-text">🔐 Crypto Lab — RC6 Study Guide</div>
+    <div class="footer-links">
+      <a href="index.html">الرئيسية</a>
+      <a href="des.html">DES</a>
+      <a href="gost.html">GOST Magma</a>
+      <a href="rc4.html">RC4</a>
+      <a href="rc5.html">RC5</a>
+      <a href="rc6.html">RC6</a>
+      <a href="cast.html">CAST-128</a>
+    </div>
+    <p>© 2026 Crypto Lab</p>
+  </div>
+</footer>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

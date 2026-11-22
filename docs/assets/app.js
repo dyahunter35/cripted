@@ -1,6 +1,6 @@
 /**
  * Crypto Lab - Interactive UI and Client-side Cryptographic Helper
- * Educational platform for learning DES, GOST, RC4, CAST-128 & Steganography
+ * Educational platform for learning DES, GOST, RC4, RC5, RC6, CAST-128 & Steganography
  */
 
 (function () {
@@ -41,8 +41,18 @@
     return new Uint8Array(hashBuf);
   }
 
-  // --- Educational Stream Cipher (RC4) ---
-  function rc4Crypt(keyBytes, textBytes) {
+  // --- Bitwise 32-bit Rotations ---
+  function rotl32(x, y) {
+    y = y & 31;
+    return (((x << y) | (x >>> (32 - y))) >>> 0);
+  }
+  function rotr32(x, y) {
+    y = y & 31;
+    return (((x >>> y) | (x << (32 - y))) >>> 0);
+  }
+
+  // --- RC4 / RC4-drop Stream Cipher ---
+  function rc4Crypt(keyBytes, textBytes, drop = 0) {
     const S = new Uint8Array(256);
     for (let i = 0; i < 256; i++) S[i] = i;
 
@@ -56,6 +66,15 @@
 
     let i = 0;
     j = 0;
+    // Discard initial bytes if drop is requested (RC4-drop)
+    for (let d = 0; d < drop; d++) {
+      i = (i + 1) & 255;
+      j = (j + S[i]) & 255;
+      const tmp = S[i];
+      S[i] = S[j];
+      S[j] = tmp;
+    }
+
     const out = new Uint8Array(textBytes.length);
     for (let k = 0; k < textBytes.length; k++) {
       i = (i + 1) & 255;
@@ -69,9 +88,126 @@
     return out;
   }
 
-  // --- Educational Feistel Core (Used for interactive visualizer) ---
+  // --- RC5 Core (RC5-32/12/16) ---
+  function rc5Setup(keyBytes, r = 12) {
+    const P32 = 0xb7e15163 >>> 0;
+    const Q32 = 0x9e3779b9 >>> 0;
+    const c = Math.max(1, Math.floor(keyBytes.length / 4));
+    const L = new Uint32Array(c);
+    for (let i = 0; i < c; i++) {
+      L[i] = (keyBytes[i * 4] | (keyBytes[i * 4 + 1] << 8) | (keyBytes[i * 4 + 2] << 16) | (keyBytes[i * 4 + 3] << 24)) >>> 0;
+    }
+    const t = 2 * (r + 1);
+    const S = new Uint32Array(t);
+    S[0] = P32;
+    for (let i = 1; i < t; i++) {
+      S[i] = (S[i - 1] + Q32) >>> 0;
+    }
+    let i = 0, j = 0, A = 0, B = 0;
+    const loops = 3 * Math.max(t, c);
+    for (let l = 0; l < loops; l++) {
+      A = S[i] = rotl32((S[i] + A + B) >>> 0, 3);
+      B = L[j] = rotl32((L[j] + A + B) >>> 0, (A + B) & 31);
+      i = (i + 1) % t;
+      j = (j + 1) % c;
+    }
+    return S;
+  }
+
+  function rc5Block(pt8, S, r = 12, mode = 'enc') {
+    let A = (pt8[0] | (pt8[1] << 8) | (pt8[2] << 16) | (pt8[3] << 24)) >>> 0;
+    let B = (pt8[4] | (pt8[5] << 8) | (pt8[6] << 16) | (pt8[7] << 24)) >>> 0;
+
+    if (mode === 'enc') {
+      A = (A + S[0]) >>> 0;
+      B = (B + S[1]) >>> 0;
+      for (let i = 1; i <= r; i++) {
+        A = (rotl32(A ^ B, B) + S[2 * i]) >>> 0;
+        B = (rotl32(B ^ A, A) + S[2 * i + 1]) >>> 0;
+      }
+    } else {
+      for (let i = r; i >= 1; i--) {
+        B = rotr32((B - S[2 * i + 1]) >>> 0, A) ^ A;
+        A = rotr32((A - S[2 * i]) >>> 0, B) ^ B;
+      }
+      B = (B - S[1]) >>> 0;
+      A = (A - S[0]) >>> 0;
+    }
+
+    const out = new Uint8Array(8);
+    out[0] = A & 255; out[1] = (A >>> 8) & 255; out[2] = (A >>> 16) & 255; out[3] = (A >>> 24) & 255;
+    out[4] = B & 255; out[5] = (B >>> 8) & 255; out[6] = (B >>> 16) & 255; out[7] = (B >>> 24) & 255;
+    return out;
+  }
+
+  // --- RC6 Core (RC6-32/20/16, AES Finalist) ---
+  function rc6Setup(keyBytes, r = 20) {
+    const P32 = 0xb7e15163 >>> 0;
+    const Q32 = 0x9e3779b9 >>> 0;
+    const c = Math.max(1, Math.floor(keyBytes.length / 4));
+    const L = new Uint32Array(c);
+    for (let i = 0; i < c; i++) {
+      L[i] = (keyBytes[i * 4] | (keyBytes[i * 4 + 1] << 8) | (keyBytes[i * 4 + 2] << 16) | (keyBytes[i * 4 + 3] << 24)) >>> 0;
+    }
+    const t = 2 * r + 4;
+    const S = new Uint32Array(t);
+    S[0] = P32;
+    for (let i = 1; i < t; i++) {
+      S[i] = (S[i - 1] + Q32) >>> 0;
+    }
+    let i = 0, j = 0, A = 0, B = 0;
+    const loops = 3 * Math.max(t, c);
+    for (let l = 0; l < loops; l++) {
+      A = S[i] = rotl32((S[i] + A + B) >>> 0, 3);
+      B = L[j] = rotl32((L[j] + A + B) >>> 0, (A + B) & 31);
+      i = (i + 1) % t;
+      j = (j + 1) % c;
+    }
+    return S;
+  }
+
+  function rc6Block(pt16, S, r = 20, mode = 'enc') {
+    let A = (pt16[0] | (pt16[1] << 8) | (pt16[2] << 16) | (pt16[3] << 24)) >>> 0;
+    let B = (pt16[4] | (pt16[5] << 8) | (pt16[6] << 16) | (pt16[7] << 24)) >>> 0;
+    let C = (pt16[8] | (pt16[9] << 8) | (pt16[10] << 16) | (pt16[11] << 24)) >>> 0;
+    let D = (pt16[12] | (pt16[13] << 8) | (pt16[14] << 16) | (pt16[15] << 24)) >>> 0;
+
+    if (mode === 'enc') {
+      B = (B + S[0]) >>> 0;
+      D = (D + S[1]) >>> 0;
+      for (let i = 1; i <= r; i++) {
+        const t = rotl32(Math.imul(B, (2 * B + 1) >>> 0), 5);
+        const u = rotl32(Math.imul(D, (2 * D + 1) >>> 0), 5);
+        A = (rotl32(A ^ t, u) + S[2 * i]) >>> 0;
+        C = (rotl32(C ^ u, t) + S[2 * i + 1]) >>> 0;
+        const tmp = A; A = B; B = C; C = D; D = tmp;
+      }
+      A = (A + S[2 * r + 2]) >>> 0;
+      C = (C + S[2 * r + 3]) >>> 0;
+    } else {
+      C = (C - S[2 * r + 3]) >>> 0;
+      A = (A - S[2 * r + 2]) >>> 0;
+      for (let i = r; i >= 1; i--) {
+        const tmp = D; D = C; C = B; B = A; A = tmp;
+        const u = rotl32(Math.imul(D, (2 * D + 1) >>> 0), 5);
+        const t = rotl32(Math.imul(B, (2 * B + 1) >>> 0), 5);
+        C = (rotr32((C - S[2 * i + 1]) >>> 0, t) ^ u) >>> 0;
+        A = (rotr32((A - S[2 * i]) >>> 0, u) ^ t) >>> 0;
+      }
+      D = (D - S[1]) >>> 0;
+      B = (B - S[0]) >>> 0;
+    }
+
+    const out = new Uint8Array(16);
+    out[0] = A & 255; out[1] = (A >>> 8) & 255; out[2] = (A >>> 16) & 255; out[3] = (A >>> 24) & 255;
+    out[4] = B & 255; out[5] = (B >>> 8) & 255; out[6] = (B >>> 16) & 255; out[7] = (B >>> 24) & 255;
+    out[8] = C & 255; out[9] = (C >>> 8) & 255; out[10] = (C >>> 16) & 255; out[11] = (C >>> 24) & 255;
+    out[12] = D & 255; out[13] = (D >>> 8) & 255; out[14] = (D >>> 16) & 255; out[15] = (D >>> 24) & 255;
+    return out;
+  }
+
+  // --- Educational Feistel Core (DES / GOST / CAST visualizer) ---
   function feistelSimulation(dataBytes, keyBytes, rounds, mode) {
-    // Pads to 8 bytes block
     const padLen = 8 - (dataBytes.length % 8 || 8);
     let totalLen = dataBytes.length + (mode === 'enc' ? (padLen === 0 ? 8 : padLen) : 0);
     const padded = new Uint8Array(totalLen);
@@ -95,7 +231,6 @@
                        (keyBytes[(r * 4 + 2) % keyBytes.length] << 8) |
                        (keyBytes[(r * 4 + 3) % keyBytes.length]);
         
-        // Non-linear round function F (XOR, rot, S-box simulation)
         let F = (R ^ subkey) >>> 0;
         F = ((F << 11) | (F >>> 21)) ^ 0x5a5a5a5a;
 
@@ -108,7 +243,6 @@
         }
       }
 
-      // Final swap
       out[b] = (R >>> 24) & 255;
       out[b + 1] = (R >>> 16) & 255;
       out[b + 2] = (R >>> 8) & 255;
@@ -170,6 +304,47 @@
         if (traceBox) {
           traceBox.innerHTML = `تم توليد تيار المفاتيح عبر KSA و PRGA بنجاح.<br>طول النص: ${textBytes.length} بايت<br>Ciphertext (Hex): <code>${hex}</code>`;
         }
+      } else if (cipherType === 'rc4-drop') {
+        const ct = rc4Crypt(keyHash, textBytes, 768);
+        const hex = bytesToHex(ct);
+        outputBox.innerText = hex;
+        if (traceBox) {
+          traceBox.innerHTML = `تم تطبيق خوارزمية RC4-drop768 بنجاح (تم إهمال أول 768 بايت لإلغاء الانحياز الإحصائي).<br>Ciphertext (Hex): <code>${hex}</code>`;
+        }
+      } else if (cipherType === 'rc5') {
+        const S = rc5Setup(keyHash.slice(0, 16), 12);
+        const padLen = 8 - (textBytes.length % 8);
+        const padded = new Uint8Array(textBytes.length + padLen);
+        padded.set(textBytes);
+        for (let p = textBytes.length; p < padded.length; p++) padded[p] = padLen;
+
+        const out = new Uint8Array(padded.length);
+        for (let b = 0; b < padded.length; b += 8) {
+          const blk = rc5Block(padded.subarray(b, b + 8), S, 12, 'enc');
+          out.set(blk, b);
+        }
+        const hex = bytesToHex(out);
+        outputBox.innerText = hex;
+        if (traceBox) {
+          traceBox.innerHTML = `تشفير RC5-32/12/16 مع دورات معتمدة على البيانات (Data-dependent Rotations).<br>عدد الكتل: ${padded.length / 8}<br>Ciphertext (Hex): <code>${hex}</code>`;
+        }
+      } else if (cipherType === 'rc6') {
+        const S = rc6Setup(keyHash.slice(0, 16), 20);
+        const padLen = 16 - (textBytes.length % 16);
+        const padded = new Uint8Array(textBytes.length + padLen);
+        padded.set(textBytes);
+        for (let p = textBytes.length; p < padded.length; p++) padded[p] = padLen;
+
+        const out = new Uint8Array(padded.length);
+        for (let b = 0; b < padded.length; b += 16) {
+          const blk = rc6Block(padded.subarray(b, b + 16), S, 20, 'enc');
+          out.set(blk, b);
+        }
+        const hex = bytesToHex(out);
+        outputBox.innerText = hex;
+        if (traceBox) {
+          traceBox.innerHTML = `تشفير RC6-32/20/16 المتأهل لنهائيات AES (4 سجلات ودالة تربيعية غير خطية).<br>عدد الكتل (128-bit): ${padded.length / 16}<br>Ciphertext (Hex): <code>${hex}</code>`;
+        }
       } else {
         const rounds = cipherType === 'gost' ? 32 : (cipherType === 'cast' ? 16 : 16);
         const { out, trace } = feistelSimulation(textBytes, keyHash, rounds, 'enc');
@@ -197,11 +372,35 @@
           const pt = rc4Crypt(keyHash, ctBytes);
           outputBox.innerText = new TextDecoder().decode(pt);
           if (traceBox) traceBox.innerHTML = 'تم فك التشفير التدفقي (XOR متناظر)';
+        } else if (cipherType === 'rc4-drop') {
+          const pt = rc4Crypt(keyHash, ctBytes, 768);
+          outputBox.innerText = new TextDecoder().decode(pt);
+          if (traceBox) traceBox.innerHTML = 'تم فك تشفير RC4-drop768 بنجاح';
+        } else if (cipherType === 'rc5') {
+          const S = rc5Setup(keyHash.slice(0, 16), 12);
+          const out = new Uint8Array(ctBytes.length);
+          for (let b = 0; b < ctBytes.length; b += 8) {
+            const blk = rc5Block(ctBytes.subarray(b, b + 8), S, 12, 'dec');
+            out.set(blk, b);
+          }
+          const pad = out[out.length - 1];
+          const unpadded = (pad > 0 && pad <= 8) ? out.slice(0, out.length - pad) : out;
+          outputBox.innerText = new TextDecoder().decode(unpadded);
+          if (traceBox) traceBox.innerHTML = 'تم فك تشفير RC5 بنجاح';
+        } else if (cipherType === 'rc6') {
+          const S = rc6Setup(keyHash.slice(0, 16), 20);
+          const out = new Uint8Array(ctBytes.length);
+          for (let b = 0; b < ctBytes.length; b += 16) {
+            const blk = rc6Block(ctBytes.subarray(b, b + 16), S, 20, 'dec');
+            out.set(blk, b);
+          }
+          const pad = out[out.length - 1];
+          const unpadded = (pad > 0 && pad <= 16) ? out.slice(0, out.length - pad) : out;
+          outputBox.innerText = new TextDecoder().decode(unpadded);
+          if (traceBox) traceBox.innerHTML = 'تم فك تشفير RC6 بنجاح';
         } else {
-          // Feistel symmetric reverse
           const rounds = cipherType === 'gost' ? 32 : 16;
           const { out, trace } = feistelSimulation(ctBytes, keyHash, rounds, 'dec');
-          // unpad PKCS7
           const pad = out[out.length - 1];
           const unpadded = (pad > 0 && pad <= 8) ? out.slice(0, out.length - pad) : out;
           outputBox.innerText = new TextDecoder().decode(unpadded);
@@ -220,7 +419,6 @@
     canvas.width = 160;
     canvas.height = 120;
 
-    // Draw colorful pattern
     const grad = ctx.createLinearGradient(0, 0, 160, 120);
     grad.addColorStop(0, '#0284c7');
     grad.addColorStop(0.5, '#6366f1');
@@ -249,7 +447,6 @@
         const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = imgData.data;
 
-        // Encode length (32-bit big endian) + string bytes
         const textBytes = new TextEncoder().encode(text);
         const total = new Uint8Array(4 + textBytes.length);
         const len = textBytes.length;
@@ -259,13 +456,12 @@
         total[3] = len & 255;
         total.set(textBytes, 4);
 
-        // Embed into LSB of RGB channels
         let byteIdx = 0;
         let bitIdx = 7;
         let pixelIdx = 0;
 
         while (byteIdx < total.length && pixelIdx < data.length) {
-          if (pixelIdx % 4 !== 3) { // Skip alpha
+          if (pixelIdx % 4 !== 3) {
             const bit = (total[byteIdx] >>> bitIdx) & 1;
             data[pixelIdx] = (data[pixelIdx] & ~1) | bit;
             bitIdx--;
@@ -288,10 +484,9 @@
         const data = imgData.data;
 
         let pixelIdx = 0;
-        // Read 32-bit length
         let len = 0;
         for (let b = 0; b < 32; b++) {
-          while (pixelIdx % 4 === 3) pixelIdx++; // skip alpha
+          while (pixelIdx % 4 === 3) pixelIdx++;
           const bit = data[pixelIdx] & 1;
           len = (len << 1) | bit;
           pixelIdx++;

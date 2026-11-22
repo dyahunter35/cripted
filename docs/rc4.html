@@ -21,6 +21,8 @@
       <li><a href="des.html" class="nav-link">DES</a></li>
       <li><a href="gost.html" class="nav-link">GOST Magma</a></li>
       <li><a href="rc4.html" class="nav-link active">RC4</a></li>
+      <li><a href="rc5.html" class="nav-link">RC5</a></li>
+      <li><a href="rc6.html" class="nav-link">RC6</a></li>
       <li><a href="cast.html" class="nav-link">CAST-128</a></li>
     </ul>
     <div class="nav-actions">
@@ -180,7 +182,8 @@
     <!-- Tab Container -->
     <div class="tab-container">
       <div class="tab-nav">
-        <button class="tab-btn active" data-tab="tab-rc4-manual">🛠️ الكود اليدوي من الصفر (rc4_manual.py)</button>
+        <button class="tab-btn active" data-tab="tab-rc4-manual">🛠️ الكود اليدوي القياسي (rc4_manual.py)</button>
+        <button class="tab-btn" data-tab="tab-rc4-drop">🛡️ نسخة RC4-drop768 المقاومة للانحياز</button>
         <button class="tab-btn" data-tab="tab-rc4-libs">📚 الكود بالمكتبات (rc4_libs.py)</button>
       </div>
 
@@ -255,7 +258,58 @@ print("Plaintext:", pt.decode())</code></pre>
         </div>
       </div>
 
-      <!-- Tab 2: Libraries -->
+      <!-- Tab 2: RC4-drop -->
+      <div id="tab-rc4-drop" class="tab-pane">
+        <h3>نسخة RC4-drop (إسقاط البايتات الأولى لتجاوز ثغرات الانحياز الإحصائي)</h3>
+        <p>
+          اقترح الباحثان <em>Paul & Maitra</em> تقنية <strong>RC4-drop[n]</strong> لحل مشكلة الانحياز الإحصائي في البايتات الأولى عبر إهمال أول 768 أو 3072 بايت من تيار المفاتيح قبل البدء في التشفير الفعلي للبيانات:
+        </p>
+        <div class="table-responsive">
+          <table class="code-explain-table">
+            <thead>
+              <tr>
+                <th style="width: 40%;">السطر / المقطع البرمجي (Code Snippet)</th>
+                <th style="width: 60%;">ماذا يخدم هذا السطر وكيف يعمل؟ (Functionality & Purpose)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="code-snippet-cell">def _prga_drop(S, n, drop=768):
+    i = j = 0
+    for _ in range(drop):
+        i = (i + 1) % 256
+        j = (j + S[i]) % 256
+        S[i], S[j] = S[j], S[i]</td>
+                <td class="explain-text-cell"><strong>إسقاط البايتات الأولى (Dropping Keystream):</strong> تشغيل الخوارزمية لـ 768 دورة وإهمال جميع المخرجات، مما يؤدي إلى خلط عناصر المصفوفة $S$ بعمق شديد ومحو أي أثر لارتباطات المفتاح الأولي.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def rc4_drop_encrypt(plaintext, password, drop=768):
+    key = derive_key(password)
+    ks = _prga_drop(_ksa(key), len(data), drop)
+    return bytes(b ^ k for b, k in zip(data, ks))</td>
+                <td class="explain-text-cell"><strong>التشفير المقاوم:</strong> تطبيق التشفير فقط بعد استقرار التوزيع الإحصائي العشوائي للتيار، ما يحمي ضد هجمات FMS وهجمات التحليل الإحصائي الشهيرة.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="code-container" style="margin-top: 20px;">
+          <div class="code-header">
+            <span class="code-title">rc4/rc4_manual.py (مثال تشغيل RC4-drop768)</span>
+            <button class="btn-copy">📋 نسخ الكود</button>
+          </div>
+          <pre class="code-body"><code>from rc4_manual import rc4_drop_encrypt, rc4_drop_decrypt
+
+# تشفير مع إسقاط 768 بايت أولية
+ct_drop = rc4_drop_encrypt("بيانات محمية ضد الانحياز الإحصائي", "DropKey2026", drop=768)
+print("RC4-drop768 Ciphertext:", ct_drop.hex())
+
+pt_drop = rc4_drop_decrypt(ct_drop, "DropKey2026", drop=768)
+print("Decrypted Plaintext:", pt_drop.decode())</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 3: Libraries -->
       <div id="tab-rc4-libs" class="tab-pane">
         <h3>تحليل أسطر كود المكتبة الجاهزة (PyCryptodome ARC4)</h3>
         <div class="table-responsive">
@@ -319,6 +373,8 @@ def rc4_decrypt(ciphertext, password):
       <a href="des.html">DES</a>
       <a href="gost.html">GOST Magma</a>
       <a href="rc4.html">RC4</a>
+      <a href="rc5.html">RC5</a>
+      <a href="rc6.html">RC6</a>
       <a href="cast.html">CAST-128</a>
     </div>
     <p>© 2026 Crypto Lab</p>

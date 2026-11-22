@@ -21,6 +21,8 @@
       <li><a href="des.html" class="nav-link">DES</a></li>
       <li><a href="gost.html" class="nav-link">GOST Magma</a></li>
       <li><a href="rc4.html" class="nav-link">RC4</a></li>
+      <li><a href="rc5.html" class="nav-link">RC5</a></li>
+      <li><a href="rc6.html" class="nav-link">RC6</a></li>
       <li><a href="cast.html" class="nav-link">CAST-128</a></li>
     </ul>
     <div class="nav-actions">
@@ -41,7 +43,7 @@
       وتقنيات إخفاء الرسائل السرية (Steganography) بالوسائط المتعددة، مع تطبيق كامل بلغتي Python و JavaScript.
     </p>
     <div class="hero-meta">
-      <div class="meta-item">📦 <strong>4 خوارزميات كلاسيكية وحديثة</strong></div>
+      <div class="meta-item">📦 <strong>6 خوارزميات كلاسيكية وحديثة</strong></div>
       <div class="meta-item">🖼️ <strong>إخفاء LSB في الصور (BMP) والصوت (WAV)</strong></div>
       <div class="meta-item">🧪 <strong>تطبيق يدوي من الصفر + مكتبات معيارية</strong></div>
     </div>
@@ -133,6 +135,44 @@
           <a href="cast.html">استكشف CAST بالتفصيل ←</a>
         </div>
       </div>
+
+      <!-- RC5 Card -->
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-icon">🔄</div>
+          <span class="badge-tag badge-strong">دوران معتمد على البيانات</span>
+        </div>
+        <h3>RC5 (RC5-32/12/16)</h3>
+        <p>ابتكار رون ريفست (1994). كتلة 64 بت ومفتاح 128 بت، تعتمد على الدوران المعتمد على البيانات والثوابت السحرية e و phi.</p>
+        <div class="cipher-specs">
+          <div class="cipher-spec-item"><span class="label">حجم الكتلة:</span><span class="val">64-bit</span></div>
+          <div class="cipher-spec-item"><span class="label">طول المفتاح:</span><span class="val">128-bit</span></div>
+          <div class="cipher-spec-item"><span class="label">الهيكل:</span><span class="val">Rotation-based</span></div>
+          <div class="cipher-spec-item"><span class="label">الدورات:</span><span class="val">12 Round</span></div>
+        </div>
+        <div class="cipher-card-footer">
+          <a href="rc5.html">استكشف RC5 بالتفصيل ←</a>
+        </div>
+      </div>
+
+      <!-- RC6 Card -->
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-icon">⚡</div>
+          <span class="badge-tag badge-strong">نهائيات AES (1998)</span>
+        </div>
+        <h3>RC6 (RC6-32/20/16)</h3>
+        <p>المرشحة لنهائيات AES. كتلة 128 بت و 4 مسجلات تشغيل، ودالة تربيعية لاخطية f(x) = x(2x+1) <<< 5 مع 20 دورة.</p>
+        <div class="cipher-specs">
+          <div class="cipher-spec-item"><span class="label">حجم الكتلة:</span><span class="val">128-bit</span></div>
+          <div class="cipher-spec-item"><span class="label">طول المفتاح:</span><span class="val">128-256 b</span></div>
+          <div class="cipher-spec-item"><span class="label">المسجلات:</span><span class="val">4 Words</span></div>
+          <div class="cipher-spec-item"><span class="label">الدورات:</span><span class="val">20 Round</span></div>
+        </div>
+        <div class="cipher-card-footer">
+          <a href="rc6.html">استكشف RC6 بالتفصيل ←</a>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -193,6 +233,24 @@
             <td>12 أو 16 دورة</td>
             <td><span class="badge-tag badge-strong">آمنة هندسياً</span></td>
             <td>برمجيات البريد المشفر PGP / GPG</td>
+          </tr>
+          <tr>
+            <td><strong>RC5</strong></td>
+            <td>تشفير كتل (Rotations)</td>
+            <td>64 بت (8 بايت)</td>
+            <td>128 بت قياسي</td>
+            <td>12 دورة</td>
+            <td><span class="badge-tag badge-strong">آمنة بـ 12+ دورة</span></td>
+            <td>الأنظمة المدمجة والتشفير الخفيف</td>
+          </tr>
+          <tr>
+            <td><strong>RC6</strong></td>
+            <td>تشفير كتل (Quadratic Feistel)</td>
+            <td>128 بت (16 بايت)</td>
+            <td>128 - 256 بت</td>
+            <td>20 دورة</td>
+            <td><span class="badge-tag badge-strong">فائقة الأمان (نهائيات AES)</span></td>
+            <td>التطبيقات عالية الأمان وسريعة المعالجة</td>
           </tr>
         </tbody>
       </table>
@@ -311,6 +369,18 @@ python3 cast/cast_libs.py demo</code></pre>
         <p>تشمل cast_manual.py و cast_libs.py وتطبيقات الإخفاء.</p>
         <a href="downloads/cast.zip" download class="btn-download" style="width: 100%;">📥 تحميل CAST (ZIP)</a>
       </div>
+
+      <div class="card" style="text-align: center;">
+        <h3>RC5 Package</h3>
+        <p>تشمل rc5_manual.py و rc5_libs.py وتطبيقات الإخفاء.</p>
+        <a href="downloads/rc5.zip" download class="btn-download" style="width: 100%;">📥 تحميل RC5 (ZIP)</a>
+      </div>
+
+      <div class="card" style="text-align: center;">
+        <h3>RC6 Package</h3>
+        <p>تشمل rc6_manual.py و rc6_libs.py وتطبيقات الإخفاء.</p>
+        <a href="downloads/rc6.zip" download class="btn-download" style="width: 100%;">📥 تحميل RC6 (ZIP)</a>
+      </div>
     </div>
 
     <div style="text-align: center; margin-top: 28px;">
@@ -330,6 +400,8 @@ python3 cast/cast_libs.py demo</code></pre>
       <a href="des.html">DES</a>
       <a href="gost.html">GOST Magma</a>
       <a href="rc4.html">RC4</a>
+      <a href="rc5.html">RC5</a>
+      <a href="rc6.html">RC6</a>
       <a href="cast.html">CAST-128</a>
     </div>
     <p>© 2026 Crypto Lab — مشروع أكاديمي تفاعلي متقدم</p>

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>خوارزمية RC5 — الدوران المعتمد على البيانات</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<!-- Header -->
+<header class="site-header">
+  <div class="container nav-wrap">
+    <a href="index.html" class="brand-logo">
+      <div class="brand-icon">🔄</div>
+      <div class="brand-text">Crypto Lab</div>
+      <span class="brand-badge">RC5</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link">الرئيسية</a></li>
+      <li><a href="des.html" class="nav-link">DES</a></li>
+      <li><a href="gost.html" class="nav-link">GOST Magma</a></li>
+      <li><a href="rc4.html" class="nav-link">RC4</a></li>
+      <li><a href="rc5.html" class="nav-link active">RC5</a></li>
+      <li><a href="rc6.html" class="nav-link">RC6</a></li>
+      <li><a href="cast.html" class="nav-link">CAST-128</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="https://github.com/dyahunter35/cripted" target="_blank" class="btn-github"><span>⭐ GitHub</span></a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-pill">ابتكار رون ريفست (1994) — ثورة الدوران المتغير</div>
+    <h1>خوارزمية <span class="highlight">RC5 (Rivest Cipher 5)</span></h1>
+    <p class="lead">
+      دراسة تفصيلية لمعمارية التشفير البارامترية القائمة على الدوران المعتمد على البيانات (Data-Dependent Rotations)
+      والثوابت السحرية المستمدة من النسبة الذهبية والعدد النيبيري.
+    </p>
+    <div style="margin-top: 20px;">
+      <a href="downloads/rc5.zip" download class="btn-download">
+        📦 تحميل حزمة كود RC5 كاملة (ZIP)
+      </a>
+    </div>
+  </section>
+
+  <!-- Interactive Playground -->
+  <section class="playground-box" data-cipher="rc5">
+    <div class="playground-header">
+      <div class="playground-title">
+        <span>🧪</span>
+        <h3>المختبر التفاعلي المباشر لخوارزمية RC5</h3>
+      </div>
+      <span class="badge-tag badge-strong">RC5-32/12/16 (كتلة 64 بت)</span>
+    </div>
+
+    <div class="grid-2">
+      <div class="control-group">
+        <label for="plain-input">النص الأصلي (Plaintext):</label>
+        <textarea id="plain-input" class="textarea-field" placeholder="أدخل النص هنا...">Crypto Lab 2026</textarea>
+      </div>
+      <div class="control-group">
+        <label for="key-input">المفتاح السري (Password / Key):</label>
+        <input type="text" id="key-input" class="input-field" value="SecretRC5Key@2026" />
+        
+        <div class="btn-group">
+          <button id="btn-encrypt" class="btn btn-primary">🔒 تشفير الكتلة (Encrypt)</button>
+          <button id="btn-decrypt" class="btn btn-secondary">🔓 فك التشفير (Decrypt)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="output-panel">
+      <div class="output-header">
+        <span class="label">الناتج المشفر (Hex Dump / Plaintext):</span>
+      </div>
+      <div id="output-box" class="output-box">في انتظار إدخال البيانات والتشفير...</div>
+      <div id="trace-box" class="trace-log">سجل التحويلات والدورات المعتمدة على البيانات سيظهر هنا فور التشغيل.</div>
+    </div>
+  </section>
+
+  <!-- Theory & Concept -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">📜</span>
+        <h2>1. النشأة وفلسفة التصميم المرن</h2>
+      </div>
+    </div>
+    <p>
+      صمم عالم التعمية <strong>Ronald Rivest</strong> خوارزمية RC5 في عام 1994 لصالح مختبرات RSA Data Security.
+      جاءت الخوارزمية كاستجابة للحاجة إلى خوارزمية تشفير كتل فائقة السرعة، وبسيطة التركيب، وقابلة للتعديل والضبط (Parameterized).
+    </p>
+    <p>
+      تتميز RC5 بكونها تعتمد كلياً على العمليات الحسابية والمنطقية الأساسية المدمجة في المعالجات الحديثة:
+      (الجمع النمطي، عملية XOR، والإزاحة الدورانية)، دون الحاجة إلى جداول تبديل أو صناديق تعويض (S-boxes)،
+      مما جعلها مثالية للأجهزة ذات الذاكرة المحدودة والمعالجات الدقيقة.
+    </p>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">⚙️</span>
+        <h2>2. المعمارية الهندسية والمتغيرات الثلاثة (RC5-w/r/b)</h2>
+      </div>
+    </div>
+    <p>تُعرف خوارزمية RC5 بمعاملاتها الثلاثة: $RC5-w/r/b$:</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>المعاملات القياسية (Parameters)</h3>
+        <ul class="feature-list">
+          <li><strong>حجم الكلمة ($w$):</strong> 32 بت (وحجم الكتلة $2w = 64$ بت، مقسمة إلى مسجلين $A$ و $B$).</li>
+          <li><strong>عدد الدورات ($r$):</strong> 12 دورة قياسية (العدد الإجمالي للمفاتيح الفرعية $2r + 2 = 26$).</li>
+          <li><strong>طول المفتاح بالبايت ($b$):</strong> 16 بايت (128 بت في التطبيق القياسي للمشروع).</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>الثوابت السحرية الرياضية ($P_w$ و $Q_w$)</h3>
+        <p>تستخدم الخوارزمية ثابتين سحريين فريدين مشتقين من ثوابت رياضية غير نسبية:</p>
+        <ul style="margin-right: 20px; line-height: 1.8; color: var(--text-muted);">
+          <li><strong>$P_{32} = \text{0xb7e15163}$ :</strong> مشتق من العدد النيبيري $e = 2.71828...$ عبر المعادلة $\text{Odd}((e-2)2^w)$.</li>
+          <li><strong>$Q_{32} = \text{0x9e3779b9}$ :</strong> مشتق من النسبة الذهبية $\phi = 1.61803...$ عبر المعادلة $\text{Odd}((\phi-1)2^w)$.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">🔄</span>
+        <h2>3. خوارزمية التشفير والدوران المعتمد على البيانات</h2>
+      </div>
+    </div>
+    <p>
+      الابتكار الأعظم في RC5 هو <strong>الدوران المعتمد على البيانات (Data-Dependent Rotation)</strong>،
+      حيث لا تكون مسافة الإزاحة الدورانية ثابتة في كل دورة، بل تتحدد ديناميكياً بناءً على القيمة اللحظية للبيانات في المسجل المقابل:
+    </p>
+
+    <ul class="step-list">
+      <li>
+        <h4>التهيئة الأولية (Pre-whitening):</h4>
+        <p>يتم جمع المفتاحين الفرعيين الأولين مع نص الكتلة:
+          <br>
+          <code>A = (A + S[0]) mod 2^32</code>
+          <br>
+          <code>B = (B + S[1]) mod 2^32</code>
+        </p>
+      </li>
+      <li>
+        <h4>الدورات الـ 12 التكرارية:</h4>
+        <p>في كل دورة $i$ من 1 إلى $r$ يتم حساب:
+          <br>
+          <code>A = ((A ⊕ B) ⋘ B) + S[2i] mod 2^32</code>
+          <br>
+          <code>B = ((B ⊕ A) ⋘ A) + S[2i + 1] mod 2^32</code>
+          <br>
+          لاحظ أن مقدار الدوران في $A$ يعتمد على القيمة الحالية لـ $B$ (تحديداً أدنى 5 بتات في المعالجات ذات الـ 32 بت)، والعكس صحيح.
+        </p>
+      </li>
+      <li>
+        <h4>فك التشفير المعكوس:</h4>
+        <p>يتم عكس العمليات بدقة من الدورة $r$ نزولاً إلى 1 باستخدام الإزاحة الدورانية لليمين ($\ggg$)، ثم طرح مفاتيح التهيئة الأولية.</p>
+      </li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">🛡️</span>
+        <h2>4. التحليل الأمني ومقاومة الهجمات</h2>
+      </div>
+    </div>
+    <div class="alert-box info">
+      <div class="alert-icon">🔒</div>
+      <div>
+        <strong>الأمان العملي:</strong>
+        أثبتت الأبحاث الأكاديمية (مثل أبحاث Kaliski و Yin) أن استخدام 12 دورة مع مفتاح 128 بت يوفر حصانة عالية جداً ضد التحليلين التفاضلي والخطي.
+        عملية الدوران المعتمد على البيانات توفر تعقيداً غير خطي قوي يعوض غياب صناديق التعويض S-boxes.
+      </div>
+    </div>
+  </section>
+
+  <!-- Line-by-Line Code Explanation Tabs -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">💻</span>
+        <h2>5. شرح الكود البرمجي سطر بسطر (Tabs)</h2>
+      </div>
+      <a href="downloads/rc5.zip" download class="btn-download" style="padding: 6px 14px; font-size: 0.85rem;">
+        📥 تحميل ملفات RC5
+      </a>
+    </div>
+    <p>
+      استكشف الكود البرمجي لخوارزمية RC5 مع شرح مفصل لدور كل سطر في معالجة الكلمات وتطبيق الدوران:
+    </p>
+
+    <!-- Tab Container -->
+    <div class="tab-container">
+      <div class="tab-nav">
+        <button class="tab-btn active" data-tab="tab-rc5-manual">🛠️ الكود اليدوي من الصفر (rc5_manual.py)</button>
+        <button class="tab-btn" data-tab="tab-rc5-libs">📚 الكود المرجعي والمكتبات (rc5_libs.py)</button>
+      </div>
+
+      <!-- Tab 1: Manual -->
+      <div id="tab-rc5-manual" class="tab-pane active">
+        <h3>تحليل أسطر الكود اليدوي (Line-by-Line Breakdown)</h3>
+        <div class="table-responsive">
+          <table class="code-explain-table">
+            <thead>
+              <tr>
+                <th style="width: 40%;">السطر / المقطع البرمجي (Code Snippet)</th>
+                <th style="width: 60%;">ماذا يخدم هذا السطر وكيف يعمل؟ (Functionality & Purpose)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="code-snippet-cell">P32 = 0xb7e15163
+Q32 = 0x9e3779b9</td>
+                <td class="explain-text-cell"><strong>تعريف الثوابت السحرية:</strong> قيم ثابتة مشتقة من الأساس الطبيعي $e$ والنسبة الذهبية $\phi$، تستخدم لملء جدول المفاتيح الموسع بطريقة تضمن تشتتاً موحداً للبتات.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def rotl32(x, y):
+    y = y & 31
+    return (((x << y) & 0xffffffff) | (x >> (32 - y))) & 0xffffffff</td>
+                <td class="explain-text-cell"><strong>دالة الدوران الأيسر 32 بت:</strong> تقيد الإزاحة $y$ بأول 5 بتات (0 إلى 31)، وتطبق الدوران الحلقي بدمج الإزاحة لليسار مع الفائض المدار من اليمين.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def rc5_setup(key_bytes, r=12):
+    S = [0] * (2 * (r + 1))
+    S[0] = P32
+    for i in range(1, t):
+        S[i] = (S[i - 1] + Q32) & 0xffffffff</td>
+                <td class="explain-text-cell"><strong>تهيئة جدول المفاتيح الموسع:</strong> إنشاء جدول المفاتيح $S$ المكون من 26 كلمة ذات 32 بت، وملئه بالمتتالية الخطية الناتجة عن جمع الثابت $Q_{32}$.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">loops = 3 * max(t, c)
+for _ in range(loops):
+    A = S[i] = rotl32((S[i] + A + B) & 0xffffffff, 3)
+    B = L[j] = rotl32((L[j] + A + B) & 0xffffffff, (A + B) & 31)
+    i = (i + 1) % t; j = (j + 1) % c</td>
+                <td class="explain-text-cell"><strong>خلط المفتاح مع جدول الثوابت:</strong> تكرار عملية خلط متبادل بين جدول المفتاح الأصلي $L$ وجدول الثوابت $S$ عبر الدوران، مما يضمن خلط المفتاح السري بشكل كامل في جميع الكلمات الفرعية.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def rc5_encrypt_block(pt8, S, r=12):
+    A, B = struct.unpack("<II", pt8)
+    A = (A + S[0]) & 0xffffffff
+    B = (B + S[1]) & 0xffffffff
+    for i in range(1, r + 1):
+        A = (rotl32(A ^ B, B) + S[2 * i]) & 0xffffffff
+        B = (rotl32(B ^ A, A) + S[2 * i + 1]) & 0xffffffff</td>
+                <td class="explain-text-cell"><strong>تشفير كتلة 64 بت:</strong> تفكيك الكتلة إلى مسجلين $A$ و $B$، وإجراء التهيئة الأولية بجمع $S[0]$ و $S[1]$، ثم تنفيذ الـ 12 دورة بالدوران المعتمد على البيانات وجمع المفاتيح الفرعية.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def rc5_decrypt_block(ct8, S, r=12):
+    for i in range(r, 0, -1):
+        B = rotr32((B - S[2 * i + 1]) & 0xffffffff, A) ^ A
+        A = rotr32((A - S[2 * i]) & 0xffffffff, B) ^ B</td>
+                <td class="explain-text-cell"><strong>فك تشفير الكتلة:</strong> تطبيق المعادلات المعكوسة تماماً، بطرح مفتاح الدورة ثم الدوران المعكوس لليمين ($\ggg$) ثم تطبيق بوابة XOR، وصولاً لطرح مفاتيح التهيئة.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="code-container" style="margin-top: 20px;">
+          <div class="code-header">
+            <span class="code-title">rc5/rc5_manual.py (مثال تشغيل كامل)</span>
+            <button class="btn-copy">📋 نسخ الكود</button>
+          </div>
+          <pre class="code-body"><code>from rc5_manual import rc5_encrypt, rc5_decrypt
+
+# تشفير نص باستخدام RC5-32/12/16
+key = "MyMasterSecretKey"
+text = "تشفير الكتل بواسطة RC5 المعتمدة على الدوران"
+
+ciphertext = rc5_encrypt(text, key)
+print("RC5 Ciphertext (hex):", ciphertext.hex())
+
+plaintext = rc5_decrypt(ciphertext, key).decode("utf-8")
+print("RC5 Decrypted:", plaintext)</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 2: Libs -->
+      <div id="tab-rc5-libs" class="tab-pane">
+        <h3>هيكل الواجهة البرمجية (rc5/rc5_libs.py)</h3>
+        <div class="table-responsive">
+          <table class="code-explain-table">
+            <thead>
+              <tr>
+                <th style="width: 40%;">السطر / المقطع البرمجي (Code Snippet)</th>
+                <th style="width: 60%;">ماذا يخدم هذا السطر وكيف يعمل؟ (Functionality & Purpose)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="code-snippet-cell">from rc5_manual import rc5_setup, rc5_encrypt, rc5_decrypt</td>
+                <td class="explain-text-cell"><strong>توفير الواجهة الموحدة:</strong> تصدير واجهات التشفير وفك التشفير مع دعم Steganography بنفس النمط القياسي المعتمد في باقي مجلدات المشروع.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">pad_len = 8 - (len(data) % 8)</td>
+                <td class="explain-text-cell"><strong>حشو PKCS#7 القياسي:</strong> تكملة البيانات إلى مضاعفات 8 بايت لضمان صحة تشفير الكتل في نمط ECB.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="code-container" style="margin-top: 20px;">
+          <div class="code-header">
+            <span class="code-title">rc5/rc5_libs.py</span>
+            <button class="btn-copy">📋 نسخ الكود</button>
+          </div>
+          <pre class="code-body"><code>from rc5_manual import rc5_encrypt, rc5_decrypt
+
+ct = rc5_encrypt("Hello RC5", "Password2026")
+print(rc5_decrypt(ct, "Password2026").decode())</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-content">
+    <div class="brand-text">🔐 Crypto Lab — RC5 Study Guide</div>
+    <div class="footer-links">
+      <a href="index.html">الرئيسية</a>
+      <a href="des.html">DES</a>
+      <a href="gost.html">GOST Magma</a>
+      <a href="rc4.html">RC4</a>
+      <a href="rc5.html">RC5</a>
+      <a href="rc6.html">RC6</a>
+      <a href="cast.html">CAST-128</a>
+    </div>
+    <p>© 2026 Crypto Lab</p>
+  </div>
+</footer>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

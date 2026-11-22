@@ -32,6 +32,22 @@ def _prga(S, n):
     return out
 
 
+def _prga_drop(S, n, drop=768):
+    i = j = 0
+    # Discard initial keystream bytes to eliminate biases (RC4-drop[n])
+    for _ in range(drop):
+        i = (i + 1) % 256
+        j = (j + S[i]) % 256
+        S[i], S[j] = S[j], S[i]
+    out = bytearray()
+    for _ in range(n):
+        i = (i + 1) % 256
+        j = (j + S[i]) % 256
+        S[i], S[j] = S[j], S[i]
+        out.append(S[(S[i] + S[j]) % 256])
+    return out
+
+
 def derive_key(password):
     return hashlib.sha256(password.encode()).digest()
 
@@ -49,6 +65,17 @@ def rc4_encrypt(plaintext, password):
 
 def rc4_decrypt(ciphertext, password):
     return _rc4(ciphertext, password)
+
+
+def rc4_drop_encrypt(plaintext, password, drop=768):
+    key = derive_key(password)
+    data = plaintext.encode() if isinstance(plaintext, str) else plaintext
+    ks = _prga_drop(_ksa(key), len(data), drop)
+    return bytes(b ^ k for b, k in zip(data, ks))
+
+
+def rc4_drop_decrypt(ciphertext, password, drop=768):
+    return rc4_drop_encrypt(ciphertext, password, drop)
 
 
 def make_sample_image(path, w=64, h=64):
