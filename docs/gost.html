@@ -307,15 +307,258 @@
             <span class="code-title">الكود اليدوي الكامل — gost/gost_manual.py</span>
             <button class="btn-copy">📋 نسخ الكود</button>
           </div>
-          <pre class="code-body"><code>from gost_manual import gost_encrypt, gost_decrypt
+          <pre class="code-body"><code>&quot;&quot;&quot;GOST (Magma, GOST R 34.12-2015) implemented from scratch + steganography.&quot;&quot;&quot;
 
-# تشفير نص بكلمة سر
-ciphertext = gost_encrypt("نص تعليمي لمشروع الماجستير", "MySecureKey2026")
-print("Ciphertext:", ciphertext.hex())
+import argparse
+import hashlib
+import math
+import os
+import struct
+import wave
+from struct import pack
 
-# فك التشفير
-recovered = gost_decrypt(ciphertext, "MySecureKey2026")
-print("Plaintext:", recovered.decode("utf-8"))</code></pre>
+from stego_image import hide as img_hide, extract as img_extract
+from stego_audio import hide as aud_hide, extract as aud_extract
+
+# ---------- S-boxes (from GOST R 34.12-2015 / gostcrypto) ----------
+_S_BOX_MAGMA = (
+    (0x0c, 0x04, 0x06, 0x02, 0x0a, 0x05, 0x0b, 0x09, 0x0e, 0x08, 0x0d, 0x07, 0x00, 0x03, 0x0f, 0x01),
+    (0x06, 0x08, 0x02, 0x03, 0x09, 0x0a, 0x05, 0x0c, 0x01, 0x0e, 0x04, 0x07, 0x0b, 0x0d, 0x00, 0x0f),
+    (0x0b, 0x03, 0x05, 0x08, 0x02, 0x0f, 0x0a, 0x0d, 0x0e, 0x01, 0x07, 0x04, 0x0c, 0x09, 0x06, 0x00),
+    (0x0c, 0x08, 0x02, 0x01, 0x0d, 0x04, 0x0f, 0x06, 0x07, 0x00, 0x0a, 0x05, 0x03, 0x0e, 0x09, 0x0b),
+    (0x07, 0x0f, 0x05, 0x0a, 0x08, 0x01, 0x06, 0x0d, 0x00, 0x09, 0x03, 0x0e, 0x0b, 0x04, 0x02, 0x0c),
+    (0x05, 0x0d, 0x0f, 0x06, 0x09, 0x02, 0x0c, 0x0a, 0x0b, 0x07, 0x08, 0x01, 0x04, 0x03, 0x0e, 0x00),
+    (0x08, 0x0e, 0x02, 0x05, 0x06, 0x09, 0x01, 0x0c, 0x0f, 0x04, 0x0b, 0x00, 0x0d, 0x0a, 0x03, 0x07),
+    (0x01, 0x07, 0x0e, 0x0d, 0x00, 0x05, 0x08, 0x03, 0x04, 0x0f, 0x0a, 0x06, 0x09, 0x0c, 0x0b, 0x02),
+)
+
+
+def _expand_key(key_bytes):
+    key = bytearray(key_bytes)
+    iter_keys = []
+    for _ in range(3):
+        for j in range(8):
+            ik = bytearray(4)
+            for i in range(4):
+                ik[i] = key[(j * 4) + i]
+            iter_keys.append(ik)
+    for j in range(8):
+        ik = bytearray(4)
+        for i in range(4):
+            ik[i] = key[28 - (j * 4) + i]
+        iter_keys.append(ik)
+    return iter_keys
+
+
+def _add32(a, b):
+    a = bytearray(a); b = bytearray(b)
+    internal = 0
+    result = bytearray(4)
+    for i in range(3, -1, -1):
+        internal = a[i] + b[i] + (internal &gt;&gt; 8)
+        result[i] = internal &amp; 0xff
+    return result
+
+
+def _t(data):
+    result = bytearray(4)
+    data = bytearray(data)
+    for i in range(4):
+        first = data[i] &amp; 0x0f
+        sec = (data[i] &amp; 0xf0) &gt;&gt; 4
+        first = _S_BOX_MAGMA[(3 - i) * 2][first]
+        sec = _S_BOX_MAGMA[(3 - i) * 2 + 1][sec]
+        result[i] = (sec &lt;&lt; 4) | first
+    return result
+
+
+def _g(k, a):
+    internal = _add32(k, a)
+    internal = _t(internal)
+    val = 0
+    for byte in internal:
+        val = (val &lt;&lt; 8) | byte
+    val = ((val &lt;&lt; 11) | (val &gt;&gt; 21)) &amp; 0xffffffff
+    return bytearray(pack(&quot;&gt;I&quot;, val))
+
+
+def _g_iter(k, block):
+    a0 = bytearray(block[4:8])
+    a1 = bytearray(block[0:4])
+    gg = _g(k, a0)
+    # xor a1
+    for i in range(4):
+        gg[i] ^= a1[i]
+    return a0, a1, gg
+
+
+def _g_prev(k, block):
+    a0, a1, gg = _g_iter(k, block)
+    a1 = a0
+    a0 = gg
+    result = bytearray(8)
+    result[0:4] = a1
+    result[4:8] = a0
+    return result
+
+
+def _g_fin(k, block):
+    a0, a1, gg = _g_iter(k, block)
+    a1 = gg
+    result = bytearray(8)
+    result[0:4] = a1
+    result[4:8] = a0
+    return result
+
+
+def _encrypt_block(block8, key_bytes):
+    keys = _expand_key(key_bytes)
+    result = bytearray(block8)
+    result = _g_prev(keys[0], result)
+    for i in range(1, 31):
+        result = _g_prev(keys[i], result)
+    result = _g_fin(keys[31], result)
+    return bytes(result)
+
+
+def _decrypt_block(block8, key_bytes):
+    keys = _expand_key(key_bytes)
+    result = bytearray(block8)
+    result = _g_prev(keys[31], result)
+    for i in range(30, 0, -1):
+        result = _g_prev(keys[i], result)
+    result = _g_fin(keys[0], result)
+    return bytes(result)
+
+
+def _pkcs7_pad(data, bs=8):
+    pad_len = bs - (len(data) % bs)
+    if pad_len == 0:
+        pad_len = bs
+    return data + bytes([pad_len]) * pad_len
+
+
+def _pkcs7_unpad(data):
+    pad_len = data[-1]
+    if pad_len &lt; 1 or pad_len &gt; 8 or data[-pad_len:] != bytes([pad_len]) * pad_len:
+        raise ValueError(&quot;bad padding&quot;)
+    return data[:-pad_len]
+
+
+def derive_key(password):
+    return hashlib.sha256(password.encode()).digest()[:32]
+
+
+def gost_encrypt(plaintext, password):
+    key = derive_key(password)
+    data = plaintext.encode() if isinstance(plaintext, str) else plaintext
+    data = _pkcs7_pad(data)
+    out = bytearray()
+    for i in range(0, len(data), 8):
+        out += _encrypt_block(data[i:i + 8], key)
+    return bytes(out)
+
+
+def gost_decrypt(ciphertext, password):
+    key = derive_key(password)
+    if len(ciphertext) % 8 != 0:
+        raise ValueError(&quot;bad length&quot;)
+    out = bytearray()
+    for i in range(0, len(ciphertext), 8):
+        out += _decrypt_block(ciphertext[i:i + 8], key)
+    return _pkcs7_unpad(bytes(out))
+
+
+# ---- stego helpers ----
+def _bytes_to_bits(data):
+    bits = []
+    for b in data:
+        for i in range(7, -1, -1):
+            bits.append((b &gt;&gt; i) &amp; 1)
+    return bits
+
+
+def _bits_to_bytes(bits):
+    out = bytearray()
+    cur = 0
+    n = 0
+    for bit in bits:
+        cur = (cur &lt;&lt; 1) | bit
+        n += 1
+        if n == 8:
+            out.append(cur)
+            cur = 0
+            n = 0
+    return bytes(out)
+
+
+def make_sample_image(path, w=64, h=64):
+    row_size = (w * 3 + 3) &amp; ~3
+    pixel_offset = 54
+    file_size = pixel_offset + row_size * h
+    header = bytearray(54)
+    header[0:2] = b&quot;BM&quot;
+    struct.pack_into(&quot;&lt;I&quot;, header, 2, file_size)
+    struct.pack_into(&quot;&lt;I&quot;, header, 10, pixel_offset)
+    struct.pack_into(&quot;&lt;I&quot;, header, 14, 40)
+    struct.pack_into(&quot;&lt;i&quot;, header, 18, w)
+    struct.pack_into(&quot;&lt;i&quot;, header, 22, h)
+    struct.pack_into(&quot;&lt;H&quot;, header, 26, 1)
+    struct.pack_into(&quot;&lt;H&quot;, header, 28, 24)
+    pixels = bytearray(row_size * h)
+    for y in range(h):
+        for x in range(w):
+            idx = (h - 1 - y) * row_size + x * 3
+            pixels[idx] = (x * 4) &amp; 0xFF
+            pixels[idx + 1] = (y * 4) &amp; 0xFF
+            pixels[idx + 2] = 128
+    with open(path, &quot;wb&quot;) as f:
+        f.write(header)
+        f.write(pixels)
+
+
+def make_sample_audio(path, seconds=2, rate=22050):
+    with wave.open(path, &quot;wb&quot;) as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(rate)
+        frames = bytearray()
+        for i in range(rate * seconds):
+            frames += struct.pack(&quot;&lt;h&quot;, int(10000 * math.sin(2 * math.pi * 440 * i / rate)))
+        w.writeframes(frames)
+
+
+def cmd_demo(args):
+    os.makedirs(&quot;demo&quot;, exist_ok=True)
+    img = &quot;demo/sample.bmp&quot;
+    aud = &quot;demo/sample.wav&quot;
+    make_sample_image(img)
+    make_sample_audio(aud)
+    text = &quot;Hello from GOST! سلام&quot;
+    pw = args.key
+    # image
+    ct = gost_encrypt(text, pw)
+    img_hide(img, &quot;demo/secret.bmp&quot;, ct)
+    ct2 = img_extract(&quot;demo/secret.bmp&quot;)
+    print(&quot;image recovered:&quot;, gost_decrypt(ct2, pw).decode())
+    # audio
+    aud_hide(aud, &quot;demo/secret.wav&quot;, ct)
+    ct3 = aud_extract(&quot;demo/secret.wav&quot;)
+    print(&quot;audio recovered:&quot;, gost_decrypt(ct3, pw).decode())
+
+
+def main():
+    p = argparse.ArgumentParser(description=&quot;GOST (manual) + stego&quot;)
+    p.add_argument(&quot;--key&quot;, default=&quot;my-secret-key&quot;)
+    sub = p.add_subparsers(dest=&quot;cmd&quot;, required=True)
+    d = sub.add_parser(&quot;demo&quot;)
+    d.set_defaults(func=cmd_demo)
+    args = p.parse_args()
+    args.func(args)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</code></pre>
         </div>
       </div>
 
@@ -363,28 +606,117 @@ print("Plaintext:", recovered.decode("utf-8"))</code></pre>
             <span class="code-title">كود المكتبات الكامل — gost/gost_libs.py</span>
             <button class="btn-copy">📋 نسخ الكود</button>
           </div>
-          <pre class="code-body"><code>from gostcrypto.gostcipher import GOST34122015Magma
+          <pre class="code-body"><code>&quot;&quot;&quot;GOST (Magma) using ready-made library gostcrypto + steganography.&quot;&quot;&quot;
+
+import argparse
 import hashlib
+import math
+import os
+import struct
+import wave
+
+from gostcrypto.gostcipher import GOST34122015Magma
+
+from stego_image import hide as img_hide, extract as img_extract
+from stego_audio import hide as aud_hide, extract as aud_extract
+
+
+def derive_key(password):
+    return hashlib.sha256(password.encode()).digest()  # 32 bytes
+
 
 def gost_encrypt(plaintext, password):
-    key = hashlib.sha256(password.encode()).digest()
+    key = derive_key(password)
     cipher = GOST34122015Magma(bytearray(key))
     data = plaintext.encode() if isinstance(plaintext, str) else plaintext
-    pad_len = 8 - (len(data) % 8 or 8)
+    # PKCS#7 pad to 8
+    pad_len = 8 - (len(data) % 8)
+    if pad_len == 0:
+        pad_len = 8
     data = data + bytes([pad_len]) * pad_len
     out = bytearray()
     for i in range(0, len(data), 8):
         out += cipher.encrypt(bytearray(data[i:i + 8]))
     return bytes(out)
 
+
 def gost_decrypt(ciphertext, password):
-    key = hashlib.sha256(password.encode()).digest()
+    key = derive_key(password)
     cipher = GOST34122015Magma(bytearray(key))
+    if len(ciphertext) % 8 != 0:
+        raise ValueError(&quot;bad length&quot;)
     out = bytearray()
     for i in range(0, len(ciphertext), 8):
         out += cipher.decrypt(bytearray(ciphertext[i:i + 8]))
     pad_len = out[-1]
-    return bytes(out[:-pad_len])</code></pre>
+    if pad_len &lt; 1 or pad_len &gt; 8 or out[-pad_len:] != bytes([pad_len]) * pad_len:
+        raise ValueError(&quot;bad padding&quot;)
+    return bytes(out[:-pad_len])
+
+
+def make_sample_image(path, w=64, h=64):
+    row_size = (w * 3 + 3) &amp; ~3
+    pixel_offset = 54
+    file_size = pixel_offset + row_size * h
+    header = bytearray(54)
+    header[0:2] = b&quot;BM&quot;
+    struct.pack_into(&quot;&lt;I&quot;, header, 2, file_size)
+    struct.pack_into(&quot;&lt;I&quot;, header, 10, pixel_offset)
+    struct.pack_into(&quot;&lt;I&quot;, header, 14, 40)
+    struct.pack_into(&quot;&lt;i&quot;, header, 18, w)
+    struct.pack_into(&quot;&lt;i&quot;, header, 22, h)
+    struct.pack_into(&quot;&lt;H&quot;, header, 26, 1)
+    struct.pack_into(&quot;&lt;H&quot;, header, 28, 24)
+    pixels = bytearray(row_size * h)
+    for y in range(h):
+        for x in range(w):
+            idx = (h - 1 - y) * row_size + x * 3
+            pixels[idx] = (x * 4) &amp; 0xFF
+            pixels[idx + 1] = (y * 4) &amp; 0xFF
+            pixels[idx + 2] = 128
+    with open(path, &quot;wb&quot;) as f:
+        f.write(header)
+        f.write(pixels)
+
+
+def make_sample_audio(path, seconds=2, rate=22050):
+    with wave.open(path, &quot;wb&quot;) as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(rate)
+        frames = bytearray()
+        for i in range(rate * seconds):
+            frames += struct.pack(&quot;&lt;h&quot;, int(10000 * math.sin(2 * math.pi * 440 * i / rate)))
+        w.writeframes(frames)
+
+
+def cmd_demo(args):
+    os.makedirs(&quot;demo&quot;, exist_ok=True)
+    img = &quot;demo/sample.bmp&quot;
+    aud = &quot;demo/sample.wav&quot;
+    make_sample_image(img)
+    make_sample_audio(aud)
+    text = &quot;Hello from GOST (libs)! سلام&quot;
+    pw = args.key
+    ct = gost_encrypt(text, pw)
+    img_hide(img, &quot;demo/secret.bmp&quot;, ct)
+    print(&quot;image recovered:&quot;, gost_decrypt(img_extract(&quot;demo/secret.bmp&quot;), pw).decode())
+    aud_hide(aud, &quot;demo/secret.wav&quot;, ct)
+    print(&quot;audio recovered:&quot;, gost_decrypt(aud_extract(&quot;demo/secret.wav&quot;), pw).decode())
+
+
+def main():
+    p = argparse.ArgumentParser(description=&quot;GOST (libs) + stego&quot;)
+    p.add_argument(&quot;--key&quot;, default=&quot;my-secret-key&quot;)
+    sub = p.add_subparsers(dest=&quot;cmd&quot;, required=True)
+    d = sub.add_parser(&quot;demo&quot;)
+    d.set_defaults(func=cmd_demo)
+    args = p.parse_args()
+    args.func(args)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</code></pre>
         </div>
       </div>
     </div>

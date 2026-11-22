@@ -252,16 +252,240 @@ f = (c + e) & 0xffff</td>
             <span class="code-title">idea/idea_manual.py (مثال تشغيل كامل)</span>
             <button class="btn-copy">📋 نسخ الكود</button>
           </div>
-          <pre class="code-body"><code>from idea_manual import idea_encrypt, idea_decrypt
+          <pre class="code-body"><code>&quot;&quot;&quot;IDEA (International Data Encryption Algorithm - Lai &amp; Massey, 1991).
+Pure Python implementation from scratch based on mixed algebraic groups.
+&quot;&quot;&quot;
 
-key = "MasterSecretIDEAKey2026"
-text = "تشفير البيانات بواسطة خوارزمية IDEA"
+import argparse
+import hashlib
+import os
+import struct
+from stego_image import hide as img_hide, extract as img_extract
+from stego_audio import hide as aud_hide, extract as aud_extract
 
-ct = idea_encrypt(text, key)
-print("IDEA Ciphertext (hex):", ct.hex())
 
-pt = idea_decrypt(ct, key).decode("utf-8")
-print("Decrypted Plaintext:", pt)</code></pre>
+def mul_mod(a, b):
+    &quot;&quot;&quot;Multiplication modulo 65537 (2^16 + 1, Fermat prime F4). 0 is treated as 2^16.&quot;&quot;&quot;
+    a = 65536 if a == 0 else a
+    b = 65536 if b == 0 else b
+    r = (a * b) % 65537
+    return 0 if r == 65536 else r
+
+
+def inv_mul(a):
+    &quot;&quot;&quot;Multiplicative inverse modulo 65537 via Fermat&#x27;s Little Theorem.&quot;&quot;&quot;
+    if a == 0:
+        return 0
+    return pow(a, 65535, 65537)
+
+
+def inv_add(a):
+    &quot;&quot;&quot;Additive inverse modulo 2^16 (65536).&quot;&quot;&quot;
+    return (-a) &amp; 0xffff
+
+
+def idea_expand_key(key_bytes):
+    &quot;&quot;&quot;Expand 128-bit key into 52 16-bit subkeys via 25-bit cyclic rotations.&quot;&quot;&quot;
+    key_int = int.from_bytes(key_bytes, &quot;big&quot;)
+    subkeys = []
+    for i in range(52):
+        shift = (128 - 16 * (i % 8) - 16)
+        subkeys.append((key_int &gt;&gt; shift) &amp; 0xffff)
+        if (i % 8) == 7:
+            key_int = ((key_int &lt;&lt; 25) &amp; ((1 &lt;&lt; 128) - 1)) | (key_int &gt;&gt; (128 - 25))
+    return subkeys
+
+
+def idea_invert_keys(ek):
+    &quot;&quot;&quot;Derive decryption subkeys from encryption subkeys.&quot;&quot;&quot;
+    dk = [0] * 52
+    # Round 1
+    dk[0] = inv_mul(ek[48])
+    dk[1] = inv_add(ek[49])
+    dk[2] = inv_add(ek[50])
+    dk[3] = inv_mul(ek[51])
+    dk[4] = ek[46]
+    dk[5] = ek[47]
+    # Rounds 2 to 8
+    for r in range(1, 8):
+        s = 48 - r * 6
+        dk[r * 6] = inv_mul(ek[s])
+        dk[r * 6 + 1] = inv_add(ek[s + 2])
+        dk[r * 6 + 2] = inv_add(ek[s + 1])
+        dk[r * 6 + 3] = inv_mul(ek[s + 3])
+        dk[r * 6 + 4] = ek[s - 2]
+        dk[r * 6 + 5] = ek[s - 1]
+    # Round 9 (Output transformation)
+    dk[48] = inv_mul(ek[0])
+    dk[49] = inv_add(ek[1])
+    dk[50] = inv_add(ek[2])
+    dk[51] = inv_mul(ek[3])
+    return dk
+
+
+def idea_crypt_block(block8, subkeys):
+    &quot;&quot;&quot;Encrypt or decrypt an 8-byte block using 52 subkeys.&quot;&quot;&quot;
+    x1 = (block8[0] &lt;&lt; 8) | block8[1]
+    x2 = (block8[2] &lt;&lt; 8) | block8[3]
+    x3 = (block8[4] &lt;&lt; 8) | block8[5]
+    x4 = (block8[6] &lt;&lt; 8) | block8[7]
+
+    for r in range(8):
+        k = r * 6
+        x1 = mul_mod(x1, subkeys[k])
+        x2 = (x2 + subkeys[k + 1]) &amp; 0xffff
+        x3 = (x3 + subkeys[k + 2]) &amp; 0xffff
+        x4 = mul_mod(x4, subkeys[k + 3])
+
+        a = x1 ^ x3
+        b = x2 ^ x4
+        c = mul_mod(a, subkeys[k + 4])
+        d = (b + c) &amp; 0xffff
+        e = mul_mod(d, subkeys[k + 5])
+        f = (c + e) &amp; 0xffff
+
+        x1 ^= e
+        x4 ^= f
+        x2_new = x3 ^ e
+        x3_new = x2 ^ f
+        x2, x3 = x2_new, x3_new
+
+    # Undo final swap between x2 and x3, then apply output transformation
+    x2, x3 = x3, x2
+    y1 = mul_mod(x1, subkeys[48])
+    y2 = (x2 + subkeys[49]) &amp; 0xffff
+    y3 = (x3 + subkeys[50]) &amp; 0xffff
+    y4 = mul_mod(x4, subkeys[51])
+
+    return bytes([
+        y1 &gt;&gt; 8, y1 &amp; 0xff,
+        y2 &gt;&gt; 8, y2 &amp; 0xff,
+        y3 &gt;&gt; 8, y3 &amp; 0xff,
+        y4 &gt;&gt; 8, y4 &amp; 0xff
+    ])
+
+
+def derive_key(password):
+    return hashlib.sha256(password.encode()).digest()[:16]
+
+
+def idea_encrypt(plaintext, password):
+    key = derive_key(password)
+    ek = idea_expand_key(key)
+    data = plaintext.encode() if isinstance(plaintext, str) else plaintext
+    pad_len = 8 - (len(data) % 8)
+    data = data + bytes([pad_len]) * pad_len
+    out = bytearray()
+    for i in range(0, len(data), 8):
+        out += idea_crypt_block(data[i:i + 8], ek)
+    return bytes(out)
+
+
+def idea_decrypt(ciphertext, password):
+    key = derive_key(password)
+    ek = idea_expand_key(key)
+    dk = idea_invert_keys(ek)
+    out = bytearray()
+    for i in range(0, len(ciphertext), 8):
+        out += idea_crypt_block(ciphertext[i:i + 8], dk)
+    pad_len = out[-1]
+    if pad_len &lt; 1 or pad_len &gt; 8 or out[-pad_len:] != bytes([pad_len]) * pad_len:
+        raise ValueError(&quot;Invalid padding&quot;)
+    return bytes(out[:-pad_len])
+
+
+def make_sample_image(path, w=64, h=64):
+    row_size = (w * 3 + 3) &amp; ~3
+    pixel_offset = 54
+    file_size = pixel_offset + row_size * h
+    header = bytearray(54)
+    header[0:2] = b&quot;BM&quot;
+    struct.pack_into(&quot;&lt;I&quot;, header, 2, file_size)
+    struct.pack_into(&quot;&lt;I&quot;, header, 10, pixel_offset)
+    struct.pack_into(&quot;&lt;I&quot;, header, 14, 40)
+    struct.pack_into(&quot;&lt;i&quot;, header, 18, w)
+    struct.pack_into(&quot;&lt;i&quot;, header, 22, h)
+    struct.pack_into(&quot;&lt;H&quot;, header, 26, 1)
+    struct.pack_into(&quot;&lt;H&quot;, header, 28, 24)
+    struct.pack_into(&quot;&lt;I&quot;, header, 34, row_size * h)
+    body = bytearray()
+    for y in range(h):
+        row = bytearray()
+        for x in range(w):
+            row += bytes([(x * 4) % 256, (y * 4) % 256, 180])
+        row += bytes(row_size - w * 3)
+        body += row
+    with open(path, &quot;wb&quot;) as f:
+        f.write(header + body)
+
+
+def make_sample_audio(path, seconds=1, rate=22050):
+    import wave
+    import math
+    with wave.open(path, &quot;wb&quot;) as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(rate)
+        frames = bytearray()
+        for i in range(rate * seconds):
+            frames += struct.pack(&quot;&lt;h&quot;, int(10000 * math.sin(2 * math.pi * 440 * i / rate)))
+        w.writeframes(frames)
+
+
+def cmd_demo(args):
+    pw = &quot;MasterSecretIDEAKey2026&quot;
+    msg = &quot;مرحبا بك في اختبار خوارزمية IDEA التعليمية&quot;
+    ct = idea_encrypt(msg, pw)
+    pt = idea_decrypt(ct, pw).decode(&quot;utf-8&quot;)
+    print(f&quot;IDEA Ciphertext (hex): {ct.hex()}&quot;)
+    print(f&quot;IDEA Decrypted: {pt}&quot;)
+    print(f&quot;Match: {msg == pt}&quot;)
+
+    os.makedirs(&quot;demo&quot;, exist_ok=True)
+    img_sample = &quot;demo/sample.bmp&quot;
+    aud_sample = &quot;demo/sample.wav&quot;
+    make_sample_image(img_sample)
+    make_sample_audio(aud_sample)
+
+    img_hide(img_sample, &quot;demo/secret.bmp&quot;, ct)
+    ext_ct = img_extract(&quot;demo/secret.bmp&quot;)
+    print(&quot;Stego BMP Decrypted:&quot;, idea_decrypt(ext_ct, pw).decode())
+
+    aud_hide(aud_sample, &quot;demo/secret.wav&quot;, ct)
+    ext_aud_ct = aud_extract(&quot;demo/secret.wav&quot;)
+    print(&quot;Stego WAV Decrypted:&quot;, idea_decrypt(ext_aud_ct, pw).decode())
+
+
+def main():
+    p = argparse.ArgumentParser(description=&quot;IDEA from scratch&quot;)
+    p.add_argument(&quot;--key&quot;, default=&quot;MasterSecretIDEAKey2026&quot;)
+    sub = p.add_subparsers(dest=&quot;cmd&quot;, required=True)
+
+    ih = sub.add_parser(&quot;image-hide&quot;)
+    ih.add_argument(&quot;input&quot;); ih.add_argument(&quot;output&quot;); ih.add_argument(&quot;text&quot;)
+    ih.set_defaults(func=lambda a: img_hide(a.input, a.output, idea_encrypt(a.text, a.key)) or print(&quot;done&quot;))
+
+    ish = sub.add_parser(&quot;image-show&quot;)
+    ish.add_argument(&quot;input&quot;)
+    ish.set_defaults(func=lambda a: print(&quot;secret:&quot;, idea_decrypt(img_extract(a.input), a.key).decode()))
+
+    ah = sub.add_parser(&quot;audio-hide&quot;)
+    ah.add_argument(&quot;input&quot;); ah.add_argument(&quot;output&quot;); ah.add_argument(&quot;text&quot;)
+    ah.set_defaults(func=lambda a: aud_hide(a.input, a.output, idea_encrypt(a.text, a.key)) or print(&quot;done&quot;))
+
+    ash = sub.add_parser(&quot;audio-show&quot;)
+    ash.add_argument(&quot;input&quot;)
+    ash.set_defaults(func=lambda a: print(&quot;secret:&quot;, idea_decrypt(aud_extract(a.input), a.key).decode()))
+
+    d = sub.add_parser(&quot;demo&quot;)
+    d.set_defaults(func=cmd_demo)
+
+    args = p.parse_args()
+    args.func(args)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</code></pre>
         </div>
       </div>
 
@@ -294,11 +518,23 @@ print("Decrypted Plaintext:", pt)</code></pre>
             <span class="code-title">idea/idea_libs.py</span>
             <button class="btn-copy">📋 نسخ الكود</button>
           </div>
-          <pre class="code-body"><code>from idea_libs import idea_encrypt, idea_decrypt
+          <pre class="code-body"><code>&quot;&quot;&quot;IDEA (International Data Encryption Algorithm) Library Interface.&quot;&quot;&quot;
 
-ct = idea_encrypt("Hello IDEA Security", "MyKey2026")
-print("Encrypted:", ct.hex())
-print("Decrypted:", idea_decrypt(ct, "MyKey2026").decode())</code></pre>
+from idea_manual import (
+    mul_mod,
+    inv_mul,
+    inv_add,
+    idea_expand_key,
+    idea_invert_keys,
+    idea_crypt_block,
+    derive_key,
+    idea_encrypt,
+    idea_decrypt,
+    main,
+)
+
+if __name__ == &quot;__main__&quot;:
+    main()</code></pre>
         </div>
       </div>
     </div>

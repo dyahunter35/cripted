@@ -286,17 +286,119 @@ for _ in range(loops):
             <span class="code-title">rc5/rc5_manual.py (مثال تشغيل كامل)</span>
             <button class="btn-copy">📋 نسخ الكود</button>
           </div>
-          <pre class="code-body"><code>from rc5_manual import rc5_encrypt, rc5_decrypt
+          <pre class="code-body"><code>&quot;&quot;&quot;RC5-32/12/16 (Ronald Rivest, 1994) implemented from scratch in pure Python.&quot;&quot;&quot;
 
-# تشفير نص باستخدام RC5-32/12/16
-key = "MyMasterSecretKey"
-text = "تشفير الكتل بواسطة RC5 المعتمدة على الدوران"
+import argparse
+import hashlib
+import struct
+from stego_image import hide as img_hide, extract as img_extract
+from stego_audio import hide as aud_hide, extract as aud_extract
 
-ciphertext = rc5_encrypt(text, key)
-print("RC5 Ciphertext (hex):", ciphertext.hex())
+# Magic constants for word size w=32
+P32 = 0xb7e15163
+Q32 = 0x9e3779b9
 
-plaintext = rc5_decrypt(ciphertext, key).decode("utf-8")
-print("RC5 Decrypted:", plaintext)</code></pre>
+
+def rotl32(x, y):
+    y = y &amp; 31
+    return (((x &lt;&lt; y) &amp; 0xffffffff) | (x &gt;&gt; (32 - y))) &amp; 0xffffffff
+
+
+def rotr32(x, y):
+    y = y &amp; 31
+    return ((x &gt;&gt; y) | ((x &lt;&lt; (32 - y)) &amp; 0xffffffff)) &amp; 0xffffffff
+
+
+def rc5_setup(key_bytes, r=12):
+    # Key expansion for RC5-32/12/16
+    c = max(1, len(key_bytes) // 4)
+    L = list(struct.unpack(&quot;&lt;&quot; + &quot;I&quot; * c, key_bytes[:c * 4]))
+    t = 2 * (r + 1)
+    S = [0] * t
+    S[0] = P32
+    for i in range(1, t):
+        S[i] = (S[i - 1] + Q32) &amp; 0xffffffff
+
+    i = j = A = B = 0
+    loops = 3 * max(t, c)
+    for _ in range(loops):
+        A = S[i] = rotl32((S[i] + A + B) &amp; 0xffffffff, 3)
+        B = L[j] = rotl32((L[j] + A + B) &amp; 0xffffffff, (A + B) &amp; 31)
+        i = (i + 1) % t
+        j = (j + 1) % c
+    return S
+
+
+def rc5_encrypt_block(pt8, S, r=12):
+    A, B = struct.unpack(&quot;&lt;II&quot;, pt8)
+    A = (A + S[0]) &amp; 0xffffffff
+    B = (B + S[1]) &amp; 0xffffffff
+    for i in range(1, r + 1):
+        A = (rotl32(A ^ B, B) + S[2 * i]) &amp; 0xffffffff
+        B = (rotl32(B ^ A, A) + S[2 * i + 1]) &amp; 0xffffffff
+    return struct.pack(&quot;&lt;II&quot;, A, B)
+
+
+def rc5_decrypt_block(ct8, S, r=12):
+    A, B = struct.unpack(&quot;&lt;II&quot;, ct8)
+    for i in range(r, 0, -1):
+        B = rotr32((B - S[2 * i + 1]) &amp; 0xffffffff, A) ^ A
+        A = rotr32((A - S[2 * i]) &amp; 0xffffffff, B) ^ B
+    B = (B - S[1]) &amp; 0xffffffff
+    A = (A - S[0]) &amp; 0xffffffff
+    return struct.pack(&quot;&lt;II&quot;, A, B)
+
+
+def derive_key(password):
+    return hashlib.sha256(password.encode()).digest()[:16]  # 128-bit key
+
+
+def rc5_encrypt(plaintext, password, r=12):
+    key = derive_key(password)
+    S = rc5_setup(key, r)
+    data = plaintext.encode() if isinstance(plaintext, str) else plaintext
+    # PKCS#7 padding to 8 bytes
+    pad_len = 8 - (len(data) % 8)
+    data = data + bytes([pad_len]) * pad_len
+    out = bytearray()
+    for i in range(0, len(data), 8):
+        out += rc5_encrypt_block(data[i:i + 8], S, r)
+    return bytes(out)
+
+
+def rc5_decrypt(ciphertext, password, r=12):
+    key = derive_key(password)
+    S = rc5_setup(key, r)
+    out = bytearray()
+    for i in range(0, len(ciphertext), 8):
+        out += rc5_decrypt_block(ciphertext[i:i + 8], S, r)
+    pad_len = out[-1]
+    if pad_len &lt; 1 or pad_len &gt; 8 or out[-pad_len:] != bytes([pad_len]) * pad_len:
+        raise ValueError(&quot;Invalid padding&quot;)
+    return bytes(out[:-pad_len])
+
+
+def cmd_demo(args):
+    pw = &quot;SecretRC5Key@2026&quot;
+    msg = &quot;مرحبا بك في اختبار خوارزمية RC5 التعليمية&quot;
+    ct = rc5_encrypt(msg, pw)
+    pt = rc5_decrypt(ct, pw).decode(&quot;utf-8&quot;)
+    print(f&quot;RC5 Ciphertext (hex): {ct.hex()}&quot;)
+    print(f&quot;RC5 Decrypted: {pt}&quot;)
+    print(f&quot;Match: {msg == pt}&quot;)
+
+
+def main():
+    p = argparse.ArgumentParser(description=&quot;RC5 Cipher CLI&quot;)
+    sub = p.add_subparsers(dest=&quot;cmd&quot;)
+    sub.add_parser(&quot;demo&quot;)
+    args = p.parse_args()
+    if args.cmd == &quot;demo&quot; or not args.cmd:
+        cmd_demo(args)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</code></pre>
         </div>
       </div>
 
@@ -329,10 +431,19 @@ print("RC5 Decrypted:", plaintext)</code></pre>
             <span class="code-title">rc5/rc5_libs.py</span>
             <button class="btn-copy">📋 نسخ الكود</button>
           </div>
-          <pre class="code-body"><code>from rc5_manual import rc5_encrypt, rc5_decrypt
+          <pre class="code-body"><code>&quot;&quot;&quot;RC5 (RC5-32/12/16) Library Wrapper interface.&quot;&quot;&quot;
+from rc5_manual import (
+    rc5_setup,
+    rc5_encrypt_block,
+    rc5_decrypt_block,
+    derive_key,
+    rc5_encrypt,
+    rc5_decrypt,
+    main,
+)
 
-ct = rc5_encrypt("Hello RC5", "Password2026")
-print(rc5_decrypt(ct, "Password2026").decode())</code></pre>
+if __name__ == &quot;__main__&quot;:
+    main()</code></pre>
         </div>
       </div>
     </div>

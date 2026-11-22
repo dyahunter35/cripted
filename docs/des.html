@@ -313,16 +313,265 @@
             <span class="code-title">الكود اليدوي الكامل — des/des_manual.py</span>
             <button class="btn-copy">📋 نسخ الكود</button>
           </div>
-          <pre class="code-body"><code>from des_manual import encrypt, decrypt, derive_key
+          <pre class="code-body"><code>&quot;&quot;&quot;Pure-Python implementation of the Data Encryption Standard (DES).
 
-# اشتقاق مفتاح 8 بايت وتشفير النص
-key = derive_key("Password123")
-cipher_bytes = encrypt("Hello World", key)
-print("Encrypted:", cipher_bytes.hex())
+DES is a symmetric block cipher: it encrypts data in 64-bit (8-byte) blocks
+using a 56-bit key (stored as 8 bytes, one parity bit per byte).
 
-# فك التشفير
-plain_bytes = decrypt(cipher_bytes, key)
-print("Decrypted:", plain_bytes.decode())</code></pre>
+This module implements single-DES in ECB mode with PKCS#7 padding. It is
+intended for teaching / demonstration purposes only -- DES is considered
+insecure today and should not be used to protect real data.
+&quot;&quot;&quot;
+
+import hashlib
+
+# ---------------------------------------------------------------------------
+# Permutation / substitution tables (from the DES standard, FIPS 46-3).
+# Values are 1-based bit positions counted from the most significant bit.
+# ---------------------------------------------------------------------------
+
+IP = [
+    58, 50, 42, 34, 26, 18, 10, 2,
+    60, 52, 44, 36, 28, 20, 12, 4,
+    62, 54, 46, 38, 30, 22, 14, 6,
+    64, 56, 48, 40, 32, 24, 16, 8,
+    57, 49, 41, 33, 25, 17, 9, 1,
+    59, 51, 43, 35, 27, 19, 11, 3,
+    61, 53, 45, 37, 29, 21, 13, 5,
+    63, 55, 47, 39, 31, 23, 15, 7,
+]
+
+FP = [
+    40, 8, 48, 16, 56, 24, 64, 32,
+    39, 7, 47, 15, 55, 23, 63, 31,
+    38, 6, 46, 14, 54, 22, 62, 30,
+    37, 5, 45, 13, 53, 21, 61, 29,
+    36, 4, 44, 12, 52, 20, 60, 28,
+    35, 3, 43, 11, 51, 19, 59, 27,
+    34, 2, 42, 10, 50, 18, 58, 26,
+    33, 1, 41, 9, 49, 17, 57, 25,
+]
+
+E = [
+    32, 1, 2, 3, 4, 5,
+    4, 5, 6, 7, 8, 9,
+    8, 9, 10, 11, 12, 13,
+    12, 13, 14, 15, 16, 17,
+    16, 17, 18, 19, 20, 21,
+    20, 21, 22, 23, 24, 25,
+    24, 25, 26, 27, 28, 29,
+    28, 29, 30, 31, 32, 1,
+]
+
+P = [
+    16, 7, 20, 21, 29, 12, 28, 17,
+    1, 15, 23, 26, 5, 18, 31, 10,
+    2, 8, 24, 14, 32, 27, 3, 9,
+    19, 13, 30, 6, 22, 11, 4, 25,
+]
+
+PC1 = [
+    57, 49, 41, 33, 25, 17, 9, 1,
+    58, 50, 42, 34, 26, 18, 10, 2,
+    59, 51, 43, 35, 27, 19, 11, 3,
+    60, 52, 44, 36, 63, 55, 47, 39,
+    31, 23, 15, 7, 62, 54, 46, 38,
+    30, 22, 14, 6, 61, 53, 45, 37,
+    29, 21, 13, 5, 28, 20, 12, 4,
+]
+
+PC2 = [
+    14, 17, 11, 24, 1, 5,
+    3, 28, 15, 6, 21, 10,
+    23, 19, 12, 4, 26, 8,
+    16, 7, 27, 20, 13, 2,
+    41, 52, 31, 37, 47, 55,
+    30, 40, 51, 45, 33, 48,
+    44, 49, 39, 56, 34, 53,
+    46, 42, 50, 36, 29, 32,
+]
+
+SHIFTS = [1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1]
+
+SBOXES = [
+    # S1
+    [
+        [14, 4, 13, 1, 2, 15, 11, 8, 3, 10, 6, 12, 5, 9, 0, 7],
+        [0, 15, 7, 4, 14, 2, 13, 1, 10, 6, 12, 11, 9, 5, 3, 8],
+        [4, 1, 14, 8, 13, 6, 2, 11, 15, 12, 9, 7, 3, 10, 5, 0],
+        [15, 12, 8, 2, 4, 9, 1, 7, 5, 11, 3, 14, 10, 0, 6, 13],
+    ],
+    # S2
+    [
+        [15, 1, 8, 14, 6, 11, 3, 4, 9, 7, 2, 13, 12, 0, 5, 10],
+        [3, 13, 4, 7, 15, 2, 8, 14, 12, 0, 1, 10, 6, 9, 11, 5],
+        [0, 14, 7, 11, 10, 4, 13, 1, 5, 8, 12, 6, 9, 3, 2, 15],
+        [13, 8, 10, 1, 3, 15, 4, 2, 11, 6, 7, 12, 0, 5, 14, 9],
+    ],
+    # S3
+    [
+        [10, 0, 9, 14, 6, 3, 15, 5, 1, 13, 12, 7, 11, 4, 2, 8],
+        [13, 7, 0, 9, 3, 4, 6, 10, 2, 8, 5, 14, 12, 11, 15, 1],
+        [13, 6, 4, 9, 8, 15, 3, 0, 11, 1, 2, 12, 5, 10, 14, 7],
+        [1, 10, 13, 0, 6, 9, 8, 7, 4, 15, 14, 3, 11, 5, 2, 12],
+    ],
+    # S4
+    [
+        [7, 13, 14, 3, 0, 6, 9, 10, 1, 2, 8, 5, 11, 12, 4, 15],
+        [13, 8, 11, 5, 6, 15, 0, 3, 4, 7, 2, 12, 1, 10, 14, 9],
+        [10, 6, 9, 0, 12, 11, 7, 13, 15, 1, 3, 14, 5, 2, 8, 4],
+        [3, 15, 0, 6, 10, 1, 13, 8, 9, 4, 5, 11, 12, 7, 2, 14],
+    ],
+    # S5
+    [
+        [2, 12, 4, 1, 7, 10, 11, 6, 8, 5, 3, 15, 13, 0, 14, 9],
+        [14, 11, 2, 12, 4, 7, 13, 1, 5, 0, 15, 10, 3, 9, 8, 6],
+        [4, 2, 1, 11, 10, 13, 7, 8, 15, 9, 12, 5, 6, 3, 0, 14],
+        [11, 8, 12, 7, 1, 14, 2, 13, 6, 15, 0, 9, 10, 4, 5, 3],
+    ],
+    # S6
+    [
+        [12, 1, 10, 15, 9, 2, 6, 8, 0, 13, 3, 4, 14, 7, 5, 11],
+        [10, 15, 4, 2, 7, 12, 9, 5, 6, 1, 13, 14, 0, 11, 3, 8],
+        [9, 14, 15, 5, 2, 8, 12, 3, 7, 0, 4, 10, 1, 13, 11, 6],
+        [4, 3, 2, 12, 9, 5, 15, 10, 11, 14, 1, 7, 6, 0, 8, 13],
+    ],
+    # S7
+    [
+        [4, 11, 2, 14, 15, 0, 8, 13, 3, 12, 9, 7, 5, 10, 6, 1],
+        [13, 0, 11, 7, 4, 9, 1, 10, 14, 3, 5, 12, 2, 15, 8, 6],
+        [1, 4, 11, 13, 12, 3, 7, 14, 10, 15, 6, 8, 0, 5, 9, 2],
+        [6, 11, 13, 8, 1, 4, 10, 7, 9, 5, 0, 15, 14, 2, 3, 12],
+    ],
+    # S8
+    [
+        [13, 2, 8, 4, 6, 15, 11, 1, 10, 9, 3, 14, 5, 0, 12, 7],
+        [1, 15, 13, 8, 10, 3, 7, 4, 12, 5, 6, 11, 0, 14, 9, 2],
+        [7, 11, 4, 1, 9, 12, 14, 2, 0, 6, 10, 13, 15, 3, 5, 8],
+        [2, 1, 14, 7, 4, 10, 8, 13, 15, 12, 9, 0, 3, 5, 6, 11],
+    ],
+]
+
+
+def _permute(value, table, n):
+    &quot;&quot;&quot;Permute the n-bit integer `value` according to `table` (1-based positions).&quot;&quot;&quot;
+    result = 0
+    for pos in table:
+        bit = (value &gt;&gt; (n - pos)) &amp; 1
+        result = (result &lt;&lt; 1) | bit
+    return result
+
+
+def _rotl28(value, shift):
+    return ((value &lt;&lt; shift) | (value &gt;&gt; (28 - shift))) &amp; 0x0FFFFFFF
+
+
+def key_schedule(key_bytes):
+    &quot;&quot;&quot;Derive the 16 48-bit round subkeys from an 8-byte key.&quot;&quot;&quot;
+    if len(key_bytes) != 8:
+        raise ValueError(&quot;DES key must be 8 bytes long&quot;)
+    key64 = int.from_bytes(key_bytes, &quot;big&quot;)
+    key56 = _permute(key64, PC1, 64)
+    left = (key56 &gt;&gt; 28) &amp; 0x0FFFFFFF
+    right = key56 &amp; 0x0FFFFFFF
+    subkeys = []
+    for shift in SHIFTS:
+        left = _rotl28(left, shift)
+        right = _rotl28(right, shift)
+        combined = (left &lt;&lt; 28) | right
+        subkeys.append(_permute(combined, PC2, 56))
+    return subkeys
+
+
+def _des_block(block64, subkeys):
+    block = _permute(block64, IP, 64)
+    left = (block &gt;&gt; 32) &amp; 0xFFFFFFFF
+    right = block &amp; 0xFFFFFFFF
+    for k in subkeys:
+        tmp = right
+        exp = _permute(right, E, 32)
+        x = exp ^ k
+        s_out = 0
+        for i in range(8):
+            chunk = (x &gt;&gt; (42 - 6 * i)) &amp; 0x3F
+            row = ((chunk &amp; 0x20) &gt;&gt; 4) | (chunk &amp; 0x01)
+            col = (chunk &gt;&gt; 1) &amp; 0x0F
+            s_out = (s_out &lt;&lt; 4) | SBOXES[i][row][col]
+        p_out = _permute(s_out, P, 32)
+        right = p_out ^ left
+        left = tmp
+    cipher = (right &lt;&lt; 32) | left
+    return _permute(cipher, FP, 64)
+
+
+def encrypt_block(block8, key_bytes):
+    subkeys = key_schedule(key_bytes)
+    value = int.from_bytes(block8, &quot;big&quot;)
+    return _des_block(value, subkeys).to_bytes(8, &quot;big&quot;)
+
+
+def decrypt_block(block8, key_bytes):
+    subkeys = key_schedule(key_bytes)[::-1]
+    value = int.from_bytes(block8, &quot;big&quot;)
+    return _des_block(value, subkeys).to_bytes(8, &quot;big&quot;)
+
+
+def _pkcs7_pad(data, block_size=8):
+    pad_len = block_size - (len(data) % block_size)
+    if pad_len == 0:
+        pad_len = block_size
+    return data + bytes([pad_len]) * pad_len
+
+
+def _pkcs7_unpad(data):
+    if not data:
+        return data
+    pad_len = data[-1]
+    if pad_len &lt; 1 or pad_len &gt; 8:
+        raise ValueError(&quot;invalid padding&quot;)
+    if data[-pad_len:] != bytes([pad_len]) * pad_len:
+        raise ValueError(&quot;invalid padding&quot;)
+    return data[:-pad_len]
+
+
+def encrypt(plaintext, key_bytes):
+    &quot;&quot;&quot;Encrypt bytes with DES-ECB + PKCS#7 padding.&quot;&quot;&quot;
+    data = plaintext if isinstance(plaintext, (bytes, bytearray)) else plaintext.encode()
+    data = _pkcs7_pad(bytes(data))
+    out = bytearray()
+    for i in range(0, len(data), 8):
+        out += encrypt_block(data[i:i + 8], key_bytes)
+    return bytes(out)
+
+
+def decrypt(ciphertext, key_bytes):
+    &quot;&quot;&quot;Decrypt bytes with DES-ECB + PKCS#7 padding.&quot;&quot;&quot;
+    if len(ciphertext) % 8 != 0:
+        raise ValueError(&quot;ciphertext length must be multiple of 8&quot;)
+    out = bytearray()
+    for i in range(0, len(ciphertext), 8):
+        out += decrypt_block(ciphertext[i:i + 8], key_bytes)
+    return _pkcs7_unpad(bytes(out))
+
+
+def derive_key(password):
+    &quot;&quot;&quot;Derive an 8-byte DES key from an arbitrary password string.&quot;&quot;&quot;
+    digest = hashlib.sha256(password.encode() if isinstance(password, str) else password).digest()
+    return digest[:8]
+
+
+if __name__ == &quot;__main__&quot;:
+    # Classic test vector: key 0x133457799BBCDFF1, plaintext 0x0123456789ABCDEF
+    # -&gt; ciphertext 0x85E813540F0AB405
+    key = bytes.fromhex(&quot;133457799BBCDFF1&quot;)
+    pt = bytes.fromhex(&quot;0123456789ABCDEF&quot;)
+    ct = encrypt_block(pt, key)
+    print(&quot;plaintext :&quot;, pt.hex())
+    print(&quot;ciphertext:&quot;, ct.hex())
+    print(&quot;expected  : 85e813540f0ab405&quot;)
+    assert ct.hex() == &quot;85e813540f0ab405&quot;, &quot;DES test vector failed&quot;
+    print(&quot;decrypt   :&quot;, decrypt_block(ct, key).hex())
+    print(&quot;OK&quot;)</code></pre>
         </div>
       </div>
 
@@ -371,20 +620,222 @@ plaintext = unpad(decrypted_padded, DES.block_size)</td>
             <span class="code-title">كود المكتبات الكامل — des/des_libs.py</span>
             <button class="btn-copy">📋 نسخ الكود</button>
           </div>
-          <pre class="code-body"><code>from Crypto.Cipher import DES
-from Crypto.Util.Padding import pad, unpad
+          <pre class="code-body"><code>&quot;&quot;&quot;DES + steganography using READY-MADE libraries (pycryptodome + Pillow).
+
+Run with:  python3 des_libs.py demo
+Requires:  pip install pycryptodome Pillow
+&quot;&quot;&quot;
+
+import argparse
 import hashlib
+import math
+import os
+import struct
+import wave
+
+from Crypto.Cipher import DES
+from Crypto.Util.Padding import pad, unpad
+from PIL import Image
+
+
+# ---------------- DES (library) ----------------
+
+def derive_key(password):
+    return hashlib.sha256(password.encode()).digest()[:8]
+
 
 def des_encrypt(plaintext, password):
-    key = hashlib.sha256(password.encode()).digest()[:8]
+    key = derive_key(password)
     cipher = DES.new(key, DES.MODE_ECB)
     data = plaintext.encode() if isinstance(plaintext, str) else plaintext
     return cipher.encrypt(pad(data, DES.block_size))
 
+
 def des_decrypt(ciphertext, password):
-    key = hashlib.sha256(password.encode()).digest()[:8]
+    key = derive_key(password)
     cipher = DES.new(key, DES.MODE_ECB)
-    return unpad(cipher.decrypt(ciphertext), DES.block_size)</code></pre>
+    return unpad(cipher.decrypt(ciphertext), DES.block_size)
+
+
+# ---------------- Image stego (Pillow) ----------------
+
+def _bytes_to_bits(data):
+    bits = []
+    for b in data:
+        for i in range(7, -1, -1):
+            bits.append((b &gt;&gt; i) &amp; 1)
+    return bits
+
+
+def _bits_to_bytes(bits):
+    out = bytearray()
+    cur = 0
+    n = 0
+    for bit in bits:
+        cur = (cur &lt;&lt; 1) | bit
+        n += 1
+        if n == 8:
+            out.append(cur)
+            cur = 0
+            n = 0
+    return bytes(out)
+
+
+def image_capacity(path):
+    with Image.open(path) as im:
+        w, h = im.size
+    return (w * h * 3) // 8 - 4
+
+
+def hide_image(input_path, output_path, payload_bytes):
+    with Image.open(input_path) as im:
+        im = im.convert(&quot;RGB&quot;)
+        w, h = im.size
+        pixels = list(im.get_flattened_data())
+    full = len(payload_bytes).to_bytes(4, &quot;big&quot;) + payload_bytes
+    bits = _bytes_to_bits(full)
+    if len(bits) &gt; w * h * 3:
+        raise ValueError(&quot;payload too large for image&quot;)
+    idx = 0
+    new_pixels = []
+    for (r, g, b) in pixels:
+        if idx &lt; len(bits):
+            r = (r &amp; 0xFE) | bits[idx]; idx += 1
+        if idx &lt; len(bits):
+            g = (g &amp; 0xFE) | bits[idx]; idx += 1
+        if idx &lt; len(bits):
+            b = (b &amp; 0xFE) | bits[idx]; idx += 1
+        new_pixels.append((r, g, b))
+    out = Image.new(&quot;RGB&quot;, (w, h))
+    out.putdata(new_pixels)
+    out.save(output_path)
+    return len(payload_bytes)
+
+
+def extract_image(path):
+    with Image.open(path) as im:
+        im = im.convert(&quot;RGB&quot;)
+        pixels = list(im.get_flattened_data())
+    bits = []
+    for (r, g, b) in pixels:
+        bits.append(r &amp; 1)
+        bits.append(g &amp; 1)
+        bits.append(b &amp; 1)
+    length = int.from_bytes(_bits_to_bytes(bits[:32]), &quot;big&quot;)
+    if length &lt; 0 or length &gt; image_capacity(path):
+        raise ValueError(&quot;invalid hidden data&quot;)
+    return _bits_to_bytes(bits[32:32 + length * 8])
+
+
+# ---------------- Audio stego (wave) ----------------
+
+def audio_capacity(path):
+    with wave.open(path, &quot;rb&quot;) as w:
+        n = w.getnframes() * w.getnchannels()
+    return n // 8 - 4
+
+
+def hide_audio(input_path, output_path, payload_bytes):
+    with wave.open(input_path, &quot;rb&quot;) as w:
+        params = w.getparams()
+        frames = w.readframes(w.getnframes())
+    if params.sampwidth != 2:
+        raise ValueError(&quot;only 16-bit PCM WAV supported&quot;)
+    samples = list(struct.unpack(&quot;&lt;&quot; + &quot;h&quot; * (len(frames) // 2), frames))
+    full = len(payload_bytes).to_bytes(4, &quot;big&quot;) + payload_bytes
+    bits = _bytes_to_bits(full)
+    if len(bits) &gt; len(samples):
+        raise ValueError(&quot;payload too large for audio&quot;)
+    for i, bit in enumerate(bits):
+        samples[i] = (samples[i] &amp; ~1) | bit
+    with wave.open(output_path, &quot;wb&quot;) as w:
+        w.setparams(params)
+        w.writeframes(struct.pack(&quot;&lt;&quot; + &quot;h&quot; * len(samples), *samples))
+    return len(payload_bytes)
+
+
+def extract_audio(path):
+    with wave.open(path, &quot;rb&quot;) as w:
+        frames = w.readframes(w.getnframes())
+    samples = list(struct.unpack(&quot;&lt;&quot; + &quot;h&quot; * (len(frames) // 2), frames))
+    bits = [s &amp; 1 for s in samples]
+    length = int.from_bytes(_bits_to_bytes(bits[:32]), &quot;big&quot;)
+    if length &lt; 0 or length &gt; audio_capacity(path):
+        raise ValueError(&quot;invalid hidden data&quot;)
+    return _bits_to_bytes(bits[32:32 + length * 8])
+
+
+# ---------------- Demo helpers ----------------
+
+def make_sample_image(path, w=128, h=128):
+    im = Image.new(&quot;RGB&quot;, (w, h))
+    px = []
+    for y in range(h):
+        for x in range(w):
+            px.append(((x * 2) % 256, (y * 2) % 256, 100))
+    im.putdata(px)
+    im.save(path)
+
+
+def make_sample_audio(path, seconds=2, rate=22050):
+    with wave.open(path, &quot;wb&quot;) as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(rate)
+        frames = bytearray()
+        for i in range(rate * seconds):
+            frames += struct.pack(&quot;&lt;h&quot;, int(10000 * math.sin(2 * math.pi * 440 * i / rate)))
+        w.writeframes(frames)
+
+
+def cmd_demo(args):
+    os.makedirs(&quot;demo_lib&quot;, exist_ok=True)
+    img = &quot;demo_lib/sample.png&quot;
+    aud = &quot;demo_lib/sample.wav&quot;
+    make_sample_image(img)
+    make_sample_audio(aud)
+    text = &quot;Hello from DES (libs)! سلام&quot;
+    pw = args.key
+    # image
+    hide_image(img, &quot;demo_lib/secret.png&quot;, des_encrypt(text, pw))
+    ct = extract_image(&quot;demo_lib/secret.png&quot;)
+    print(&quot;image recovered:&quot;, des_decrypt(ct, pw).decode())
+    # audio
+    hide_audio(aud, &quot;demo_lib/secret.wav&quot;, des_encrypt(text, pw))
+    ct = extract_audio(&quot;demo_lib/secret.wav&quot;)
+    print(&quot;audio recovered:&quot;, des_decrypt(ct, pw).decode())
+
+
+def main():
+    p = argparse.ArgumentParser(description=&quot;DES + stego using ready-made libs&quot;)
+    p.add_argument(&quot;--key&quot;, default=&quot;my-secret-key&quot;)
+    sub = p.add_subparsers(dest=&quot;cmd&quot;, required=True)
+
+    ih = sub.add_parser(&quot;image-hide&quot;)
+    ih.add_argument(&quot;input&quot;); ih.add_argument(&quot;output&quot;); ih.add_argument(&quot;text&quot;)
+    ih.set_defaults(func=lambda a: hide_image(a.input, a.output, des_encrypt(a.text, a.key)) or print(&quot;done&quot;))
+
+    ish = sub.add_parser(&quot;image-show&quot;)
+    ish.add_argument(&quot;input&quot;)
+    ish.set_defaults(func=lambda a: print(&quot;secret:&quot;, des_decrypt(extract_image(a.input), a.key).decode()))
+
+    ah = sub.add_parser(&quot;audio-hide&quot;)
+    ah.add_argument(&quot;input&quot;); ah.add_argument(&quot;output&quot;); ah.add_argument(&quot;text&quot;)
+    ah.set_defaults(func=lambda a: hide_audio(a.input, a.output, des_encrypt(a.text, a.key)) or print(&quot;done&quot;))
+
+    ash = sub.add_parser(&quot;audio-show&quot;)
+    ash.add_argument(&quot;input&quot;)
+    ash.set_defaults(func=lambda a: print(&quot;secret:&quot;, des_decrypt(extract_audio(a.input), a.key).decode()))
+
+    d = sub.add_parser(&quot;demo&quot;)
+    d.set_defaults(func=cmd_demo)
+
+    args = p.parse_args()
+    args.func(args)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</code></pre>
         </div>
       </div>
     </div>

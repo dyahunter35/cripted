@@ -214,16 +214,17 @@
             <span class="code-title">blowfish/blowfish_manual.py (مثال تشغيل)</span>
             <button class="btn-copy">📋 نسخ الكود</button>
           </div>
-          <pre class="code-body"><code>from blowfish_manual import blowfish_encrypt, blowfish_decrypt
+          <pre class="code-body"><code>&quot;&quot;&quot;Blowfish (Bruce Schneier, 1993) -- manual and library interface wrapper.&quot;&quot;&quot;
 
-key = "MasterSecretBlowfishKey2026"
-text = "تشفير البيانات بواسطة Blowfish"
+from blowfish_libs import (
+    blowfish_encrypt,
+    blowfish_decrypt,
+    derive_key,
+    main,
+)
 
-ct = blowfish_encrypt(text, key)
-print("Blowfish Ciphertext (hex):", ct.hex())
-
-pt = blowfish_decrypt(ct, key).decode("utf-8")
-print("Decrypted Plaintext:", pt)</code></pre>
+if __name__ == &quot;__main__&quot;:
+    main()</code></pre>
         </div>
       </div>
 
@@ -262,18 +263,127 @@ return cipher.encrypt(pad(data, Blowfish.block_size))</td>
             <span class="code-title">blowfish/blowfish_libs.py</span>
             <button class="btn-copy">📋 نسخ الكود</button>
           </div>
-          <pre class="code-body"><code>from Crypto.Cipher import Blowfish
-from Crypto.Util.Padding import pad, unpad
+          <pre class="code-body"><code>&quot;&quot;&quot;Blowfish (Bruce Schneier, 1993) implementation using pycryptodome + LSB steganography.&quot;&quot;&quot;
+
+import argparse
 import hashlib
+import os
+import struct
+from Crypto.Cipher import Blowfish
+from Crypto.Util.Padding import pad, unpad
+from stego_image import hide as img_hide, extract as img_extract
+from stego_audio import hide as aud_hide, extract as aud_extract
 
-key = hashlib.sha256(b"MasterSecretBlowfishKey2026").digest()[:16]
-cipher = Blowfish.new(key, Blowfish.MODE_ECB)
 
-ct = cipher.encrypt(pad(b"Hello Blowfish Security", 8))
-print("Encrypted:", ct.hex())
+def derive_key(password):
+    return hashlib.sha256(password.encode()).digest()[:16]
 
-dec = unpad(Blowfish.new(key, Blowfish.MODE_ECB).decrypt(ct), 8)
-print("Decrypted:", dec.decode())</code></pre>
+
+def blowfish_encrypt(plaintext, password):
+    key = derive_key(password)
+    cipher = Blowfish.new(key, Blowfish.MODE_ECB)
+    data = plaintext.encode() if isinstance(plaintext, str) else plaintext
+    return cipher.encrypt(pad(data, Blowfish.block_size))
+
+
+def blowfish_decrypt(ciphertext, password):
+    key = derive_key(password)
+    cipher = Blowfish.new(key, Blowfish.MODE_ECB)
+    return unpad(cipher.decrypt(ciphertext), Blowfish.block_size)
+
+
+def make_sample_image(path, w=64, h=64):
+    row_size = (w * 3 + 3) &amp; ~3
+    pixel_offset = 54
+    file_size = pixel_offset + row_size * h
+    header = bytearray(54)
+    header[0:2] = b&quot;BM&quot;
+    struct.pack_into(&quot;&lt;I&quot;, header, 2, file_size)
+    struct.pack_into(&quot;&lt;I&quot;, header, 10, pixel_offset)
+    struct.pack_into(&quot;&lt;I&quot;, header, 14, 40)
+    struct.pack_into(&quot;&lt;i&quot;, header, 18, w)
+    struct.pack_into(&quot;&lt;i&quot;, header, 22, h)
+    struct.pack_into(&quot;&lt;H&quot;, header, 26, 1)
+    struct.pack_into(&quot;&lt;H&quot;, header, 28, 24)
+    struct.pack_into(&quot;&lt;I&quot;, header, 34, row_size * h)
+    body = bytearray()
+    for y in range(h):
+        row = bytearray()
+        for x in range(w):
+            row += bytes([(x * 4) % 256, (y * 4) % 256, 120])
+        row += bytes(row_size - w * 3)
+        body += row
+    with open(path, &quot;wb&quot;) as f:
+        f.write(header + body)
+
+
+def make_sample_audio(path, seconds=1, rate=22050):
+    import wave
+    import math
+    with wave.open(path, &quot;wb&quot;) as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(rate)
+        frames = bytearray()
+        for i in range(rate * seconds):
+            frames += struct.pack(&quot;&lt;h&quot;, int(10000 * math.sin(2 * math.pi * 440 * i / rate)))
+        w.writeframes(frames)
+
+
+def cmd_demo(args):
+    pw = &quot;MasterSecretBlowfishKey2026&quot;
+    msg = &quot;مرحبا بك في اختبار خوارزمية Blowfish التعليمية&quot;
+    ct = blowfish_encrypt(msg, pw)
+    pt = blowfish_decrypt(ct, pw).decode(&quot;utf-8&quot;)
+    print(f&quot;Blowfish Ciphertext (hex): {ct.hex()}&quot;)
+    print(f&quot;Blowfish Decrypted: {pt}&quot;)
+    print(f&quot;Match: {msg == pt}&quot;)
+
+    os.makedirs(&quot;demo&quot;, exist_ok=True)
+    img_sample = &quot;demo/sample.bmp&quot;
+    aud_sample = &quot;demo/sample.wav&quot;
+    make_sample_image(img_sample)
+    make_sample_audio(aud_sample)
+
+    img_hide(img_sample, &quot;demo/secret.bmp&quot;, ct)
+    ext_ct = img_extract(&quot;demo/secret.bmp&quot;)
+    print(&quot;Stego BMP Decrypted:&quot;, blowfish_decrypt(ext_ct, pw).decode())
+
+    aud_hide(aud_sample, &quot;demo/secret.wav&quot;, ct)
+    ext_aud_ct = aud_extract(&quot;demo/secret.wav&quot;)
+    print(&quot;Stego WAV Decrypted:&quot;, blowfish_decrypt(ext_aud_ct, pw).decode())
+
+
+def main():
+    p = argparse.ArgumentParser(description=&quot;Blowfish encryption using pycryptodome&quot;)
+    p.add_argument(&quot;--key&quot;, default=&quot;MasterSecretBlowfishKey2026&quot;)
+    sub = p.add_subparsers(dest=&quot;cmd&quot;, required=True)
+
+    ih = sub.add_parser(&quot;image-hide&quot;)
+    ih.add_argument(&quot;input&quot;); ih.add_argument(&quot;output&quot;); ih.add_argument(&quot;text&quot;)
+    ih.set_defaults(func=lambda a: img_hide(a.input, a.output, blowfish_encrypt(a.text, a.key)) or print(&quot;done&quot;))
+
+    ish = sub.add_parser(&quot;image-show&quot;)
+    ish.add_argument(&quot;input&quot;)
+    ish.set_defaults(func=lambda a: print(&quot;secret:&quot;, blowfish_decrypt(img_extract(a.input), a.key).decode()))
+
+    ah = sub.add_parser(&quot;audio-hide&quot;)
+    ah.add_argument(&quot;input&quot;); ah.add_argument(&quot;output&quot;); ah.add_argument(&quot;text&quot;)
+    ah.set_defaults(func=lambda a: aud_hide(a.input, a.output, blowfish_encrypt(a.text, a.key)) or print(&quot;done&quot;))
+
+    ash = sub.add_parser(&quot;audio-show&quot;)
+    ash.add_argument(&quot;input&quot;)
+    ash.set_defaults(func=lambda a: print(&quot;secret:&quot;, blowfish_decrypt(aud_extract(a.input), a.key).decode()))
+
+    d = sub.add_parser(&quot;demo&quot;)
+    d.set_defaults(func=cmd_demo)
+
+    args = p.parse_args()
+    args.func(args)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</code></pre>
         </div>
       </div>
     </div>

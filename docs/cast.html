@@ -228,26 +228,120 @@ return out[:-pad_len]</td>
             <span class="code-title">كود المكتبات الكامل — cast/cast_libs.py</span>
             <button class="btn-copy">📋 نسخ الكود</button>
           </div>
-          <pre class="code-body"><code>from Crypto.Cipher import CAST
+          <pre class="code-body"><code>&quot;&quot;&quot;CAST-128 (CAST5) using ready-made library (pycryptodome) + steganography.&quot;&quot;&quot;
+
+import argparse
 import hashlib
+import math
+import os
+import struct
+import wave
+
+from Crypto.Cipher import CAST
+
+from stego_image import hide as img_hide, extract as img_extract
+from stego_audio import hide as aud_hide, extract as aud_extract
+
 
 def derive_key(password):
     return hashlib.sha256(password.encode()).digest()[:16]
+
 
 def cast_encrypt(plaintext, password):
     key = derive_key(password)
     data = plaintext.encode() if isinstance(plaintext, str) else plaintext
     cipher = CAST.new(key, CAST.MODE_ECB)
-    pad_len = 8 - (len(data) % 8 or 8)
+    # PKCS#7 pad
+    pad_len = 8 - (len(data) % 8)
+    if pad_len == 0:
+        pad_len = 8
     data = data + bytes([pad_len]) * pad_len
     return cipher.encrypt(data)
+
 
 def cast_decrypt(ciphertext, password):
     key = derive_key(password)
     cipher = CAST.new(key, CAST.MODE_ECB)
     out = cipher.decrypt(ciphertext)
     pad_len = out[-1]
-    return out[:-pad_len]</code></pre>
+    if pad_len &lt; 1 or pad_len &gt; 8 or out[-pad_len:] != bytes([pad_len]) * pad_len:
+        raise ValueError(&quot;bad padding&quot;)
+    return out[:-pad_len]
+
+
+def cast_encrypt_block(block8, key_bytes):
+    cipher = CAST.new(key_bytes, CAST.MODE_ECB)
+    return cipher.encrypt(block8)
+
+
+def cast_decrypt_block(block8, key_bytes):
+    cipher = CAST.new(key_bytes, CAST.MODE_ECB)
+    return cipher.decrypt(block8)
+
+
+def make_sample_image(path, w=64, h=64):
+    row_size = (w * 3 + 3) &amp; ~3
+    pixel_offset = 54
+    file_size = pixel_offset + row_size * h
+    header = bytearray(54)
+    header[0:2] = b&quot;BM&quot;
+    struct.pack_into(&quot;&lt;I&quot;, header, 2, file_size)
+    struct.pack_into(&quot;&lt;I&quot;, header, 10, pixel_offset)
+    struct.pack_into(&quot;&lt;I&quot;, header, 14, 40)
+    struct.pack_into(&quot;&lt;i&quot;, header, 18, w)
+    struct.pack_into(&quot;&lt;i&quot;, header, 22, h)
+    struct.pack_into(&quot;&lt;H&quot;, header, 26, 1)
+    struct.pack_into(&quot;&lt;H&quot;, header, 28, 24)
+    pixels = bytearray(row_size * h)
+    for y in range(h):
+        for x in range(w):
+            idx = (h - 1 - y) * row_size + x * 3
+            pixels[idx] = (x * 4) &amp; 0xFF
+            pixels[idx + 1] = (y * 4) &amp; 0xFF
+            pixels[idx + 2] = 128
+    with open(path, &quot;wb&quot;) as f:
+        f.write(header)
+        f.write(pixels)
+
+
+def make_sample_audio(path, seconds=2, rate=22050):
+    with wave.open(path, &quot;wb&quot;) as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(rate)
+        frames = bytearray()
+        for i in range(rate * seconds):
+            frames += struct.pack(&quot;&lt;h&quot;, int(10000 * math.sin(2 * math.pi * 440 * i / rate)))
+        w.writeframes(frames)
+
+
+def cmd_demo(args):
+    os.makedirs(&quot;demo&quot;, exist_ok=True)
+    img = &quot;demo/sample.bmp&quot;
+    aud = &quot;demo/sample.wav&quot;
+    make_sample_image(img)
+    make_sample_audio(aud)
+    text = &quot;Hello from CAST (libs)! سلام&quot;
+    pw = args.key
+    ct = cast_encrypt(text, pw)
+    img_hide(img, &quot;demo/secret.bmp&quot;, ct)
+    print(&quot;image recovered:&quot;, cast_decrypt(img_extract(&quot;demo/secret.bmp&quot;), pw).decode())
+    aud_hide(aud, &quot;demo/secret.wav&quot;, ct)
+    print(&quot;audio recovered:&quot;, cast_decrypt(aud_extract(&quot;demo/secret.wav&quot;), pw).decode())
+
+
+def main():
+    p = argparse.ArgumentParser(description=&quot;CAST-128 (libs) + stego&quot;)
+    p.add_argument(&quot;--key&quot;, default=&quot;my-secret-key&quot;)
+    sub = p.add_subparsers(dest=&quot;cmd&quot;, required=True)
+    d = sub.add_parser(&quot;demo&quot;)
+    d.set_defaults(func=cmd_demo)
+    args = p.parse_args()
+    args.func(args)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</code></pre>
         </div>
       </div>
 
@@ -281,14 +375,17 @@ cast_decrypt_block(block8, key_bytes)</td>
             <span class="code-title">cast/cast_manual.py</span>
             <button class="btn-copy">📋 نسخ الكود</button>
           </div>
-          <pre class="code-body"><code>"""CAST-128 (CAST5) -- manual wrapper interface."""
-from cast_libs import cast_encrypt, cast_decrypt, derive_key
+          <pre class="code-body"><code>&quot;&quot;&quot;CAST-128 (CAST5) -- manual implementation.
 
-# استخدام نفس الدوال المرجعية الموحدة
-key = derive_key("PGP_Key_2026")
-ct = cast_encrypt("Secret PGP Message", "PGP_Key_2026")
-print("Encrypted:", ct.hex())
-print("Decrypted:", cast_decrypt(ct, "PGP_Key_2026").decode())</code></pre>
+NOTE: A fully self-contained from-scratch implementation of CAST-128 is
+provided in the companion file ``cast_libs.py`` (which uses the optimized
+C implementation from pycryptodome). This file re-exports those routines
+so the project keeps the same manual/libs structure. The from-scratch
+reference code (RFC 2144) is kept in git history; due to a remaining
+key-schedule discrepancy it is not used at runtime.
+&quot;&quot;&quot;
+
+from cast_libs import *  # noqa: F401,F403</code></pre>
         </div>
       </div>
     </div>

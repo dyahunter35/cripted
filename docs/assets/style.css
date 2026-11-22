@@ -926,12 +926,33 @@ header.site-header {
 pre.code-body {
   padding: 18px;
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: 540px;
   direction: ltr;
   text-align: left;
   font-family: var(--font-mono);
-  font-size: 0.9rem;
-  line-height: 1.65;
+  font-size: 0.88rem;
+  line-height: 1.6;
   color: #e2e8f0;
+  background: #060913;
+}
+
+pre.code-body::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+pre.code-body::-webkit-scrollbar-track {
+  background: #090e1f;
+}
+
+pre.code-body::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+
+pre.code-body::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-cyan);
 }
 
 /* ==========================================================================
