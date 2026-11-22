@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>مختبر التشفير وإخفاء البيانات — Crypto & Stego Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="assets/style.css" />
 </head>
 <body>
@@ -14,18 +18,22 @@
     <a href="index.html" class="brand-logo">
       <div class="brand-icon">🔐</div>
       <div class="brand-text">Crypto Lab</div>
-      <span class="brand-badge">v2.5</span>
+      <span class="brand-badge">v2.5 Fast</span>
     </a>
     <ul class="nav-links">
       <li><a href="index.html" class="nav-link active">الرئيسية</a></li>
+      <li class="nav-divider"></li>
+      <li><span class="nav-cat-label core">الأساسيات</span></li>
       <li><a href="des.html" class="nav-link">DES</a></li>
       <li><a href="aes.html" class="nav-link">AES</a></li>
+      <li><a href="rc5.html" class="nav-link">RC5</a></li>
       <li><a href="idea.html" class="nav-link">IDEA</a></li>
       <li><a href="gost.html" class="nav-link">GOST</a></li>
+      <li class="nav-divider"></li>
+      <li><span class="nav-cat-label extra">إضافية</span></li>
       <li><a href="rc4.html" class="nav-link">RC4</a></li>
-      <li><a href="rc5.html" class="nav-link">RC5</a></li>
       <li><a href="rc6.html" class="nav-link">RC6</a></li>
-      <li><a href="cast.html" class="nav-link">CAST-128</a></li>
+      <li><a href="cast.html" class="nav-link">CAST</a></li>
       <li><a href="blowfish.html" class="nav-link">Blowfish</a></li>
     </ul>
     <div class="nav-actions">
@@ -39,31 +47,35 @@
 <main class="container">
   <!-- Hero Section -->
   <section class="hero">
-    <div class="hero-pill">⚡ منصة أكاديمية تفاعلية شاملة لمرحلة الماجستير</div>
+    <div class="hero-pill">⚡ منصة أكاديمية تفاعلية فائقة السرعة لمرحلة الماجستير</div>
     <h1>دراسة وتطبيق <span class="highlight">خوارزميات التشفير وإخفاء البيانات</span></h1>
     <p class="lead">
       دليل علمي وعملي مفصل يجمع بين دراسة معماريات التشفير المتناظر (كتل وتدفق)،
-      وشبكات فيستل و SPN و Lai-Massey، وتقنيات إخفاء الرسائل السرية (Steganography) بالوسائط المتعددة (BMP & WAV)،
+      وتقنيات إخفاء الرسائل السرية (Steganography) بالوسائط المتعددة (BMP & WAV)،
       مع تطبيق كامل ومطابق من الصفر وبالمكتبات المعيارية بلغات Python و JavaScript.
     </p>
     <div class="hero-meta">
-      <div class="meta-item">📦 <strong>9 خوارزميات كلاسيكية وحديثة</strong></div>
-      <div class="meta-item">🖼️ <strong>إخفاء LSB في الصور (BMP) والصوت (WAV)</strong></div>
-      <div class="meta-item">🧪 <strong>تطبيق يدوي من الصفر + مكتبات معيارية</strong></div>
+      <div class="meta-item">🏛️ <strong>5 خوارزميات أساسية مقررة</strong></div>
+      <div class="meta-item">⚡ <strong>4 خوارزميات تشفير إضافية</strong></div>
+      <div class="meta-item">🖼️ <strong>إخفاء LSB في الصور والصوت</strong></div>
+      <div class="meta-item">🚀 <strong>أداء فائق وتحميل فوري</strong></div>
     </div>
   </section>
 
-  <!-- Algorithm Cards Grid -->
+  <!-- Category 1: Core Master Curriculum Ciphers -->
   <section class="section">
-    <div class="section-header">
-      <div class="section-title-wrap">
-        <span class="section-icon">📚</span>
-        <h2>الخوارزميات المشمولة في المنصة</h2>
+    <div class="category-banner">
+      <div class="category-title-wrap">
+        <span class="section-icon">🏛️</span>
+        <div>
+          <div class="category-title">القسم الأول: خوارزميات المنهج الأساسية (Core Curriculum)</div>
+          <div class="category-desc">الخوارزميات الرئيسية المعتمدة في خطة مقرر الماجستير للتعمية وتأمين البيانات</div>
+        </div>
       </div>
-      <span class="badge-tag badge-strong">شرح تفصيلي سطر بسطر + مختبر تفاعلي</span>
+      <span class="badge-tag badge-strong">5 خوارزميات أساسية</span>
     </div>
 
-    <div class="grid-3" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+    <div class="grid-3" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
       <!-- DES Card -->
       <div class="cipher-card">
         <div class="cipher-card-header">
@@ -71,7 +83,7 @@
           <span class="badge-tag badge-insecure">تاريخي / تعليمي</span>
         </div>
         <h3>DES (FIPS 46)</h3>
-        <p>معيار التشفير الفيدرالي الكلاسيكي (1977). شبكة فيستل من 16 دورة، حجم كتلة 64 بت ومفتاح 56 بت.</p>
+        <p>معيار التشفير الفيدرالي الكلاسيكي (1977). شبكة فيستل من 16 دورة، حجم كتلة 64 بت ومفتاح 56 بت مع جداول تبديل متكاملة.</p>
         <div class="cipher-specs">
           <div class="cipher-spec-item"><span class="label">حجم الكتلة:</span><span class="val">64-bit</span></div>
           <div class="cipher-spec-item"><span class="label">طول المفتاح:</span><span class="val">56-bit</span></div>
@@ -87,7 +99,7 @@
       <div class="cipher-card">
         <div class="cipher-card-header">
           <div class="cipher-icon">🌐</div>
-          <span class="badge-tag badge-strong">المعيار السيادي العالمي</span>
+          <span class="badge-tag badge-strong">المعيار العالمي السيادي</span>
         </div>
         <h3>AES (Rijndael)</h3>
         <p>معيار NIST المعتمد (FIPS 197). شبكة استبدال وتبديل (SPN) وحسابات حقول غالوا GF(2^8) بكتلة 128 بت ومفتاح 128 بت.</p>
@@ -99,6 +111,25 @@
         </div>
         <div class="cipher-card-footer">
           <a href="aes.html">استكشف AES بالتفصيل ←</a>
+        </div>
+      </div>
+
+      <!-- RC5 Card -->
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-icon">🔄</div>
+          <span class="badge-tag badge-strong">دوران معتمد على البيانات</span>
+        </div>
+        <h3>RC5 (RC5-32/12/16)</h3>
+        <p>ابتكار رون ريفست (1994). كتلة 64 بت ومفتاح 128 بت، تعتمد على الدوران المعتمد على البيانات والثوابت السحرية e و phi.</p>
+        <div class="cipher-specs">
+          <div class="cipher-spec-item"><span class="label">حجم الكتلة:</span><span class="val">64-bit</span></div>
+          <div class="cipher-spec-item"><span class="label">طول المفتاح:</span><span class="val">128-bit</span></div>
+          <div class="cipher-spec-item"><span class="label">الهيكل:</span><span class="val">Rotation-based</span></div>
+          <div class="cipher-spec-item"><span class="label">الدورات:</span><span class="val">12 Round</span></div>
+        </div>
+        <div class="cipher-card-footer">
+          <a href="rc5.html">استكشف RC5 بالتفصيل ←</a>
         </div>
       </div>
 
@@ -139,7 +170,23 @@
           <a href="gost.html">استكشف GOST بالتفصيل ←</a>
         </div>
       </div>
+    </div>
+  </section>
 
+  <!-- Category 2: Additional Cryptographic Ciphers -->
+  <section class="section">
+    <div class="category-banner extra">
+      <div class="category-title-wrap">
+        <span class="section-icon">⚡</span>
+        <div>
+          <div class="category-title">القسم الثاني: الخوارزميات التشفيرية الإضافية (Additional Ciphers)</div>
+          <div class="category-desc">خوارزميات كلاسيكية وحديثة مضافة لتوسيع الدراسة المقارنة والتحليل الأمني العملي</div>
+        </div>
+      </div>
+      <span class="badge-tag badge-warning">4 خوارزميات إضافية</span>
+    </div>
+
+    <div class="grid-3" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
       <!-- RC4 Card -->
       <div class="cipher-card">
         <div class="cipher-card-header">
@@ -156,25 +203,6 @@
         </div>
         <div class="cipher-card-footer">
           <a href="rc4.html">استكشف RC4 بالتفصيل ←</a>
-        </div>
-      </div>
-
-      <!-- RC5 Card -->
-      <div class="cipher-card">
-        <div class="cipher-card-header">
-          <div class="cipher-icon">🔄</div>
-          <span class="badge-tag badge-strong">دوران معتمد على البيانات</span>
-        </div>
-        <h3>RC5 (RC5-32/12/16)</h3>
-        <p>ابتكار رون ريفست (1994). كتلة 64 بت ومفتاح 128 بت، تعتمد على الدوران المعتمد على البيانات والثوابت السحرية e و phi.</p>
-        <div class="cipher-specs">
-          <div class="cipher-spec-item"><span class="label">حجم الكتلة:</span><span class="val">64-bit</span></div>
-          <div class="cipher-spec-item"><span class="label">طول المفتاح:</span><span class="val">128-bit</span></div>
-          <div class="cipher-spec-item"><span class="label">الهيكل:</span><span class="val">Rotation-based</span></div>
-          <div class="cipher-spec-item"><span class="label">الدورات:</span><span class="val">12 Round</span></div>
-        </div>
-        <div class="cipher-card-footer">
-          <a href="rc5.html">استكشف RC5 بالتفصيل ←</a>
         </div>
       </div>
 
@@ -237,12 +265,12 @@
     </div>
   </section>
 
-  <!-- Comprehensive Comparison Table -->
+  <!-- Comprehensive Comparison Table Grouped -->
   <section class="section">
     <div class="section-header">
       <div class="section-title-wrap">
         <span class="section-icon">📊</span>
-        <h2>مقارنة معيارية شاملة بين الخوارزميات</h2>
+        <h2>المقارنة المعيارية الشاملة (حسب التصنيف الأكاديمي)</h2>
       </div>
     </div>
     <div class="table-responsive">
@@ -259,6 +287,10 @@
           </tr>
         </thead>
         <tbody>
+          <!-- Core Group -->
+          <tr class="table-group-header">
+            <th colspan="7">🏛️ الفئة الأولى: خوارزميات المنهج الأساسية لمقرر الماجستير (Core Curriculum)</th>
+          </tr>
           <tr>
             <td><strong>DES</strong></td>
             <td>تشفير كتل (Feistel)</td>
@@ -278,6 +310,15 @@
             <td>تأمين الإنترنت والشبكات المصرفية والأنظمة العسكرية</td>
           </tr>
           <tr>
+            <td><strong>RC5</strong></td>
+            <td>تشفير كتل (Rotations)</td>
+            <td>64 بت (8 بايت)</td>
+            <td>128 بت قياسي</td>
+            <td>12 دورة</td>
+            <td><span class="badge-tag badge-strong">آمنة بـ 12+ دورة</span></td>
+            <td>الأنظمة المدمجة والتشفير الخفيف للعتاد</td>
+          </tr>
+          <tr>
             <td><strong>IDEA (ADEA)</strong></td>
             <td>تشفير كتل (Lai-Massey)</td>
             <td>64 بت (8 بايت)</td>
@@ -295,6 +336,11 @@
             <td><span class="badge-tag badge-strong">آمنة وقوية جداً</span></td>
             <td>القطاع المصرفي والحكومي الروسي</td>
           </tr>
+
+          <!-- Extra Group -->
+          <tr class="table-group-header extra">
+            <th colspan="7">⚡ الفئة الثانية: خوارزميات التشفير الإضافية والمتقدمة (Additional Ciphers)</th>
+          </tr>
           <tr>
             <td><strong>RC4</strong></td>
             <td>تشفير تدفقي (Stream)</td>
@@ -303,15 +349,6 @@
             <td>KSA (256) + PRGA</td>
             <td><span class="badge-tag badge-warning">ممنوعة في بروتوكول TLS</span></td>
             <td>سابقاً في بروتوكولات WEP و SSL و RDP</td>
-          </tr>
-          <tr>
-            <td><strong>RC5</strong></td>
-            <td>تشفير كتل (Rotations)</td>
-            <td>64 بت (8 بايت)</td>
-            <td>128 بت قياسي</td>
-            <td>12 دورة</td>
-            <td><span class="badge-tag badge-strong">آمنة بـ 12+ دورة</span></td>
-            <td>الأنظمة المدمجة والتشفير الخفيف للعتاد</td>
           </tr>
           <tr>
             <td><strong>RC6</strong></td>
@@ -412,20 +449,22 @@ python3 -m pip install pycryptodome Pillow gostcrypto
 # 2. التحقق من سلامة التثبيت
 python3 -c "import Crypto, PIL, gostcrypto; print('All libraries verified successfully!')"
 
-# 3. تشغيل العروض التجريبية للخوارزميات
+# 3. تشغيل العروض التجريبية للأساسيات المقررة
 python3 des/des_manual.py
 python3 aes/aes_manual.py demo
+python3 rc5/rc5_manual.py demo
 python3 idea/idea_manual.py demo
 python3 gost/gost_manual.py demo
+
+# 4. تشغيل العروض التجريبية للخوارزميات الإضافية
 python3 rc4/rc4_manual.py demo
-python3 rc5/rc5_manual.py demo
 python3 rc6/rc6_manual.py demo
 python3 cast/cast_libs.py demo
 python3 blowfish/blowfish_libs.py demo</code></pre>
     </div>
   </section>
 
-  <!-- Downloads Section -->
+  <!-- Downloads Section Grouped -->
   <section class="section">
     <div class="section-header">
       <div class="section-title-wrap">
@@ -435,66 +474,76 @@ python3 blowfish/blowfish_libs.py demo</code></pre>
       <span class="badge-tag badge-strong">تحميل مباشر بنقرة واحدة</span>
     </div>
     <p>
-      يمكنك تنزيل الحزمة الشاملة للمشروع أو تحميل الملفات المصدرية المخصصة لكل خوارزمية على حدة (تشمل الكود اليدوي، وكود المكتبات، وتطبيقات الإخفاء Steganography في الصور والصوت):
+      تحميل الحزم البرمجية مصنفة حسب فئات المنهج (كل حزمة تشمل كود البداية من الصفر، وكود المكتبات الجاهزة، وأدوات الإخفاء LSB في الصور والصوت):
     </p>
 
-    <div class="grid-3" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 20px;">
+    <!-- Core Downloads -->
+    <h3 style="margin-top: 24px; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px;">
+      <span>🏛️</span> حزم خوارزميات المنهج الأساسية:
+    </h3>
+    <div class="grid-3" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 14px;">
       <div class="card" style="text-align: center;">
-        <h3>DES Package</h3>
-        <p>des_manual.py و des_libs.py وتطبيقات الإخفاء.</p>
+        <h4>DES Package</h4>
+        <p style="font-size:0.85rem; color:var(--text-muted);">des_manual.py و des_libs.py وتطبيقات الإخفاء.</p>
         <a href="downloads/des.zip" download class="btn-download" style="width: 100%;">📥 تحميل DES (ZIP)</a>
       </div>
 
       <div class="card" style="text-align: center;">
-        <h3>AES Package</h3>
-        <p>aes_manual.py و aes_libs.py وتطبيقات الإخفاء.</p>
+        <h4>AES Package</h4>
+        <p style="font-size:0.85rem; color:var(--text-muted);">aes_manual.py و aes_libs.py وتطبيقات الإخفاء.</p>
         <a href="downloads/aes.zip" download class="btn-download" style="width: 100%;">📥 تحميل AES (ZIP)</a>
       </div>
 
       <div class="card" style="text-align: center;">
-        <h3>IDEA Package</h3>
-        <p>idea_manual.py و idea_libs.py وتطبيقات الإخفاء.</p>
-        <a href="downloads/idea.zip" download class="btn-download" style="width: 100%;">📥 تحميل IDEA (ZIP)</a>
-      </div>
-
-      <div class="card" style="text-align: center;">
-        <h3>GOST Magma</h3>
-        <p>gost_manual.py و gost_libs.py وتطبيقات الإخفاء.</p>
-        <a href="downloads/gost.zip" download class="btn-download" style="width: 100%;">📥 تحميل GOST (ZIP)</a>
-      </div>
-
-      <div class="card" style="text-align: center;">
-        <h3>RC4 Stream</h3>
-        <p>rc4_manual.py و rc4_libs.py وتطبيقات الإخفاء.</p>
-        <a href="downloads/rc4.zip" download class="btn-download" style="width: 100%;">📥 تحميل RC4 (ZIP)</a>
-      </div>
-
-      <div class="card" style="text-align: center;">
-        <h3>RC5 Package</h3>
-        <p>rc5_manual.py و rc5_libs.py وتطبيقات الإخفاء.</p>
+        <h4>RC5 Package</h4>
+        <p style="font-size:0.85rem; color:var(--text-muted);">rc5_manual.py و rc5_libs.py وتطبيقات الإخفاء.</p>
         <a href="downloads/rc5.zip" download class="btn-download" style="width: 100%;">📥 تحميل RC5 (ZIP)</a>
       </div>
 
       <div class="card" style="text-align: center;">
-        <h3>RC6 Package</h3>
-        <p>rc6_manual.py و rc6_libs.py وتطبيقات الإخفاء.</p>
+        <h4>IDEA Package</h4>
+        <p style="font-size:0.85rem; color:var(--text-muted);">idea_manual.py و idea_libs.py وتطبيقات الإخفاء.</p>
+        <a href="downloads/idea.zip" download class="btn-download" style="width: 100%;">📥 تحميل IDEA (ZIP)</a>
+      </div>
+
+      <div class="card" style="text-align: center;">
+        <h4>GOST Magma</h4>
+        <p style="font-size:0.85rem; color:var(--text-muted);">gost_manual.py و gost_libs.py وتطبيقات الإخفاء.</p>
+        <a href="downloads/gost.zip" download class="btn-download" style="width: 100%;">📥 تحميل GOST (ZIP)</a>
+      </div>
+    </div>
+
+    <!-- Extra Downloads -->
+    <h3 style="margin-top: 32px; color: var(--accent-amber); display: flex; align-items: center; gap: 8px;">
+      <span>⚡</span> حزم خوارزميات التشفير الإضافية:
+    </h3>
+    <div class="grid-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 14px;">
+      <div class="card" style="text-align: center;">
+        <h4>RC4 Stream</h4>
+        <p style="font-size:0.85rem; color:var(--text-muted);">rc4_manual.py و rc4_libs.py وتطبيقات الإخفاء.</p>
+        <a href="downloads/rc4.zip" download class="btn-download" style="width: 100%;">📥 تحميل RC4 (ZIP)</a>
+      </div>
+
+      <div class="card" style="text-align: center;">
+        <h4>RC6 Package</h4>
+        <p style="font-size:0.85rem; color:var(--text-muted);">rc6_manual.py و rc6_libs.py وتطبيقات الإخفاء.</p>
         <a href="downloads/rc6.zip" download class="btn-download" style="width: 100%;">📥 تحميل RC6 (ZIP)</a>
       </div>
 
       <div class="card" style="text-align: center;">
-        <h3>CAST-128</h3>
-        <p>cast_manual.py و cast_libs.py وتطبيقات الإخفاء.</p>
+        <h4>CAST-128</h4>
+        <p style="font-size:0.85rem; color:var(--text-muted);">cast_manual.py و cast_libs.py وتطبيقات الإخفاء.</p>
         <a href="downloads/cast.zip" download class="btn-download" style="width: 100%;">📥 تحميل CAST (ZIP)</a>
       </div>
 
       <div class="card" style="text-align: center;">
-        <h3>Blowfish</h3>
-        <p>blowfish_manual.py و blowfish_libs.py وتطبيقات الإخفاء.</p>
+        <h4>Blowfish</h4>
+        <p style="font-size:0.85rem; color:var(--text-muted);">blowfish_manual.py و blowfish_libs.py وتطبيقات الإخفاء.</p>
         <a href="downloads/blowfish.zip" download class="btn-download" style="width: 100%;">📥 تحميل Blowfish (ZIP)</a>
       </div>
     </div>
 
-    <div style="text-align: center; margin-top: 28px;">
+    <div style="text-align: center; margin-top: 36px;">
       <a href="downloads/crypto_lab_full.zip" download class="btn-download" style="padding: 16px 36px; font-size: 1.1rem; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue)); color: #070a13 !important;">
         📦 تحميل حزمة المشروع الأكاديمي بالكامل (Full Project ZIP)
       </a>
@@ -508,15 +557,18 @@ python3 blowfish/blowfish_libs.py demo</code></pre>
     <div class="brand-text" style="font-size: 1.2rem; font-weight: 800;">🔐 مختبر التشفير وإخفاء البيانات</div>
     <div class="footer-links">
       <a href="index.html">الرئيسية</a>
+      <span style="color:var(--accent-cyan); font-weight:700;">[الأساسيات:</span>
       <a href="des.html">DES</a>
       <a href="aes.html">AES</a>
+      <a href="rc5.html">RC5</a>
       <a href="idea.html">IDEA</a>
       <a href="gost.html">GOST</a>
+      <span style="color:var(--accent-amber); font-weight:700;">] [الإضافية:</span>
       <a href="rc4.html">RC4</a>
-      <a href="rc5.html">RC5</a>
       <a href="rc6.html">RC6</a>
-      <a href="cast.html">CAST-128</a>
+      <a href="cast.html">CAST</a>
       <a href="blowfish.html">Blowfish</a>
+      <span style="color:var(--accent-amber); font-weight:700;">]</span>
     </div>
     <p>© 2026 Crypto Lab — مشروع أكاديمي تفاعلي متقدم</p>
   </div>

@@ -1,21 +1,19 @@
 /* ==========================================================================
-   Crypto Lab — Modern High-Tech Stylesheet
-   Designed for Cryptography & Steganography Educational Platform
+   Crypto Lab — High-Performance Optimized Stylesheet
+   Designed for Fast Loading, 120 FPS Rendering & Clear Categorization
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500;600&display=swap');
-
 :root {
-  --font-main: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'Fira Code', Consolas, Monaco, monospace;
+  --font-main: 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Fira Code', 'Courier New', Courier, monospace;
 
-  /* Color Palette - Dark Cyber Theme */
+  /* Color Palette - Dark Cyber Theme (High Contrast, Low GPU Overhead) */
   --bg-primary: #0a0e1a;
   --bg-secondary: #111827;
   --bg-tertiary: #1b2438;
-  --panel-bg: rgba(17, 24, 39, 0.85);
-  --card-bg: rgba(27, 36, 56, 0.7);
-  --card-hover: rgba(35, 47, 72, 0.85);
+  --panel-bg: #111827;
+  --card-bg: #161f33;
+  --card-hover: #1e293b;
   
   --text-main: #f1f5f9;
   --text-muted: #94a3b8;
@@ -34,16 +32,16 @@
   --accent-rose: #f43f5e;
 
   /* Shadows & Glow */
-  --glow-cyan: 0 0 25px rgba(56, 189, 248, 0.25);
-  --glow-indigo: 0 0 25px rgba(129, 140, 248, 0.25);
-  --shadow-lg: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
-  --shadow-card: 0 8px 24px -6px rgba(0, 0, 0, 0.4);
+  --glow-cyan: 0 0 15px rgba(56, 189, 248, 0.2);
+  --glow-indigo: 0 0 15px rgba(129, 140, 248, 0.2);
+  --shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.35);
 
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 20px;
   --radius-full: 9999px;
-  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
 
 /* Base Reset */
@@ -65,18 +63,14 @@ body {
   line-height: 1.8;
   direction: rtl;
   overflow-x: hidden;
-  background-image: 
-    radial-gradient(circle at 15% 10%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 85% 90%, rgba(129, 140, 248, 0.07) 0%, transparent 40%),
-    linear-gradient(180deg, var(--bg-primary) 0%, #070a13 100%);
-  background-attachment: fixed;
+  background: linear-gradient(180deg, #0a0e1a 0%, #060912 100%);
   min-height: 100vh;
 }
 
 /* Container */
 .container {
-  width: 92%;
-  max-width: 1200px;
+  width: 94%;
+  max-width: 1280px;
   margin: 0 auto;
   padding: 0 16px;
 }
@@ -88,11 +82,9 @@ header.site-header {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(10, 14, 26, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: #0d1222;
   border-bottom: 1px solid var(--border-color);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .nav-wrap {
@@ -291,14 +283,13 @@ header.site-header {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  padding: 26px;
+  padding: 24px;
   transition: var(--transition);
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  backdrop-filter: blur(12px);
 }
 
 .cipher-card::before {
@@ -436,10 +427,88 @@ header.site-header {
   background: var(--panel-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  padding: 36px;
-  margin: 40px 0;
-  backdrop-filter: blur(12px);
+  padding: 32px;
+  margin: 36px 0;
   box-shadow: var(--shadow-card);
+}
+
+/* Category Banners & Badges */
+.category-banner {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(129, 140, 248, 0.04) 100%);
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius-md);
+  padding: 18px 24px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.category-banner.extra {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(244, 63, 94, 0.04) 100%);
+  border-color: rgba(251, 191, 36, 0.35);
+}
+
+.category-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.category-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.category-desc {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  margin-top: 4px;
+}
+
+.table-group-header th {
+  background: #1e293b !important;
+  color: var(--accent-cyan) !important;
+  font-size: 1.05rem !important;
+  font-weight: 800 !important;
+  text-align: right !important;
+  padding: 14px 20px !important;
+  border-top: 2px solid var(--accent-cyan) !important;
+}
+
+.table-group-header.extra th {
+  color: var(--accent-amber) !important;
+  border-top: 2px solid var(--accent-amber) !important;
+}
+
+.nav-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(148, 163, 184, 0.25);
+  margin: 0 4px;
+}
+
+.nav-cat-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+}
+
+.nav-cat-label.core {
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--accent-cyan);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.nav-cat-label.extra {
+  background: rgba(251, 191, 36, 0.15);
+  color: var(--accent-amber);
+  border: 1px solid rgba(251, 191, 36, 0.3);
 }
 
 .section-header {
