@@ -14,16 +14,19 @@
     <a href="index.html" class="brand-logo">
       <div class="brand-icon">🔐</div>
       <div class="brand-text">Crypto Lab</div>
-      <span class="brand-badge">v2.0</span>
+      <span class="brand-badge">v2.5</span>
     </a>
     <ul class="nav-links">
       <li><a href="index.html" class="nav-link active">الرئيسية</a></li>
       <li><a href="des.html" class="nav-link">DES</a></li>
-      <li><a href="gost.html" class="nav-link">GOST Magma</a></li>
+      <li><a href="aes.html" class="nav-link">AES</a></li>
+      <li><a href="idea.html" class="nav-link">IDEA</a></li>
+      <li><a href="gost.html" class="nav-link">GOST</a></li>
       <li><a href="rc4.html" class="nav-link">RC4</a></li>
       <li><a href="rc5.html" class="nav-link">RC5</a></li>
       <li><a href="rc6.html" class="nav-link">RC6</a></li>
       <li><a href="cast.html" class="nav-link">CAST-128</a></li>
+      <li><a href="blowfish.html" class="nav-link">Blowfish</a></li>
     </ul>
     <div class="nav-actions">
       <a href="https://github.com/dyahunter35/cripted" target="_blank" class="btn-github">
@@ -36,14 +39,15 @@
 <main class="container">
   <!-- Hero Section -->
   <section class="hero">
-    <div class="hero-pill">⚡ منصة أكاديمية تفاعلية شاملة</div>
+    <div class="hero-pill">⚡ منصة أكاديمية تفاعلية شاملة لمرحلة الماجستير</div>
     <h1>دراسة وتطبيق <span class="highlight">خوارزميات التشفير وإخفاء البيانات</span></h1>
     <p class="lead">
-      دليل علمي وعملي مفصل يجمع بين دراسة معماريات التشفير المتناظر (كتل وتدفق)
-      وتقنيات إخفاء الرسائل السرية (Steganography) بالوسائط المتعددة، مع تطبيق كامل بلغتي Python و JavaScript.
+      دليل علمي وعملي مفصل يجمع بين دراسة معماريات التشفير المتناظر (كتل وتدفق)،
+      وشبكات فيستل و SPN و Lai-Massey، وتقنيات إخفاء الرسائل السرية (Steganography) بالوسائط المتعددة (BMP & WAV)،
+      مع تطبيق كامل ومطابق من الصفر وبالمكتبات المعيارية بلغات Python و JavaScript.
     </p>
     <div class="hero-meta">
-      <div class="meta-item">📦 <strong>6 خوارزميات كلاسيكية وحديثة</strong></div>
+      <div class="meta-item">📦 <strong>9 خوارزميات كلاسيكية وحديثة</strong></div>
       <div class="meta-item">🖼️ <strong>إخفاء LSB في الصور (BMP) والصوت (WAV)</strong></div>
       <div class="meta-item">🧪 <strong>تطبيق يدوي من الصفر + مكتبات معيارية</strong></div>
     </div>
@@ -54,12 +58,12 @@
     <div class="section-header">
       <div class="section-title-wrap">
         <span class="section-icon">📚</span>
-        <h2>الخوارزميات المدعومة في المشروع</h2>
+        <h2>الخوارزميات المشمولة في المنصة</h2>
       </div>
-      <span class="badge-tag badge-strong">شرح تفصيلي + كود</span>
+      <span class="badge-tag badge-strong">شرح تفصيلي سطر بسطر + مختبر تفاعلي</span>
     </div>
 
-    <div class="grid-4">
+    <div class="grid-3" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
       <!-- DES Card -->
       <div class="cipher-card">
         <div class="cipher-card-header">
@@ -67,7 +71,7 @@
           <span class="badge-tag badge-insecure">تاريخي / تعليمي</span>
         </div>
         <h3>DES (FIPS 46)</h3>
-        <p>معيار التشفير الفيدرالي الكلاسيكي (1977). شبكة فايستل من 16 دورة، حجم كتلة 64 بت ومفتاح 56 بت.</p>
+        <p>معيار التشفير الفيدرالي الكلاسيكي (1977). شبكة فيستل من 16 دورة، حجم كتلة 64 بت ومفتاح 56 بت.</p>
         <div class="cipher-specs">
           <div class="cipher-spec-item"><span class="label">حجم الكتلة:</span><span class="val">64-bit</span></div>
           <div class="cipher-spec-item"><span class="label">طول المفتاح:</span><span class="val">56-bit</span></div>
@@ -79,6 +83,44 @@
         </div>
       </div>
 
+      <!-- AES Card -->
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-icon">🌐</div>
+          <span class="badge-tag badge-strong">المعيار السيادي العالمي</span>
+        </div>
+        <h3>AES (Rijndael)</h3>
+        <p>معيار NIST المعتمد (FIPS 197). شبكة استبدال وتبديل (SPN) وحسابات حقول غالوا GF(2^8) بكتلة 128 بت ومفتاح 128 بت.</p>
+        <div class="cipher-specs">
+          <div class="cipher-spec-item"><span class="label">حجم الكتلة:</span><span class="val">128-bit</span></div>
+          <div class="cipher-spec-item"><span class="label">طول المفتاح:</span><span class="val">128-bit</span></div>
+          <div class="cipher-spec-item"><span class="label">الهيكل:</span><span class="val">SPN Matrix</span></div>
+          <div class="cipher-spec-item"><span class="label">الدورات:</span><span class="val">10 Round</span></div>
+        </div>
+        <div class="cipher-card-footer">
+          <a href="aes.html">استكشف AES بالتفصيل ←</a>
+        </div>
+      </div>
+
+      <!-- IDEA Card -->
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-icon">⚡</div>
+          <span class="badge-tag badge-strong">خلط الزمر الثلاث</span>
+        </div>
+        <h3>IDEA (ADEA)</h3>
+        <p>ابتكار لاي وماسي (1991). دمج مذهل لثلاث عمليات جبرية متمايزة (XOR، الجمع mod 2^16، والضرب mod 65537) مع 52 مفتاحاً.</p>
+        <div class="cipher-specs">
+          <div class="cipher-spec-item"><span class="label">حجم الكتلة:</span><span class="val">64-bit</span></div>
+          <div class="cipher-spec-item"><span class="label">طول المفتاح:</span><span class="val">128-bit</span></div>
+          <div class="cipher-spec-item"><span class="label">الهيكل:</span><span class="val">Lai-Massey</span></div>
+          <div class="cipher-spec-item"><span class="label">الدورات:</span><span class="val">8.5 Round</span></div>
+        </div>
+        <div class="cipher-card-footer">
+          <a href="idea.html">استكشف IDEA بالتفصيل ←</a>
+        </div>
+      </div>
+
       <!-- GOST Card -->
       <div class="cipher-card">
         <div class="cipher-card-header">
@@ -86,7 +128,7 @@
           <span class="badge-tag badge-strong">معيار روسي حديث</span>
         </div>
         <h3>GOST Magma</h3>
-        <p>المعيار الروسي GOST R 34.12-2015. شبكة فايستل ذات 32 دورة ومفتاح ضخم 256 بت مع 8 صناديق S-box.</p>
+        <p>المعيار الروسي GOST R 34.12-2015. شبكة فيستل ذات 32 دورة ومفتاح ضخم 256 بت مع 8 صناديق تعويض S-box.</p>
         <div class="cipher-specs">
           <div class="cipher-spec-item"><span class="label">حجم الكتلة:</span><span class="val">64-bit</span></div>
           <div class="cipher-spec-item"><span class="label">طول المفتاح:</span><span class="val">256-bit</span></div>
@@ -104,8 +146,8 @@
           <div class="cipher-icon">🌊</div>
           <span class="badge-tag badge-warning">تشفير تدفقي متقادم</span>
         </div>
-        <h3>RC4 (ARC4)</h3>
-        <p>أشهر خوارزمية تشفير تدفقي في التاريخ (Ron Rivest 1987). تعتمد خوارزميتي KSA و PRGA لتوليد تيار المفاتيح.</p>
+        <h3>RC4 (ARC4 & RC4-drop)</h3>
+        <p>أشهر خوارزمية تشفير تدفقي في التاريخ (Ron Rivest 1987). تعتمد KSA و PRGA لتوليد تيار المفاتيح مع نسخة drop768.</p>
         <div class="cipher-specs">
           <div class="cipher-spec-item"><span class="label">النوع:</span><span class="val">Stream</span></div>
           <div class="cipher-spec-item"><span class="label">طول المفتاح:</span><span class="val">40-2048 b</span></div>
@@ -114,25 +156,6 @@
         </div>
         <div class="cipher-card-footer">
           <a href="rc4.html">استكشف RC4 بالتفصيل ←</a>
-        </div>
-      </div>
-
-      <!-- CAST-128 Card -->
-      <div class="cipher-card">
-        <div class="cipher-card-header">
-          <div class="cipher-icon">🗝️</div>
-          <span class="badge-tag badge-strong">RFC 2144 معتمد</span>
-        </div>
-        <h3>CAST-128 (CAST5)</h3>
-        <p>خوارزمية كتل قوية ومجانية الملكية من 16 دورة. استخدمت افتراضياً في أنظمة PGP و GPG ذات أمان مثبت.</p>
-        <div class="cipher-specs">
-          <div class="cipher-spec-item"><span class="label">حجم الكتلة:</span><span class="val">64-bit</span></div>
-          <div class="cipher-spec-item"><span class="label">طول المفتاح:</span><span class="val">128-bit</span></div>
-          <div class="cipher-spec-item"><span class="label">الدوال:</span><span class="val">3 دورية</span></div>
-          <div class="cipher-spec-item"><span class="label">الدورات:</span><span class="val">16 Round</span></div>
-        </div>
-        <div class="cipher-card-footer">
-          <a href="cast.html">استكشف CAST بالتفصيل ←</a>
         </div>
       </div>
 
@@ -173,6 +196,44 @@
           <a href="rc6.html">استكشف RC6 بالتفصيل ←</a>
         </div>
       </div>
+
+      <!-- CAST-128 Card -->
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-icon">🗝️</div>
+          <span class="badge-tag badge-strong">RFC 2144 معتمد</span>
+        </div>
+        <h3>CAST-128 (CAST5)</h3>
+        <p>خوارزمية كتل قوية ومجانية الملكية من 16 دورة. استخدمت افتراضياً في أنظمة PGP و GPG ذات أمان مثبت.</p>
+        <div class="cipher-specs">
+          <div class="cipher-spec-item"><span class="label">حجم الكتلة:</span><span class="val">64-bit</span></div>
+          <div class="cipher-spec-item"><span class="label">طول المفتاح:</span><span class="val">128-bit</span></div>
+          <div class="cipher-spec-item"><span class="label">الدوال:</span><span class="val">3 دورية</span></div>
+          <div class="cipher-spec-item"><span class="label">الدورات:</span><span class="val">16 Round</span></div>
+        </div>
+        <div class="cipher-card-footer">
+          <a href="cast.html">استكشف CAST بالتفصيل ←</a>
+        </div>
+      </div>
+
+      <!-- Blowfish Card -->
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-icon">🐡</div>
+          <span class="badge-tag badge-strong">ابتكار بروس شناير</span>
+        </div>
+        <h3>Blowfish</h3>
+        <p>خوارزمية فيستل سريعة جداً بكتلة 64 بت وصناديق تعويض معتمدة كلياً على المفتاح السري مشتقة من أرقام النسبة الثابتة pi.</p>
+        <div class="cipher-specs">
+          <div class="cipher-spec-item"><span class="label">حجم الكتلة:</span><span class="val">64-bit</span></div>
+          <div class="cipher-spec-item"><span class="label">طول المفتاح:</span><span class="val">32-448 b</span></div>
+          <div class="cipher-spec-item"><span class="label">الهيكل:</span><span class="val">Feistel</span></div>
+          <div class="cipher-spec-item"><span class="label">الدورات:</span><span class="val">16 Round</span></div>
+        </div>
+        <div class="cipher-card-footer">
+          <a href="blowfish.html">استكشف Blowfish بالتفصيل ←</a>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -189,7 +250,7 @@
         <thead>
           <tr>
             <th>الخوارزمية</th>
-            <th>نوع التشفير</th>
+            <th>نوع التشفير والهيكل</th>
             <th>حجم الكتلة</th>
             <th>طول المفتاح</th>
             <th>عدد الدورات</th>
@@ -208,6 +269,24 @@
             <td>الأغراض الأكاديمية والتعليمية</td>
           </tr>
           <tr>
+            <td><strong>AES (Rijndael)</strong></td>
+            <td>تشفير كتل (SPN Matrix)</td>
+            <td>128 بت (16 بايت)</td>
+            <td>128, 192, 256 بت</td>
+            <td>10, 12, 14 دورة</td>
+            <td><span class="badge-tag badge-strong">المعيار العالمي الذهبي</span></td>
+            <td>تأمين الإنترنت والشبكات المصرفية والأنظمة العسكرية</td>
+          </tr>
+          <tr>
+            <td><strong>IDEA (ADEA)</strong></td>
+            <td>تشفير كتل (Lai-Massey)</td>
+            <td>64 بت (8 بايت)</td>
+            <td>128 بت</td>
+            <td>8.5 دورة</td>
+            <td><span class="badge-tag badge-strong">آمنة ومحصنة جداً</span></td>
+            <td>بروتوكول PGP الأصلي لحماية البريد الإلكتروني</td>
+          </tr>
+          <tr>
             <td><strong>GOST Magma</strong></td>
             <td>تشفير كتل (Feistel)</td>
             <td>64 بت (8 بايت)</td>
@@ -219,11 +298,29 @@
           <tr>
             <td><strong>RC4</strong></td>
             <td>تشفير تدفقي (Stream)</td>
-            <td>بايت واحد (تيار مستمر)</td>
+            <td>بايت واحد (تيار)</td>
             <td>متغير (128 بت قياسي)</td>
             <td>KSA (256) + PRGA</td>
             <td><span class="badge-tag badge-warning">ممنوعة في بروتوكول TLS</span></td>
-            <td>سابقاً في بروتوكولات WEP و SSL</td>
+            <td>سابقاً في بروتوكولات WEP و SSL و RDP</td>
+          </tr>
+          <tr>
+            <td><strong>RC5</strong></td>
+            <td>تشفير كتل (Rotations)</td>
+            <td>64 بت (8 بايت)</td>
+            <td>128 بت قياسي</td>
+            <td>12 دورة</td>
+            <td><span class="badge-tag badge-strong">آمنة بـ 12+ دورة</span></td>
+            <td>الأنظمة المدمجة والتشفير الخفيف للعتاد</td>
+          </tr>
+          <tr>
+            <td><strong>RC6</strong></td>
+            <td>تشفير كتل (Quadratic Feistel)</td>
+            <td>128 بت (16 بايت)</td>
+            <td>128 - 256 بت</td>
+            <td>20 دورة</td>
+            <td><span class="badge-tag badge-strong">فائقة الأمان (نهائيات AES)</span></td>
+            <td>التطبيقات عالية الأمان وسريعة المعالجة</td>
           </tr>
           <tr>
             <td><strong>CAST-128</strong></td>
@@ -235,22 +332,13 @@
             <td>برمجيات البريد المشفر PGP / GPG</td>
           </tr>
           <tr>
-            <td><strong>RC5</strong></td>
-            <td>تشفير كتل (Rotations)</td>
+            <td><strong>Blowfish</strong></td>
+            <td>تشفير كتل (Feistel + Dynamic S-boxes)</td>
             <td>64 بت (8 بايت)</td>
-            <td>128 بت قياسي</td>
-            <td>12 دورة</td>
-            <td><span class="badge-tag badge-strong">آمنة بـ 12+ دورة</span></td>
-            <td>الأنظمة المدمجة والتشفير الخفيف</td>
-          </tr>
-          <tr>
-            <td><strong>RC6</strong></td>
-            <td>تشفير كتل (Quadratic Feistel)</td>
-            <td>128 بت (16 بايت)</td>
-            <td>128 - 256 بت</td>
-            <td>20 دورة</td>
-            <td><span class="badge-tag badge-strong">فائقة الأمان (نهائيات AES)</span></td>
-            <td>التطبيقات عالية الأمان وسريعة المعالجة</td>
+            <td>32 - 448 بت</td>
+            <td>16 دورة</td>
+            <td><span class="badge-tag badge-strong">محصنة تاريخياً وسريعة</span></td>
+            <td>بروتوكولات OpenSSH و VPN وإدارة كلمات المرور bcrypt</td>
           </tr>
         </tbody>
       </table>
@@ -324,11 +412,16 @@ python3 -m pip install pycryptodome Pillow gostcrypto
 # 2. التحقق من سلامة التثبيت
 python3 -c "import Crypto, PIL, gostcrypto; print('All libraries verified successfully!')"
 
-# 3. تشغيل العروض التجريبية
+# 3. تشغيل العروض التجريبية للخوارزميات
 python3 des/des_manual.py
+python3 aes/aes_manual.py demo
+python3 idea/idea_manual.py demo
 python3 gost/gost_manual.py demo
 python3 rc4/rc4_manual.py demo
-python3 cast/cast_libs.py demo</code></pre>
+python3 rc5/rc5_manual.py demo
+python3 rc6/rc6_manual.py demo
+python3 cast/cast_libs.py demo
+python3 blowfish/blowfish_libs.py demo</code></pre>
     </div>
   </section>
 
@@ -339,47 +432,65 @@ python3 cast/cast_libs.py demo</code></pre>
         <span class="section-icon">📦</span>
         <h2>تحميل حزم الأكواد البرمجية (ZIP Packages)</h2>
       </div>
-      <span class="badge-tag badge-strong">تحميل مباشر</span>
+      <span class="badge-tag badge-strong">تحميل مباشر بنقرة واحدة</span>
     </div>
     <p>
-      يمكنك تنزيل الحزمة الكاملة للمشروع أو تحميل الملفات المصدرية المخصصة لكل خوارزمية على حدة (تشمل الكود اليدوي، وكود المكتبات، وتطبيقات الإخفاء Steganography في الصور والصوت):
+      يمكنك تنزيل الحزمة الشاملة للمشروع أو تحميل الملفات المصدرية المخصصة لكل خوارزمية على حدة (تشمل الكود اليدوي، وكود المكتبات، وتطبيقات الإخفاء Steganography في الصور والصوت):
     </p>
 
-    <div class="grid-4" style="margin-top: 20px;">
+    <div class="grid-3" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 20px;">
       <div class="card" style="text-align: center;">
         <h3>DES Package</h3>
-        <p>تشمل des_manual.py و des_libs.py وتطبيقات الإخفاء.</p>
+        <p>des_manual.py و des_libs.py وتطبيقات الإخفاء.</p>
         <a href="downloads/des.zip" download class="btn-download" style="width: 100%;">📥 تحميل DES (ZIP)</a>
       </div>
 
       <div class="card" style="text-align: center;">
+        <h3>AES Package</h3>
+        <p>aes_manual.py و aes_libs.py وتطبيقات الإخفاء.</p>
+        <a href="downloads/aes.zip" download class="btn-download" style="width: 100%;">📥 تحميل AES (ZIP)</a>
+      </div>
+
+      <div class="card" style="text-align: center;">
+        <h3>IDEA Package</h3>
+        <p>idea_manual.py و idea_libs.py وتطبيقات الإخفاء.</p>
+        <a href="downloads/idea.zip" download class="btn-download" style="width: 100%;">📥 تحميل IDEA (ZIP)</a>
+      </div>
+
+      <div class="card" style="text-align: center;">
         <h3>GOST Magma</h3>
-        <p>تشمل gost_manual.py و gost_libs.py وتطبيقات الإخفاء.</p>
+        <p>gost_manual.py و gost_libs.py وتطبيقات الإخفاء.</p>
         <a href="downloads/gost.zip" download class="btn-download" style="width: 100%;">📥 تحميل GOST (ZIP)</a>
       </div>
 
       <div class="card" style="text-align: center;">
         <h3>RC4 Stream</h3>
-        <p>تشمل rc4_manual.py و rc4_libs.py وتطبيقات الإخفاء.</p>
+        <p>rc4_manual.py و rc4_libs.py وتطبيقات الإخفاء.</p>
         <a href="downloads/rc4.zip" download class="btn-download" style="width: 100%;">📥 تحميل RC4 (ZIP)</a>
       </div>
 
       <div class="card" style="text-align: center;">
-        <h3>CAST-128</h3>
-        <p>تشمل cast_manual.py و cast_libs.py وتطبيقات الإخفاء.</p>
-        <a href="downloads/cast.zip" download class="btn-download" style="width: 100%;">📥 تحميل CAST (ZIP)</a>
-      </div>
-
-      <div class="card" style="text-align: center;">
         <h3>RC5 Package</h3>
-        <p>تشمل rc5_manual.py و rc5_libs.py وتطبيقات الإخفاء.</p>
+        <p>rc5_manual.py و rc5_libs.py وتطبيقات الإخفاء.</p>
         <a href="downloads/rc5.zip" download class="btn-download" style="width: 100%;">📥 تحميل RC5 (ZIP)</a>
       </div>
 
       <div class="card" style="text-align: center;">
         <h3>RC6 Package</h3>
-        <p>تشمل rc6_manual.py و rc6_libs.py وتطبيقات الإخفاء.</p>
+        <p>rc6_manual.py و rc6_libs.py وتطبيقات الإخفاء.</p>
         <a href="downloads/rc6.zip" download class="btn-download" style="width: 100%;">📥 تحميل RC6 (ZIP)</a>
+      </div>
+
+      <div class="card" style="text-align: center;">
+        <h3>CAST-128</h3>
+        <p>cast_manual.py و cast_libs.py وتطبيقات الإخفاء.</p>
+        <a href="downloads/cast.zip" download class="btn-download" style="width: 100%;">📥 تحميل CAST (ZIP)</a>
+      </div>
+
+      <div class="card" style="text-align: center;">
+        <h3>Blowfish</h3>
+        <p>blowfish_manual.py و blowfish_libs.py وتطبيقات الإخفاء.</p>
+        <a href="downloads/blowfish.zip" download class="btn-download" style="width: 100%;">📥 تحميل Blowfish (ZIP)</a>
       </div>
     </div>
 
@@ -398,11 +509,14 @@ python3 cast/cast_libs.py demo</code></pre>
     <div class="footer-links">
       <a href="index.html">الرئيسية</a>
       <a href="des.html">DES</a>
-      <a href="gost.html">GOST Magma</a>
+      <a href="aes.html">AES</a>
+      <a href="idea.html">IDEA</a>
+      <a href="gost.html">GOST</a>
       <a href="rc4.html">RC4</a>
       <a href="rc5.html">RC5</a>
       <a href="rc6.html">RC6</a>
       <a href="cast.html">CAST-128</a>
+      <a href="blowfish.html">Blowfish</a>
     </div>
     <p>© 2026 Crypto Lab — مشروع أكاديمي تفاعلي متقدم</p>
   </div>

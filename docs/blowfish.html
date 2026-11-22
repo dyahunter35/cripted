@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>خوارزمية Blowfish — معمارية فيستل ذات الصناديق المتغيرة</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<!-- Header -->
+<header class="site-header">
+  <div class="container nav-wrap">
+    <a href="index.html" class="brand-logo">
+      <div class="brand-icon">🐡</div>
+      <div class="brand-text">Crypto Lab</div>
+      <span class="brand-badge">Blowfish</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link">الرئيسية</a></li>
+      <li><a href="des.html" class="nav-link">DES</a></li>
+      <li><a href="aes.html" class="nav-link">AES</a></li>
+      <li><a href="idea.html" class="nav-link">IDEA</a></li>
+      <li><a href="gost.html" class="nav-link">GOST</a></li>
+      <li><a href="rc4.html" class="nav-link">RC4</a></li>
+      <li><a href="rc5.html" class="nav-link">RC5</a></li>
+      <li><a href="rc6.html" class="nav-link">RC6</a></li>
+      <li><a href="cast.html" class="nav-link">CAST-128</a></li>
+      <li><a href="blowfish.html" class="nav-link active">Blowfish</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="https://github.com/dyahunter35/cripted" target="_blank" class="btn-github"><span>⭐ GitHub</span></a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-pill">ابتكار بروس شناير (Bruce Schneier, 1993) — سرعة فائقة وحصانة استثنائية</div>
+    <h1>خوارزمية <span class="highlight">Blowfish</span></h1>
+    <p class="lead">
+      دراسة تفصيلية لمعمارية شبكة فيستل ذات الـ 16 دورة، المتميزة بصناديق التعويض المعتمدة على المفتاح (Key-Dependent S-Boxes)
+      وثوابت التهيئة المشتقة من الأرقام الكسرية للنسبة الثابتة $\pi$.
+    </p>
+    <div style="margin-top: 20px;">
+      <a href="downloads/blowfish.zip" download class="btn-download">
+        📦 تحميل حزمة كود Blowfish كاملة (ZIP)
+      </a>
+    </div>
+  </section>
+
+  <!-- Interactive Playground -->
+  <section class="playground-box" data-cipher="blowfish">
+    <div class="playground-header">
+      <div class="playground-title">
+        <span>🧪</span>
+        <h3>المختبر التفاعلي المباشر لخوارزمية Blowfish</h3>
+      </div>
+      <span class="badge-tag badge-strong">كتلة 64 بت / 16 دورة فيستل</span>
+    </div>
+
+    <div class="grid-2">
+      <div class="control-group">
+        <label for="plain-input">النص الأصلي (Plaintext):</label>
+        <textarea id="plain-input" class="textarea-field" placeholder="أدخل النص هنا...">Crypto Lab Blowfish 2026</textarea>
+      </div>
+      <div class="control-group">
+        <label for="key-input">المفتاح السري (Password / Key):</label>
+        <input type="text" id="key-input" class="input-field" value="MasterSecretBlowfishKey2026" />
+        
+        <div class="btn-group">
+          <button id="btn-encrypt" class="btn btn-primary">🔒 تشفير الكتلة (Encrypt)</button>
+          <button id="btn-decrypt" class="btn btn-secondary">🔓 فك التشفير (Decrypt)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="output-panel">
+      <div class="output-header">
+        <span class="label">الناتج المشفر (Hex Dump / Plaintext):</span>
+      </div>
+      <div id="output-box" class="output-box">في انتظار إدخال البيانات والتشفير...</div>
+      <div id="trace-box" class="trace-log">سجل دورات فيستل الـ 16 ودالة F سيظهر هنا فور التشغيل.</div>
+    </div>
+  </section>
+
+  <!-- Theory & Concept -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">📜</span>
+        <h2>1. النشأة وفلسفة التصميم الحر (Public Domain)</h2>
+      </div>
+    </div>
+    <p>
+      صمم خبير التشفير العالمي <strong>Bruce Schneier</strong> خوارزمية Blowfish عام 1993 كبديل مجاني وسريع ومفتوح المصدر بدون أي براءات اختراع.
+      حققت الخوارزمية انتشاراً هائلاً في برمجيات الحماية مثل OpenSSH و PuTTY و بروتوكولات VPN بفضل سرعتها المذهلة في التشفير البرمجي.
+    </p>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">⚙️</span>
+        <h2>2. معمارية شبكة فيستل وصناديق S-boxes المعتمدة على المفتاح</h2>
+      </div>
+    </div>
+    <p>تعتمد Blowfish على شبكة فيستل متناظرة ذات 16 دورة:</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>المواصفات القياسية</h3>
+        <ul class="feature-list">
+          <li><strong>حجم الكتلة:</strong> 64 بت (مقسمة إلى نصفين $L$ و $R$ بطول 32 بت).</li>
+          <li><strong>طول المفتاح:</strong> متغير ومرن من 32 بت حتى 448 بت (128 بت في تطبيقنا).</li>
+          <li><strong>عدد الدورات:</strong> 16 دورة فيستل متتالية.</li>
+          <li><strong>مصفوفة المفاتيح الفرعية P-array:</strong> تتكون من 18 كلمة بطول 32 بت.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>ثوابت النسبة الثابتة $\pi$ (Nothing Up My Sleeve)</h3>
+        <p>
+          تُهيأ مصفوفة $P$ وصناديق التعويض الأربعة $S_1, S_2, S_3, S_4$ بالقيم الست عشرية المشتقة من الكسر العشري للعدد $\pi$:
+        </p>
+        <p style="font-family: var(--font-mono); color: var(--accent-cyan);">
+          P1 = 0x243F6A88, P2 = 0x85A308D3, ...
+        </p>
+        <p>
+          يتم بعد ذلك تشفير مصفوفات الثوابت بواسطة المفتاح السري نفسه عبر مئات الدورات لتوليد صناديق تعويض مخصصة تماماً لكل مفتاح،
+          مما يجعل أي هجوم تحليل خطي أو تفاضلي مستحيلاً عملياً.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">🔄</span>
+        <h2>3. دالة الدورات F في Blowfish</h2>
+      </div>
+    </div>
+    <p>
+      تأخذ دالة الدورات $F(x)$ كلمة بطول 32 بت وتقسمها إلى أربعة بايتات $a, b, c, d$ (كل بايت 8 بت)، وتطبق المعادلة:
+    </p>
+    <p style="text-align: center; font-family: var(--font-mono); font-size: 1.15rem; color: var(--accent-emerald);">
+      F(a, b, c, d) = ((S₁[a] + S₂[b] mod 2³²) ⊕ S₃[c]) + S₄[d] mod 2³²
+    </p>
+    <p>
+      تتميز هذه الدالة بكونها تجمع بين العمليات الحسابية غير الخطية (الجمع النمطي $2^{32}$) والعمليات المنطقية (XOR) وصناديق التعويض المتغيرة،
+      مما يوفر تأثيراً كاسحاً لنشر البتات (Avalanche Effect).
+    </p>
+  </section>
+
+  <!-- Line-by-Line Code Explanation Tabs -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">💻</span>
+        <h2>4. شرح الكود البرمجي سطر بسطر (Tabs)</h2>
+      </div>
+      <a href="downloads/blowfish.zip" download class="btn-download" style="padding: 6px 14px; font-size: 0.85rem;">
+        📥 تحميل ملفات Blowfish
+      </a>
+    </div>
+    <p>
+      استكشف كود خوارزمية Blowfish مع توضيح مفصل لدور كل سطر برمجي في عملية المعالجة:
+    </p>
+
+    <!-- Tab Container -->
+    <div class="tab-container">
+      <div class="tab-nav">
+        <button class="tab-btn active" data-tab="tab-bf-manual">🛠️ الواجهة البرمجية (blowfish_manual.py)</button>
+        <button class="tab-btn" data-tab="tab-bf-libs">📚 الكود باستخدام المكتبات (blowfish_libs.py)</button>
+      </div>
+
+      <!-- Tab 1: Manual -->
+      <div id="tab-bf-manual" class="tab-pane active">
+        <h3>تحليل أسطر كود الواجهة اليدوية (Line-by-Line Breakdown)</h3>
+        <div class="table-responsive">
+          <table class="code-explain-table">
+            <thead>
+              <tr>
+                <th style="width: 40%;">السطر / المقطع البرمجي (Code Snippet)</th>
+                <th style="width: 60%;">ماذا يخدم هذا السطر وكيف يعمل؟ (Functionality & Purpose)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="code-snippet-cell">from blowfish_libs import blowfish_encrypt, blowfish_decrypt</td>
+                <td class="explain-text-cell"><strong>الربط والتصدير المعياري:</strong> تصدير واجهات التشفير وفك التشفير مع توحيد بنية الاستدعاء عبر كافة مجلدات المشروع الأكاديمي.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">def derive_key(password):
+    return hashlib.sha256(password.encode()).digest()[:16]</td>
+                <td class="explain-text-cell"><strong>اشتقاق المفتاح السري 128 بت:</strong> استخراج مفتاح تشفير متين من كلمة المرور عبر هاش SHA-256 واقتطاع أول 16 بايت (128 بت).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="code-container" style="margin-top: 20px;">
+          <div class="code-header">
+            <span class="code-title">blowfish/blowfish_manual.py (مثال تشغيل)</span>
+            <button class="btn-copy">📋 نسخ الكود</button>
+          </div>
+          <pre class="code-body"><code>from blowfish_manual import blowfish_encrypt, blowfish_decrypt
+
+key = "MasterSecretBlowfishKey2026"
+text = "تشفير البيانات بواسطة Blowfish"
+
+ct = blowfish_encrypt(text, key)
+print("Blowfish Ciphertext (hex):", ct.hex())
+
+pt = blowfish_decrypt(ct, key).decode("utf-8")
+print("Decrypted Plaintext:", pt)</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 2: Libs -->
+      <div id="tab-bf-libs" class="tab-pane">
+        <h3>تحليل أسطر الكود باستخدام المكتبات (blowfish_libs.py)</h3>
+        <div class="table-responsive">
+          <table class="code-explain-table">
+            <thead>
+              <tr>
+                <th style="width: 40%;">السطر / المقطع البرمجي (Code Snippet)</th>
+                <th style="width: 60%;">ماذا يخدم هذا السطر وكيف يعمل؟ (Functionality & Purpose)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="code-snippet-cell">from Crypto.Cipher import Blowfish
+from Crypto.Util.Padding import pad, unpad</td>
+                <td class="explain-text-cell"><strong>استيراد محرك Blowfish:</strong> استخدام مكتبة PyCryptodome للاستفادة من محرك فيستل المحسن المكتوب بلغة C.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">cipher = Blowfish.new(key, Blowfish.MODE_ECB)
+return cipher.encrypt(pad(data, Blowfish.block_size))</td>
+                <td class="explain-text-cell"><strong>تطبيق الحشو والتشفير:</strong> حشو البيانات بحسب مواصفات PKCS#7 لتتطابق مع كتل 64 بت (8 بايت) وتشفيرها في نمط ECB.</td>
+              </tr>
+              <tr>
+                <td class="code-snippet-cell">return unpad(cipher.decrypt(ciphertext), Blowfish.block_size)</td>
+                <td class="explain-text-cell"><strong>فك التشفير وإزالة الحشو:</strong> تنفيذ دورات فيستل الـ 16 المعكوسة واستعادة النص الصريح مع التحقق من صحة بايتات الحشو.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="code-container" style="margin-top: 20px;">
+          <div class="code-header">
+            <span class="code-title">blowfish/blowfish_libs.py</span>
+            <button class="btn-copy">📋 نسخ الكود</button>
+          </div>
+          <pre class="code-body"><code>from Crypto.Cipher import Blowfish
+from Crypto.Util.Padding import pad, unpad
+import hashlib
+
+key = hashlib.sha256(b"MasterSecretBlowfishKey2026").digest()[:16]
+cipher = Blowfish.new(key, Blowfish.MODE_ECB)
+
+ct = cipher.encrypt(pad(b"Hello Blowfish Security", 8))
+print("Encrypted:", ct.hex())
+
+dec = unpad(Blowfish.new(key, Blowfish.MODE_ECB).decrypt(ct), 8)
+print("Decrypted:", dec.decode())</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-content">
+    <div class="brand-text">🔐 Crypto Lab — Blowfish Study Guide</div>
+    <div class="footer-links">
+      <a href="index.html">الرئيسية</a>
+      <a href="des.html">DES</a>
+      <a href="aes.html">AES</a>
+      <a href="idea.html">IDEA</a>
+      <a href="gost.html">GOST</a>
+      <a href="rc4.html">RC4</a>
+      <a href="rc5.html">RC5</a>
+      <a href="rc6.html">RC6</a>
+      <a href="cast.html">CAST-128</a>
+      <a href="blowfish.html">Blowfish</a>
+    </div>
+    <p>© 2026 Crypto Lab</p>
+  </div>
+</footer>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

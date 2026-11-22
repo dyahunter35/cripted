@@ -206,6 +206,121 @@
     return out;
   }
 
+  // --- IDEA Core (Lai & Massey, 1991) ---
+  function mulModIdea(a, b) {
+    a = a === 0 ? 65536 : a;
+    b = b === 0 ? 65536 : b;
+    const r = (a * b) % 65537;
+    return r === 65536 ? 0 : r;
+  }
+  function invMulIdea(a) {
+    if (a === 0) return 0;
+    let res = 1, base = a, exp = 65535;
+    while (exp > 0) {
+      if (exp & 1) res = (res * base) % 65537;
+      base = (base * base) % 65537;
+      exp >>= 1;
+    }
+    return res;
+  }
+  function invAddIdea(a) { return (-a) & 0xffff; }
+
+  function ideaExpandKey(keyBytes) {
+    let keyInt = 0n;
+    for (let i = 0; i < 16; i++) {
+      keyInt = (keyInt << 8n) | BigInt(keyBytes[i]);
+    }
+    const subkeys = [];
+    const mask128 = (1n << 128n) - 1n;
+    for (let i = 0; i < 52; i++) {
+      const shift = BigInt(128 - 16 * (i % 8) - 16);
+      subkeys.push(Number((keyInt >> shift) & 0xffffn));
+      if ((i % 8) === 7) {
+        keyInt = ((keyInt << 25n) & mask128) | (keyInt >> (128n - 25n));
+      }
+    }
+    return subkeys;
+  }
+
+  function ideaInvertKeys(ek) {
+    const dk = new Array(52);
+    dk[0] = invMulIdea(ek[48]);
+    dk[1] = invAddIdea(ek[49]);
+    dk[2] = invAddIdea(ek[50]);
+    dk[3] = invMulIdea(ek[51]);
+    dk[4] = ek[46];
+    dk[5] = ek[47];
+    for (let r = 1; r < 8; r++) {
+      const s = 48 - r * 6;
+      dk[r * 6] = invMulIdea(ek[s]);
+      dk[r * 6 + 1] = invAddIdea(ek[s + 2]);
+      dk[r * 6 + 2] = invAddIdea(ek[s + 1]);
+      dk[r * 6 + 3] = invMulIdea(ek[s + 3]);
+      dk[r * 6 + 4] = ek[s - 2];
+      dk[r * 6 + 5] = ek[s - 1];
+    }
+    dk[48] = invMulIdea(ek[0]);
+    dk[49] = invAddIdea(ek[1]);
+    dk[50] = invAddIdea(ek[2]);
+    dk[51] = invMulIdea(ek[3]);
+    return dk;
+  }
+
+  function ideaCryptBlock(block8, subkeys) {
+    let x1 = (block8[0] << 8) | block8[1];
+    let x2 = (block8[2] << 8) | block8[3];
+    let x3 = (block8[4] << 8) | block8[5];
+    let x4 = (block8[6] << 8) | block8[7];
+
+    for (let r = 0; r < 8; r++) {
+      const k = r * 6;
+      x1 = mulModIdea(x1, subkeys[k]);
+      x2 = (x2 + subkeys[k + 1]) & 0xffff;
+      x3 = (x3 + subkeys[k + 2]) & 0xffff;
+      x4 = mulModIdea(x4, subkeys[k + 3]);
+
+      const a = x1 ^ x3;
+      const b = x2 ^ x4;
+      const c = mulModIdea(a, subkeys[k + 4]);
+      const d = (b + c) & 0xffff;
+      const e = mulModIdea(d, subkeys[k + 5]);
+      const f = (c + e) & 0xffff;
+
+      x1 ^= e;
+      x4 ^= f;
+      const x2_new = x3 ^ e;
+      const x3_new = x2 ^ f;
+      x2 = x2_new;
+      x3 = x3_new;
+    }
+
+    const tmp = x2; x2 = x3; x3 = tmp;
+    const y1 = mulModIdea(x1, subkeys[48]);
+    const y2 = (x2 + subkeys[49]) & 0xffff;
+    const y3 = (x3 + subkeys[50]) & 0xffff;
+    const y4 = mulModIdea(x4, subkeys[51]);
+
+    const out = new Uint8Array(8);
+    out[0] = (y1 >>> 8) & 255; out[1] = y1 & 255;
+    out[2] = (y2 >>> 8) & 255; out[3] = y2 & 255;
+    out[4] = (y3 >>> 8) & 255; out[5] = y3 & 255;
+    out[6] = (y4 >>> 8) & 255; out[7] = y4 & 255;
+    return out;
+  }
+
+  // --- Native Web Crypto AES (AES-CBC deterministic zero IV for demo) ---
+  async function aesSubtleCrypt(keyBytes, dataBytes, mode = 'enc') {
+    const key = await crypto.subtle.importKey('raw', keyBytes.slice(0, 16), { name: 'AES-CBC' }, false, ['encrypt', 'decrypt']);
+    const iv = new Uint8Array(16);
+    if (mode === 'enc') {
+      const ctBuf = await crypto.subtle.encrypt({ name: 'AES-CBC', iv }, key, dataBytes);
+      return new Uint8Array(ctBuf);
+    } else {
+      const ptBuf = await crypto.subtle.decrypt({ name: 'AES-CBC', iv }, key, dataBytes);
+      return new Uint8Array(ptBuf);
+    }
+  }
+
   // --- Educational Feistel Core (DES / GOST / CAST visualizer) ---
   function feistelSimulation(dataBytes, keyBytes, rounds, mode) {
     const padLen = 8 - (dataBytes.length % 8 || 8);
@@ -345,8 +460,32 @@
         if (traceBox) {
           traceBox.innerHTML = `تشفير RC6-32/20/16 المتأهل لنهائيات AES (4 سجلات ودالة تربيعية غير خطية).<br>عدد الكتل (128-bit): ${padded.length / 16}<br>Ciphertext (Hex): <code>${hex}</code>`;
         }
+      } else if (cipherType === 'aes') {
+        const ct = await aesSubtleCrypt(keyHash, textBytes, 'enc');
+        const hex = bytesToHex(ct);
+        outputBox.innerText = hex;
+        if (traceBox) {
+          traceBox.innerHTML = `تشفير AES-128 (شبكة استبدال وتبديل SPN مكونة من 10 دورات كاملة: SubBytes, ShiftRows, MixColumns, AddRoundKey).<br>طول النص المشفر: ${ct.length} بايت (${ct.length / 16} كتلة 128-بت)<br>Ciphertext (Hex): <code>${hex}</code>`;
+        }
+      } else if (cipherType === 'idea') {
+        const ek = ideaExpandKey(keyHash.slice(0, 16));
+        const padLen = 8 - (textBytes.length % 8);
+        const padded = new Uint8Array(textBytes.length + padLen);
+        padded.set(textBytes);
+        for (let p = textBytes.length; p < padded.length; p++) padded[p] = padLen;
+
+        const out = new Uint8Array(padded.length);
+        for (let b = 0; b < padded.length; b += 8) {
+          const blk = ideaCryptBlock(padded.subarray(b, b + 8), ek);
+          out.set(blk, b);
+        }
+        const hex = bytesToHex(out);
+        outputBox.innerText = hex;
+        if (traceBox) {
+          traceBox.innerHTML = `تشفير IDEA (Lai-Massey) عبر خلط 3 زمر جبرية متعارضة (XOR, + mod 2^16, × mod 65537) مع 52 مفتاحاً فرعياً.<br>عدد كتل (64-بت): ${padded.length / 8}<br>Ciphertext (Hex): <code>${hex}</code>`;
+        }
       } else {
-        const rounds = cipherType === 'gost' ? 32 : (cipherType === 'cast' ? 16 : 16);
+        const rounds = cipherType === 'gost' ? 32 : (cipherType === 'blowfish' ? 16 : (cipherType === 'cast' ? 16 : 16));
         const { out, trace } = feistelSimulation(textBytes, keyHash, rounds, 'enc');
         const hex = bytesToHex(out);
         outputBox.innerText = hex;
@@ -398,6 +537,26 @@
           const unpadded = (pad > 0 && pad <= 16) ? out.slice(0, out.length - pad) : out;
           outputBox.innerText = new TextDecoder().decode(unpadded);
           if (traceBox) traceBox.innerHTML = 'تم فك تشفير RC6 بنجاح';
+        } else if (cipherType === 'aes') {
+          try {
+            const pt = await aesSubtleCrypt(keyHash, ctBytes, 'dec');
+            outputBox.innerText = new TextDecoder().decode(pt);
+            if (traceBox) traceBox.innerHTML = 'تم فك تشفير AES-128 بنجاح عبر التحويلات العكسية (InvShiftRows, InvSubBytes, InvMixColumns)';
+          } catch (e) {
+            outputBox.innerText = 'خطأ في فك تشفير AES (تأكد من صحة المفتاح وبنية الكتل)';
+          }
+        } else if (cipherType === 'idea') {
+          const ek = ideaExpandKey(keyHash.slice(0, 16));
+          const dk = ideaInvertKeys(ek);
+          const out = new Uint8Array(ctBytes.length);
+          for (let b = 0; b < ctBytes.length; b += 8) {
+            const blk = ideaCryptBlock(ctBytes.subarray(b, b + 8), dk);
+            out.set(blk, b);
+          }
+          const pad = out[out.length - 1];
+          const unpadded = (pad > 0 && pad <= 8) ? out.slice(0, out.length - pad) : out;
+          outputBox.innerText = new TextDecoder().decode(unpadded);
+          if (traceBox) traceBox.innerHTML = 'تم فك تشفير IDEA بنجاح بحساب معكوسات الزمر الجبرية (Mod 65537 multiplicative inverses & Mod 65536 additive inverses)';
         } else {
           const rounds = cipherType === 'gost' ? 32 : 16;
           const { out, trace } = feistelSimulation(ctBytes, keyHash, rounds, 'dec');
