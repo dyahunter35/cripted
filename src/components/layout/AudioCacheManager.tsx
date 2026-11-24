@@ -14,7 +14,7 @@ import {
   WifiOff,
 } from "lucide-react";
 import {
-  getCachedPodcastsMeta,
+  syncAndGetCachedPodcasts,
   deleteCachedPodcast,
   clearAllCachedPodcasts,
   formatBytes,
@@ -27,8 +27,9 @@ export function AudioCacheManager() {
   const [mounted, setMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const refreshCacheList = () => {
-    setCachedItems(getCachedPodcastsMeta());
+  const refreshCacheList = async () => {
+    const list = await syncAndGetCachedPodcasts();
+    setCachedItems(list);
   };
 
   useEffect(() => {

@@ -148,8 +148,26 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
     if (cachedLocalUrl) {
       audio.src = cachedLocalUrl;
       setIsLocallyCached(true);
+      setBufferedPercent(100);
     } else {
       audio.src = audioUrl;
+      // Auto-cache in background to store in CacheStorage & Header dropdown
+      downloadAndCachePodcast(
+        algorithmSlug,
+        audioUrl,
+        {
+          title: podcast.title,
+          subtitle: podcast.subtitle,
+          duration: podcast.duration,
+          durationSeconds: podcast.durationSeconds,
+          audioFile: podcast.audioFile || `${algorithmSlug}_podcast.mp3`,
+        }
+      ).then((cached) => {
+        if (cached) {
+          setIsLocallyCached(true);
+          setBufferedPercent(100);
+        }
+      }).catch(() => {});
     }
     setHasLoadedSrc(true);
   };
@@ -262,18 +280,23 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
 
   const updateBuffered = () => {
     const audio = audioRef.current;
-    if (!audio || !audio.buffered || audio.buffered.length === 0) return;
+    if (!audio) return;
+    if (isLocallyCached) {
+      setBufferedPercent(100);
+      return;
+    }
+    if (!audio.buffered || audio.buffered.length === 0) return;
     try {
       const dur = audio.duration || duration || podcast.durationSeconds;
       if (dur > 0) {
-        for (let i = audio.buffered.length - 1; i >= 0; i--) {
-          if (audio.buffered.start(i) <= audio.currentTime) {
-            const end = audio.buffered.end(i);
-            const pct = Math.min(100, (end / dur) * 100);
-            setBufferedPercent(pct);
-            break;
+        let maxBuffered = 0;
+        for (let i = 0; i < audio.buffered.length; i++) {
+          if (audio.buffered.end(i) > maxBuffered) {
+            maxBuffered = audio.buffered.end(i);
           }
         }
+        const pct = Math.min(100, (maxBuffered / dur) * 100);
+        setBufferedPercent((prev) => Math.max(prev, pct > 96 ? 100 : pct));
       }
     } catch {
       // Ignore
@@ -445,7 +468,7 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
 
           {/* Progress Slider with YouTube-Style Buffered Download Bar */}
           <div className="flex-1 space-y-1.5">
-            <div className="relative w-full h-2.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+            <div className="relative w-full h-2.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden" dir="ltr">
               {/* YouTube Buffered Track (شريط الاستكمال المؤقت بلون مميز يسبق نقطة الاستماع) */}
               <div
                 style={{ width: `${isLocallyCached ? 100 : bufferedPercent}%` }}
@@ -464,6 +487,7 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
               {/* Native range slider for seeking */}
               <input
                 type="range"
+                dir="ltr"
                 min={0}
                 max={duration || podcast.durationSeconds}
                 step={0.5}
@@ -541,8 +565,10 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
               (() => {
                 const isHost1 =
                   activeSentence.role === "host1" ||
-                  activeSentence.speaker.includes("المذيع") ||
-                  activeSentence.speaker.includes("1") ||
+                  activeSentence.speaker === "المذيع" ||
+                  (activeSentence.speaker.includes("المذيع") &&
+                    !activeSentence.speaker.includes("المذيعة") &&
+                    !activeSentence.speaker.includes("2")) ||
                   activeSentence.speaker.includes("أحمد") ||
                   activeSentence.role === "instructor" ||
                   activeSentence.speaker.includes("كريم");
@@ -686,8 +712,10 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
                 const isActive = activeIndex !== -1 && transcript[activeIndex]?.id === item.id;
                 const isHost1 =
                   item.role === "host1" ||
-                  item.speaker.includes("المذيع") ||
-                  item.speaker.includes("1") ||
+                  item.speaker === "المذيع" ||
+                  (item.speaker.includes("المذيع") &&
+                    !item.speaker.includes("المذيعة") &&
+                    !item.speaker.includes("2")) ||
                   item.speaker.includes("أحمد") ||
                   item.role === "instructor" ||
                   item.speaker.includes("كريم");
