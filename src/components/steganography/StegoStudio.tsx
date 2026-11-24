@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Layers, Eye, EyeOff, ShieldCheck, Download, RefreshCw, Volume2, Image as ImageIcon } from "lucide-react";
+import { Layers, Eye, EyeOff, ShieldCheck, Download, RefreshCw, Volume2, Image as ImageIcon, Sparkles } from "lucide-react";
 
 export function StegoStudio() {
   const [activeTab, setActiveTab] = useState<"image" | "audio">("image");
@@ -10,12 +10,33 @@ export function StegoStudio() {
   const [embedStatus, setEmbedStatus] = useState<string>("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Initialize canvas with gradient pattern
-  const initCanvas = () => {
+  const basePath =
+    process.env.NEXT_PUBLIC_BASE_PATH !== undefined
+      ? process.env.NEXT_PUBLIC_BASE_PATH
+      : process.env.NODE_ENV === "production"
+      ? "/cripted"
+      : "";
+
+  // Initialize canvas with gradient pattern or load image
+  const initCanvas = (imageUrl?: string) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
+    if (imageUrl) {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        canvas.width = 240;
+        canvas.height = 160;
+        ctx.drawImage(img, 0, 0, 240, 160);
+        setEmbedStatus("تم تحميل صورة العينة (Sample Image) بنجاح كحامل!");
+        setExtractedText("");
+      };
+      img.src = imageUrl;
+      return;
+    }
 
     canvas.width = 240;
     canvas.height = 160;
@@ -27,7 +48,6 @@ export function StegoStudio() {
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, 240, 160);
 
-    // Some visual texture
     ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
     for (let i = 0; i < 20; i++) {
       ctx.beginPath();
@@ -79,7 +99,6 @@ export function StegoStudio() {
     let pixelIdx = 0;
 
     while (byteIdx < total.length && pixelIdx < data.length) {
-      // Skip alpha channel (every 4th byte)
       if (pixelIdx % 4 !== 3) {
         const bit = (total[byteIdx] >>> bitIdx) & 1;
         data[pixelIdx] = (data[pixelIdx] & ~1) | bit;
@@ -108,7 +127,6 @@ export function StegoStudio() {
     let pixelIdx = 0;
     let len = 0;
 
-    // Read 32-bit length header
     for (let b = 0; b < 32; b++) {
       while (pixelIdx % 4 === 3) pixelIdx++;
       const bit = data[pixelIdx] & 1;
@@ -117,7 +135,7 @@ export function StegoStudio() {
     }
 
     if (len <= 0 || len > 5000) {
-      setExtractedText("لم يتم العثور على رسالة مخفية صالحة.");
+      setExtractedText("لم يتم العثور على رسالة مخفية صالحة (تأكد من الضغط على إخفاء أولاً).");
       return;
     }
 
@@ -137,7 +155,7 @@ export function StegoStudio() {
   };
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-6">
+    <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-6">
       {/* Mode Switcher */}
       <div className="flex border-b border-border gap-2 pb-3">
         <button
@@ -165,79 +183,102 @@ export function StegoStudio() {
       </div>
 
       {activeTab === "image" ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-          {/* Controls */}
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground">
-                الرسالة السرية المراد تضمينها (Secret Message):
-              </label>
-              <textarea
-                value={secretText}
-                onChange={(e) => setSecretText(e.target.value)}
-                rows={3}
-                className="w-full rounded-lg border border-border bg-background p-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                placeholder="أدخل النص السري هنا..."
-              />
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            {/* Controls */}
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">
+                  الرسالة السرية المراد تضمينها (Secret Message):
+                </label>
+                <textarea
+                  value={secretText}
+                  onChange={(e) => setSecretText(e.target.value)}
+                  rows={3}
+                  className="w-full rounded-lg border border-border bg-background p-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  placeholder="أدخل النص السري هنا..."
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={handleHide}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-emerald-500 transition-colors shadow-xs"
+                >
+                  <EyeOff className="h-4 w-4" />
+                  <span>إخفاء الرسالة داخل البكسلات (Embed LSB)</span>
+                </button>
+
+                <button
+                  onClick={handleExtract}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-border bg-secondary px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-secondary/80 transition-colors"
+                >
+                  <Eye className="h-4 w-4" />
+                  <span>استخراج الرسالة من الصورة (Extract LSB)</span>
+                </button>
+
+                <button
+                  onClick={() => initCanvas(`${basePath}/images/sample.png`)}
+                  className="rounded-lg border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-secondary transition-colors"
+                  title="تحميل صورة العينة المرفقة بالمشروع"
+                >
+                  🖼️ عينة المشروع
+                </button>
+
+                <button
+                  onClick={() => initCanvas()}
+                  className="rounded-lg border border-border p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                  title="إعادة تعيين الصورة"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </button>
+              </div>
+
+              {embedStatus && (
+                <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                  {embedStatus}
+                </div>
+              )}
+
+              {extractedText && (
+                <div className="rounded-lg border border-border bg-background p-3.5 space-y-1">
+                  <span className="text-[11px] font-semibold text-muted-foreground">
+                    الرسالة المستخرجة (Extracted Secret):
+                  </span>
+                  <p className="font-mono text-xs text-primary font-bold">{extractedText}</p>
+                </div>
+              )}
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={handleHide}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-emerald-500 transition-colors shadow-xs"
-              >
-                <EyeOff className="h-4 w-4" />
-                <span>إخفاء الرسالة داخل البكسلات (Embed LSB)</span>
-              </button>
-
-              <button
-                onClick={handleExtract}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-border bg-secondary px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-secondary/80 transition-colors"
-              >
-                <Eye className="h-4 w-4" />
-                <span>استخراج الرسالة من الصورة (Extract LSB)</span>
-              </button>
-
-              <button
-                onClick={initCanvas}
-                className="rounded-lg border border-border p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-                title="إعادة تعيين الصورة"
-              >
-                <RefreshCw className="h-4 w-4" />
-              </button>
+            {/* Canvas Preview */}
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/20 p-5 space-y-3">
+              <span className="text-xs font-semibold text-muted-foreground">
+                معاينة البكسلات الحية (HTML5 Canvas 24-bit):
+              </span>
+              <div className="rounded-lg border border-border shadow-md overflow-hidden bg-background">
+                <canvas ref={canvasRef} className="block" />
+              </div>
+              <p className="text-[11px] text-muted-foreground text-center max-w-xs">
+                يتم تعديل البت الأقل وزناً في كل قناة لونية ($R, G, B$)، مما ينتج عنه فارق لوني لا يتجاوز $1/256$ غير قابل للملاحظة بالعين البشرية.
+              </p>
             </div>
-
-            {embedStatus && (
-              <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                {embedStatus}
-              </div>
-            )}
-
-            {extractedText && (
-              <div className="rounded-lg border border-border bg-background p-3.5 space-y-1">
-                <span className="text-[11px] font-semibold text-muted-foreground">
-                  الرسالة المستخرجة (Extracted Secret):
-                </span>
-                <p className="font-mono text-xs text-primary font-bold">{extractedText}</p>
-              </div>
-            )}
           </div>
 
-          {/* Canvas Preview */}
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/20 p-5 space-y-3">
-            <span className="text-xs font-semibold text-muted-foreground">
-              معاينة البكسلات الحية (HTML5 Canvas 24-bit):
+          {/* Stego Diagram SVG */}
+          <div className="pt-4 border-t border-border">
+            <span className="text-xs font-bold text-muted-foreground block mb-2">
+              المخطط الهندسي لآلية حقن البتات (Bit Injection Diagram):
             </span>
-            <div className="rounded-lg border border-border shadow-md overflow-hidden bg-background">
-              <canvas ref={canvasRef} className="block" />
+            <div className="rounded-xl overflow-hidden border border-border/80 bg-black/40 p-2">
+              <img
+                src={`${basePath}/images/stego-diagram.svg`}
+                alt="LSB Steganography Diagram"
+                className="w-full max-h-56 object-contain"
+              />
             </div>
-            <p className="text-[11px] text-muted-foreground text-center max-w-xs">
-              يتم تعديل البت الأقل وزناً في كل قناة لونية ($R, G, B$)، مما ينتج عنه فارق لوني لا يتجاوز $1/256$ غير قابل للملاحظة بالعين البشرية.
-            </p>
           </div>
         </div>
       ) : (
-        /* Audio Steganography explanation and visualizer */
         <div className="space-y-4">
           <div className="rounded-lg border border-border bg-background p-4 space-y-3">
             <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
