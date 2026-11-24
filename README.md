@@ -1,19 +1,28 @@
 # مختبر التشفير وإخفاء البيانات (Crypto & Stego Lab)
+### Academic Developer Workspace for Cryptography & Steganography
 
 منصة أكاديمية وتطبيقية تفاعلية شاملة لمقرر التعمية وتأمين البيانات لمرحلة الماجستير.
-تجمع المنصة بين التطبيق البرمجي المتكامل لخوارزميات التشفير المتناظر (كتل وتدفق) من الصفر (Pure Python) وبالمكتبات المعيارية، مع تقنيات إخفاء البيانات السرية (Steganography) بالوسائط المتعددة (الصور الرقمية BMP والصوتيات WAV)، وتوفر واجهة ويب تفاعلية فائقة السرعة مع حزم تنزيل برمجية مباشرة لكل خوارزمية.
+تجمع المنصة بين التطبيق البرمجي المتكامل لـ 9 خوارزميات تشفير متناظر (كتل وتدفق) من الصفر (Pure Python) وبالمكتبات المعيارية، مع تقنيات إخفاء البيانات السرية (Steganography) بالوسائط المتعددة (الصور الرقمية BMP والصوتيات WAV)، وتوفر واجهة ويب تفاعلية حديثة مبنية بـ **Next.js (App Router)**، ونظام مساحة عمل برمجية متكاملة (`CodeWorkspace`)، وبودكاست تعليمي حواري مع ميزة **Zero-Bandwidth Audio Loading** (0 KB عند الفتح).
 
 🌐 **رابط المنصة التفاعلية المباشر:** [https://dyahunter35.github.io/cripted/](https://dyahunter35.github.io/cripted/)
 
 ---
 
+## بنية المشروع والتقنيات المستخدمة
+
+- **Next.js App Router (v15+) + TypeScript**: هيكل الصفحات الثابتة والتوجيه السريع.
+- **Tailwind CSS + shadcn/ui Design Tokens**: تصميم Academic Developer Dashboard هادئ ومتطور.
+- **next-themes**: دعم الوضع الليلي والنهاري والتلقائي بدون وميض (Zero-flash theme toggle).
+- **KaTeX**: تصيير المعادلات والتحويلات الرياضية لحقول غالوا والزمر الجبرية بدون حظر شبكي.
+- **CodeWorkspace**: مساحة عمل برمجية تفاعلية بتبويبات عمودية، تلوين الأكواد، ترقيم الأسطر، البحث المباشر، النسخ، والتنزيل، ووضع ملء الشاشة.
+- **Zero-Bandwidth Podcast Player**: بودكاست تعليمي حواري لكل خوارزمية باستهلاك بيانات 0 KB عند فتح الصفحة؛ لا يتم تعيين `src` ولا يبدأ التحميل إلا بعد النقر الصريح على زر التشغيل.
+- **GitHub Pages Static Export**: تصدير الموقع بالكامل كملفات ثابتة فائقة السرعة مع مسار `/cripted`.
+
+---
+
 ## تصنيف الخوارزميات (التصنيف الأكاديمي)
 
-تم تنظيم الخوارزميات بدقة إلى فئتين لتسهيل المراجعة الأكاديمية والتقييم:
-
 ### 🏛️ الفئة الأولى: خوارزميات المنهج الأساسية (Core Curriculum)
-الخوارزميات القياسية الإلزامية المعتمدة في خطة المقرر الدراسي:
-
 1. **DES (Data Encryption Standard - FIPS 46-3):**
    - شبكة فيستل (Feistel) كلاسيكية مكونة من 16 دورة.
    - كتلة 64 بت، مفتاح 56 بت فعلي، وجداول التبديل الثابتة $IP, PC_1, PC_2, E, P$.
@@ -38,8 +47,6 @@
 ---
 
 ### ⚡ الفئة الثانية: خوارزميات التشفير الإضافية والمتقدمة (Additional Ciphers)
-خوارزميات نوعية مضافة لتوسيع آفاق الدراسة المقارنة والتحليل الأمني:
-
 6. **RC4 (ARC4 & RC4-drop):**
    - أشهر خوارزمية تشفير تدفقي (Stream Cipher) مع خوارزميتي تهيئة المفتاح KSA وتوليد المفاتيح PRGA، مع دعم نسخة RC4-drop768 لإلغاء الانحياز الإحصائي الأولي.
    - المسار: `rc4/rc4_manual.py` و `rc4/rc4_libs.py`.
@@ -59,96 +66,56 @@
 
 تحتوي جميع مجلدات الخوارزميات التسعة على تطبيق مستقل لتقنية إخفاء النصوص المشفرة:
 - **في الصور الرقمية:** استبدال البت الأقل وزناً (LSB) في القنوات اللونية لملفات BMP 24-bit غير المضغوطة دون أي تشوه مرئي.
-- **في الملفات الصوتية:** استبدال البت الأقل وزناً في عينات الصوت لملفات WAV (16-bit PCM mono/stereo) دون أي أثر سمعي.
-- **ترويسة التحكم (Header):** إضافة 4 بايتات (32-bit Big-Endian) في بداية البث لحفظ طول الرسالة المشفرة بدقة، مما يتيح استخراجها بالكامل وعزلها عن نفايات الملف الحامل.
+- **في الملفات الصوتية:** استبدال البت الأقل وزناً في عينات الصوت لملفات WAV (16-bit PCM) دون أي أثر سمعي.
+- **ترويسة التحكم (Header):** إضافة 4 بايتات (32-bit Big-Endian) في بداية البث لحفظ طول الرسالة بدقة ومنع قراءة نفايات الملف الحامل.
 
 ---
 
-## تثبيت البيئة والمتطلبات (Installation)
+## تشغيل واختبار المشروع
 
+### 1. بيئة الويب وتطوير Next.js:
 ```bash
-# ترقية مدير الحزم
-python3 -m pip install --upgrade pip
+# تثبيت حزم Node.js
+npm install
 
-# تثبيت مكتبات التشفير والوسائط (PyCryptodome, Pillow, gostcrypto)
-python3 -m pip install pycryptodome Pillow gostcrypto
+# تشغيل خادم التطوير المحلي
+npm run dev
+
+# بناء وتصدير الموقع الثابت لـ GitHub Pages
+npm run build
 ```
 
-للتحقق من سلامة البيئة:
+### 2. بيئة بايثون واختبارات الخوارزميات:
 ```bash
-python3 -c "import Crypto, PIL, gostcrypto; print('All libraries verified successfully!')"
+# تثبيت المتطلبات
+pip install -r requirements.txt
+
+# تشغيل مجموعة الاختبارات الشاملة (9 خوارزميات + إخفاء البيانات)
+python3 -m unittest discover -s tests
 ```
 
----
-
-## تشغيل العروض التجريبية (Demo Runs)
-
-### 1. تشغيل خوارزميات المنهج الأساسية:
+### 3. تشغيل العروض التجريبية المباشرة (Demo CLI):
 ```bash
-# تشغيل DES
-python3 des/des_manual.py
-python3 des/des_libs.py demo
-
-# تشغيل AES (تطبيق يدوي بحسابات حقل غالوا ومكتبات)
 python3 aes/aes_manual.py demo
-python3 aes/aes_libs.py demo
-
-# تشغيل RC5
+python3 des/des_manual.py demo
 python3 rc5/rc5_manual.py demo
-python3 rc5/rc5_libs.py demo
-
-# تشغيل IDEA (الزمر الجبرية الثلاث)
 python3 idea/idea_manual.py demo
-python3 idea/idea_libs.py demo
-
-# تشغيل GOST Magma
 python3 gost/gost_manual.py demo
-python3 gost/gost_libs.py demo
-```
-
-### 2. تشغيل الخوارزميات الإضافية:
-```bash
-# تشغيل RC4
 python3 rc4/rc4_manual.py demo
-python3 rc4/rc4_libs.py demo
-
-# تشغيل RC6
 python3 rc6/rc6_manual.py demo
-python3 rc6/rc6_libs.py demo
-
-# تشغيل CAST-128
 python3 cast/cast_libs.py demo
-
-# تشغيل Blowfish
-python3 blowfish/blowfish_libs.py demo
+python3 blowfish/blowfish_manual.py demo
 ```
 
----
-
-## أوامر إخفاء واستخراج البيانات (Steganography CLI)
-
-يمكن تشغيل عمليات الإخفاء والاستخراج في أي خوارزمية (مثال باستخدام `aes_manual.py` أو `idea_manual.py`):
-
+### 4. توليد البودكاست باستخدام Gemini (اختياري / Offline Generator):
 ```bash
-# إخفاء نص مشفر داخل صورة BMP
-python3 aes/aes_manual.py image-hide sample.bmp secret.bmp "نص الماجستير السري" --key Pass@2026
-
-# قراءة النص المخفي من الصورة وفك تشفيره
-python3 aes/aes_manual.py image-show secret.bmp --key Pass@2026
-
-# إخفاء نص مشفر داخل صوت WAV
-python3 aes/aes_manual.py audio-hide sample.wav secret.wav "تسجيل بيانات سرية" --key Pass@2026
-
-# قراءة النص المخفي من الصوت وفك تشفيره
-python3 aes/aes_manual.py audio-show secret.wav --key Pass@2026
+# إضافة مفتاح GEMINI_API_KEY داخل .env.local
+npm run generate-podcasts
 ```
 
 ---
 
-## تحسينات الأداء والسرعة (Speed & Performance Optimizations)
+## رخصة المشروع
 
-تم تحسين الموقع والصفحات التفاعلية بالكامل لضمان سرعة تصفح فائقة:
-1. **إلغاء الحظر الشبكي للخطوط:** إزالة استدعاءات `@import` الثقيلة داخل ملف CSS واستبدالها بتحميل غير معطل (Non-blocking Preconnect) مع خطوط النظام البديلة الفورية.
-2. **تسريع التصيير وإلغاء بطء التمرير:** إزالة خاصية `background-attachment: fixed` ومرشحات `backdrop-filter: blur(...)` التي كانت تستهلك معالجة كرت الشاشة (GPU Repaint)، واستبدالها بخلفيات داكنة مصمتة ذات تباين عالي و 120 FPS.
-3. **تنظيم التصفح حسب الفئات:** تقسيم شريط التنقل العلوي والجداول وحزم التحميل إلى فئتي الأساسيات والإضافيات لتيسير الوصول دون إرباك.
-4. **توفير حزم ZIP خفيفة:** تم ضغط الكود المصدري لكل خوارزمية مستقلاً لتنزيله بضغطة زر واحدة دون أي تأخير.
+المشروع مفتوح المصدر ومتاح للأغراض الأكاديمية والتعليمية والبحثية بموجب ترخيص MIT License.
+جميع الأكواد المرجعية تم التحقق من سلامتها وتطابقها الكامل مع المتجهات القياسية (Standard Reference Vectors).

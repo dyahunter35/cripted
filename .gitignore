@@ -15,3 +15,15 @@ venv/
 *_out.bmp
 *_out.wav
 *.tmp
+
+# Node & Next.js
+node_modules/
+.next/
+out/
+.podcast_hash_cache.json
+
+# Environment variables
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

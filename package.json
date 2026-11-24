@@ -1,0 +1,50 @@
+{
+  "name": "cripted",
+  "version": "1.0.0",
+  "description": "منصة أكاديمية وتطبيقية تفاعلية شاملة لمقرر التعمية وتأمين البيانات لمرحلة الماجستير. تجمع المنصة بين التطبيق البرمجي المتكامل لخوارزميات التشفير المتناظر (كتل وتدفق) من الصفر (Pure Python) وبالمكتبات المعيارية، مع تقنيات إخفاء البيانات السرية (Steganography) بالوسائط المتعددة (الصور الرقمية BMP والصوتيات WAV)، وتوفر واجهة ويب تفاعلية فائقة السرعة مع حزم تنزيل برمجية مباشرة لكل خوارزمية.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "generate-podcasts": "tsx scripts/generate-podcasts.ts",
+    "test:py": "python3 -m unittest discover -s tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dyahunter35/cripted.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/dyahunter35/cripted/issues"
+  },
+  "homepage": "https://github.com/dyahunter35/cripted#readme",
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "katex": "^0.19.1",
+    "lucide-react": "^1.78.0",
+    "next": "^16.4.6",
+    "next-themes": "^0.4.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "shiki": "^4.6.0",
+    "tailwind-merge": "^3.7.1"
+  },
+  "devDependencies": {
+    "@types/katex": "^0.16.8",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "autoprefixer": "^10.7.0",
+    "postcss": "^8.5.33",
+    "tailwindcss": "^3.4.19",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
