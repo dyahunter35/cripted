@@ -523,8 +523,8 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
       </div>
 
       {/* 📺 Live Subtitles Box (الترجمة الحية المتزامنة أسفل عناصر التحكم مباشرة) */}
-      <div className="rounded-xl border border-primary/30 bg-slate-50/80 dark:bg-slate-900/80 p-4 shadow-xs transition-all">
-        <div className="flex items-center justify-between gap-2 pb-2 border-b border-border text-xs">
+      <div className="rounded-xl border border-primary/30 bg-slate-50/90 dark:bg-slate-900/90 p-4 shadow-xs transition-all">
+        <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-border text-xs">
           <div className="flex items-center gap-2">
             <span className="flex h-2.5 w-2.5 relative">
               <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isPlaying ? "bg-emerald-400" : "bg-slate-400"} opacity-75`} />
@@ -538,9 +538,25 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
 
           <div className="flex items-center gap-2">
             {activeSentence && (
-              <span className="rounded-full bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 text-[11px] font-mono font-bold">
-                {activeSentence.speaker}
-              </span>
+              (() => {
+                const isInst = activeSentence.role === "instructor" || activeSentence.speaker.includes("كريم");
+                return (
+                  <span
+                    className={`flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold border transition-colors ${
+                      isInst
+                        ? "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30"
+                        : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+                    }`}
+                  >
+                    {isInst ? (
+                      <GraduationCap className="h-3 w-3 text-sky-600 dark:text-sky-400" />
+                    ) : (
+                      <User className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                    )}
+                    <span>{activeSentence.speaker}</span>
+                  </span>
+                );
+              })()
             )}
             <span className="text-[11px] font-mono text-muted-foreground">
               {formatTime(currentTime)} / {formatTime(duration || podcast.durationSeconds)}
@@ -548,7 +564,7 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
           </div>
         </div>
 
-        <div className="pt-3 min-h-[52px] flex items-center justify-center text-center">
+        <div className="pt-3 min-h-[56px] flex items-center justify-center text-center">
           {activeSentence ? (
             <p className="text-sm sm:text-base font-bold text-foreground leading-relaxed animate-in fade-in-50 duration-200">
               {activeSentence.text}
@@ -558,7 +574,7 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
               <Headphones className="h-4 w-4" />
               <span>
                 {isPlaying
-                  ? "استمع إلى سياق الحديث..."
+                  ? "استمع إلى سياق الحديث الشائق بين الأستاذ والطالب..."
                   : "اضغط تشغيل أو اختر أي سطر في السلسلة الزمنية بالأسفل للانتقال الفوري إليه."}
               </span>
             </p>
@@ -574,7 +590,7 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
             className="flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary/80 transition-colors"
           >
             <FileText className="h-4 w-4" />
-            <span>السلسلة الزمنية والنص المكتوب الكامل ({transcript.length} جملة متزامنة)</span>
+            <span>السلسلة الزمنية والنص المكتوب الكامل ({transcript.length} فقرة حوارية متزامنة)</span>
             {showTranscript ? <ChevronUp className="h-3.5 w-3.5 mr-1" /> : <ChevronDown className="h-3.5 w-3.5 mr-1" />}
           </button>
 
@@ -609,11 +625,27 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
           )}
         </div>
 
+        {/* Speakers Legend */}
+        {showTranscript && (
+          <div className="flex flex-wrap items-center gap-2.5 py-1">
+            <div className="flex items-center gap-1.5 rounded-lg border border-sky-500/30 bg-sky-50/80 dark:bg-sky-950/30 px-2.5 py-1 text-xs">
+              <GraduationCap className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400" />
+              <span className="font-bold text-sky-700 dark:text-sky-300">د. كريم:</span>
+              <span className="text-muted-foreground text-[11px]">أستاذ المقرر (مقدمة وشرح وتحليل أكاديمي)</span>
+            </div>
+            <div className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-50/80 dark:bg-emerald-950/30 px-2.5 py-1 text-xs">
+              <User className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span className="font-bold text-emerald-700 dark:text-emerald-300">يوسف:</span>
+              <span className="text-muted-foreground text-[11px]">طالب ماجستير (أسئلة واستيضاحات ونقاش)</span>
+            </div>
+          </div>
+        )}
+
         {/* Timeline Items List */}
         {showTranscript && (
           <div
             ref={transcriptContainerRef}
-            className="space-y-2 rounded-xl border border-border bg-slate-50/50 dark:bg-slate-900/50 p-3 sm:p-4 max-h-96 overflow-y-auto"
+            className="space-y-2.5 rounded-xl border border-border bg-slate-50/50 dark:bg-slate-900/50 p-3 sm:p-4 max-h-96 overflow-y-auto"
           >
             {filteredTranscript.length === 0 ? (
               <div className="text-center py-8 text-xs text-muted-foreground">
@@ -622,6 +654,8 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
             ) : (
               filteredTranscript.map((item, idx) => {
                 const isActive = activeIndex !== -1 && transcript[activeIndex]?.id === item.id;
+                const isInstructor = item.role === "instructor" || item.speaker.includes("كريم");
+
                 return (
                   <div
                     key={item.id || idx}
@@ -629,23 +663,42 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
                     onClick={() => handleSeekToSentence(item.start)}
                     className={`group cursor-pointer rounded-xl p-3 text-xs leading-relaxed border transition-all duration-200 ${
                       isActive
-                        ? "border-primary bg-primary/10 ring-2 ring-primary/40 shadow-xs"
-                        : "border-border/70 bg-card hover:border-primary/40 hover:bg-card/90"
+                        ? isInstructor
+                          ? "border-sky-500 bg-sky-100/80 dark:bg-sky-950/60 ring-2 ring-sky-500/50 shadow-md"
+                          : "border-emerald-500 bg-emerald-100/80 dark:bg-emerald-950/60 ring-2 ring-emerald-500/50 shadow-md"
+                        : isInstructor
+                        ? "border-sky-200/80 dark:border-sky-900/40 bg-sky-50/50 dark:bg-sky-950/20 hover:border-sky-400 hover:bg-sky-50/80 dark:hover:bg-sky-950/30"
+                        : "border-emerald-200/80 dark:border-emerald-900/40 bg-emerald-50/50 dark:bg-emerald-950/20 hover:border-emerald-400 hover:bg-emerald-50/80 dark:hover:bg-emerald-950/30"
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2 mb-1.5">
                       <div className="flex items-center gap-2">
                         <span
-                          className={`font-bold px-2 py-0.5 rounded-md text-[11px] ${
-                            isActive
-                              ? "bg-primary text-white"
-                              : "bg-secondary text-foreground"
+                          className={`flex items-center gap-1.5 font-bold px-2.5 py-0.5 rounded-md text-[11px] border ${
+                            isInstructor
+                              ? "bg-sky-500/15 text-sky-800 dark:text-sky-300 border-sky-500/30"
+                              : "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30"
                           }`}
                         >
-                          {item.speaker}
+                          {isInstructor ? (
+                            <GraduationCap className="h-3 w-3 text-sky-600 dark:text-sky-400" />
+                          ) : (
+                            <User className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                          )}
+                          <span>{item.speaker}</span>
+                          <span className="text-[10px] font-normal opacity-80">
+                            {isInstructor ? "• أستاذ المقرر" : "• طالب ماجستير"}
+                          </span>
                         </span>
+
                         {isActive && (
-                          <span className="flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
+                          <span
+                            className={`flex items-center gap-1 text-[10px] font-bold ${
+                              isInstructor
+                                ? "text-sky-600 dark:text-sky-400"
+                                : "text-emerald-600 dark:text-emerald-400"
+                            }`}
+                          >
                             <Radio className="h-3 w-3 animate-pulse" />
                             <span>يتحدث الآن</span>
                           </span>
@@ -658,8 +711,8 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
                           e.stopPropagation();
                           handleSeekToSentence(item.start);
                         }}
-                        className="flex items-center gap-1 font-mono text-[11px] text-muted-foreground group-hover:text-primary bg-secondary/80 hover:bg-primary/10 px-2.5 py-0.5 rounded-md transition-colors"
-                        title="انقر للاستماع إلى هذه الجملة"
+                        className="flex items-center gap-1 font-mono text-[11px] text-muted-foreground group-hover:text-primary bg-card/80 hover:bg-primary/10 px-2.5 py-0.5 rounded-md transition-colors border border-border/50"
+                        title="انقر للاستماع إلى هذه الفقرة"
                       >
                         <Play className="h-2.5 w-2.5" />
                         <span>{formatTime(item.start)}</span>
@@ -668,7 +721,7 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
 
                     <p
                       className={`text-xs sm:text-sm leading-relaxed ${
-                        isActive ? "font-bold text-foreground" : "text-foreground/85"
+                        isActive ? "font-bold text-foreground" : "text-foreground/90"
                       }`}
                     >
                       {item.text}

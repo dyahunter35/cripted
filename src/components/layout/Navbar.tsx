@@ -124,11 +124,11 @@ export function Navbar() {
             {algoMenuOpen && (
               <div
                 onMouseLeave={() => setAlgoMenuOpen(false)}
-                className="absolute right-0 top-full mt-2 w-[600px] rounded-2xl border border-border bg-white dark:bg-slate-900 p-5 shadow-2xl grid grid-cols-2 gap-4 animate-in fade-in-50 zoom-in-95 duration-150 z-50 text-right ring-1 ring-border/80"
+                className="absolute right-0 top-full mt-2 w-[620px] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 !opacity-100 p-5 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] grid grid-cols-2 gap-4 animate-in fade-in-50 zoom-in-95 duration-150 z-[100] text-right ring-1 ring-black/5 dark:ring-white/10"
               >
                 {/* Submenu 1: Core Curriculum */}
-                <div className="space-y-2 border-l border-border/80 pl-3">
-                  <div className="flex items-center gap-2 pb-2 border-b border-border/60">
+                <div className="space-y-2 border-l border-slate-200 dark:border-slate-800 pl-3">
+                  <div className="flex items-center gap-2 pb-2 border-b border-slate-200/80 dark:border-slate-800">
                     <Shield className="h-4 w-4 text-primary dark:text-sky-400" />
                     <span className="text-xs font-bold text-primary dark:text-sky-400">
                       خوارزميات المنهج الأساسية
@@ -143,7 +143,7 @@ export function Navbar() {
                         className={`group block rounded-xl p-2.5 transition-all border ${
                           pathname === `/algorithms/${c.slug}`
                             ? "bg-primary/10 border-primary/40 shadow-xs"
-                            : "border-transparent hover:border-border hover:bg-secondary/70"
+                            : "border-slate-200/60 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/60 hover:border-primary/40 hover:bg-slate-100 dark:hover:bg-slate-800"
                         }`}
                       >
                         <div className="flex items-center justify-between">
@@ -154,7 +154,7 @@ export function Navbar() {
                             FIPS/RFC
                           </span>
                         </div>
-                        <p className="text-[11px] text-muted-foreground group-hover:text-foreground line-clamp-1 mt-1 transition-colors">
+                        <p className="text-[11px] text-slate-600 dark:text-slate-300 group-hover:text-foreground line-clamp-1 mt-1 transition-colors">
                           {c.desc}
                         </p>
                       </Link>
@@ -164,7 +164,7 @@ export function Navbar() {
 
                 {/* Submenu 2: Additional Ciphers */}
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 pb-2 border-b border-border/60">
+                  <div className="flex items-center gap-2 pb-2 border-b border-slate-200/80 dark:border-slate-800">
                     <Cpu className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
                     <span className="text-xs font-bold text-foreground">
                       خوارزميات إضافية ومتقدمة
@@ -179,7 +179,7 @@ export function Navbar() {
                         className={`group block rounded-xl p-2.5 transition-all border ${
                           pathname === `/algorithms/${c.slug}`
                             ? "bg-primary/10 border-primary/40 shadow-xs"
-                            : "border-transparent hover:border-border hover:bg-secondary/70"
+                            : "border-slate-200/60 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/60 hover:border-primary/40 hover:bg-slate-100 dark:hover:bg-slate-800"
                         }`}
                       >
                         <div className="flex items-center justify-between">
@@ -190,7 +190,7 @@ export function Navbar() {
                             Advanced
                           </span>
                         </div>
-                        <p className="text-[11px] text-muted-foreground group-hover:text-foreground line-clamp-1 mt-1 transition-colors">
+                        <p className="text-[11px] text-slate-600 dark:text-slate-300 group-hover:text-foreground line-clamp-1 mt-1 transition-colors">
                           {c.desc}
                         </p>
                       </Link>
