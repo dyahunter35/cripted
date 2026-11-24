@@ -19,8 +19,18 @@ import {
   Activity,
   Search,
   Check,
+  CheckCircle2,
+  HardDrive,
+  Download,
+  WifiOff,
 } from "lucide-react";
 import podcastsData from "@/content/podcasts.json";
+import {
+  isPodcastCached,
+  getCachedAudioUrl,
+  downloadAndCachePodcast,
+  formatBytes,
+} from "@/lib/audio-cache";
 
 interface PodcastPlayerProps {
   algorithmSlug: string;
@@ -52,6 +62,12 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [hasLoadedSrc, setHasLoadedSrc] = useState(false);
 
+  // YouTube-style buffered download progress & Cache state
+  const [bufferedPercent, setBufferedPercent] = useState(0);
+  const [isLocallyCached, setIsLocallyCached] = useState(false);
+  const [isDownloadingCache, setIsDownloadingCache] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+
   const basePath =
     process.env.NEXT_PUBLIC_BASE_PATH !== undefined
       ? process.env.NEXT_PUBLIC_BASE_PATH
@@ -61,13 +77,26 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
 
   const audioUrl = `${basePath}/audio/${podcast?.audioFile || `${algorithmSlug}_podcast.mp3`}`;
 
+  // Check if podcast is cached in browser CacheStorage
+  const checkCacheStatus = async () => {
+    const cached = await isPodcastCached(algorithmSlug);
+    setIsLocallyCached(cached);
+  };
+
+  useEffect(() => {
+    checkCacheStatus();
+    const handleCacheUpdated = () => checkCacheStatus();
+    window.addEventListener("crypto-lab:cache-updated", handleCacheUpdated);
+    return () => window.removeEventListener("crypto-lab:cache-updated", handleCacheUpdated);
+  }, [algorithmSlug]);
+
   // Normalized transcript: use real neural transcript if available, or generate estimated timeline from dialogue
   const transcript: TranscriptSentence[] = useMemo(() => {
     if (!podcast) return [];
     if (podcast.transcript && Array.isArray(podcast.transcript) && podcast.transcript.length > 0) {
       return podcast.transcript;
     }
-    // Fallback: estimate timestamps from dialogue based on average reading rate (~2.5 words per sec)
+    // Fallback: estimate timestamps from dialogue
     if (podcast.dialogue && Array.isArray(podcast.dialogue)) {
       let cumulativeTime = 0.0;
       return podcast.dialogue.map((item: any, idx: number) => {
@@ -108,6 +137,23 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
     });
   }, [activeIndex, autoScroll]);
 
+  // Load audio source (prefer local CacheStorage if available!)
+  const loadAudioSource = async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.getAttribute("src")) return;
+
+    // Check if we have a locally cached offline copy
+    const cachedLocalUrl = await getCachedAudioUrl(algorithmSlug, audioUrl);
+    if (cachedLocalUrl) {
+      audio.src = cachedLocalUrl;
+      setIsLocallyCached(true);
+    } else {
+      audio.src = audioUrl;
+    }
+    setHasLoadedSrc(true);
+  };
+
   const handleTogglePlay = async () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -119,8 +165,7 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
       window.dispatchEvent(new CustomEvent("crypto-lab:stop-all-audio"));
 
       if (!audio.getAttribute("src")) {
-        audio.src = audioUrl;
-        setHasLoadedSrc(true);
+        await loadAudioSource();
       }
 
       try {
@@ -138,8 +183,7 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
     if (!audio) return;
 
     if (!audio.getAttribute("src")) {
-      audio.src = audioUrl;
-      setHasLoadedSrc(true);
+      await loadAudioSource();
     }
 
     audio.currentTime = startTime;
@@ -152,6 +196,44 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
         setIsPlaying(true);
       } catch (err) {
         console.warn("Audio play interrupted:", err);
+      }
+    }
+  };
+
+  // 1-Click Explicit Cache for Offline Listening
+  const handleDownloadOffline = async () => {
+    if (isDownloadingCache || isLocallyCached) return;
+    setIsDownloadingCache(true);
+    setDownloadProgress(0);
+
+    const success = await downloadAndCachePodcast(
+      algorithmSlug,
+      audioUrl,
+      {
+        title: podcast.title,
+        subtitle: podcast.subtitle,
+        duration: podcast.duration,
+        durationSeconds: podcast.durationSeconds,
+        audioFile: podcast.audioFile || `${algorithmSlug}_podcast.mp3`,
+      },
+      (pct) => {
+        setDownloadProgress(pct);
+      }
+    );
+
+    setIsDownloadingCache(false);
+    if (success) {
+      setIsLocallyCached(true);
+      // If audio already initialized, seamlessly swap to the cached local object URL
+      const localUrl = await getCachedAudioUrl(algorithmSlug, audioUrl);
+      if (localUrl && audioRef.current) {
+        const cur = audioRef.current.currentTime;
+        const wasPlaying = isPlaying;
+        audioRef.current.src = localUrl;
+        audioRef.current.currentTime = cur;
+        if (wasPlaying) {
+          audioRef.current.play().catch(() => {});
+        }
       }
     }
   };
@@ -178,15 +260,37 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
     };
   }, []);
 
+  const updateBuffered = () => {
+    const audio = audioRef.current;
+    if (!audio || !audio.buffered || audio.buffered.length === 0) return;
+    try {
+      const dur = audio.duration || duration || podcast.durationSeconds;
+      if (dur > 0) {
+        for (let i = audio.buffered.length - 1; i >= 0; i--) {
+          if (audio.buffered.start(i) <= audio.currentTime) {
+            const end = audio.buffered.end(i);
+            const pct = Math.min(100, (end / dur) * 100);
+            setBufferedPercent(pct);
+            break;
+          }
+        }
+      }
+    } catch {
+      // Ignore
+    }
+  };
+
   const handleTimeUpdate = () => {
     if (!audioRef.current) return;
     setCurrentTime(audioRef.current.currentTime);
+    updateBuffered();
   };
 
   const handleLoadedMetadata = () => {
     if (audioRef.current && audioRef.current.duration) {
       setDuration(audioRef.current.duration);
     }
+    updateBuffered();
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -239,6 +343,7 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
         ref={audioRef}
         preload="none"
         onTimeUpdate={handleTimeUpdate}
+        onProgress={updateBuffered}
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={() => setIsPlaying(false)}
       />
@@ -274,9 +379,32 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
           </div>
         </div>
 
-        {/* Duration badge */}
+        {/* Offline Cache Status & Save Button */}
         <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-xs font-mono text-foreground font-semibold">
+          {isLocallyCached ? (
+            <div className="flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+              <span>محفوظ في كاش المتصفح (Offline Ready)</span>
+            </div>
+          ) : isDownloadingCache ? (
+            <div className="flex items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
+              <div className="h-3.5 w-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              <span>جاري الحفظ في الكاش ({downloadProgress}%)...</span>
+            </div>
+          ) : (
+            <button
+              onClick={handleDownloadOffline}
+              className="flex items-center gap-1.5 rounded-xl border border-border bg-secondary hover:bg-secondary/80 px-3 py-1.5 text-xs font-semibold text-foreground transition-all shadow-2xs"
+              title="تخزين هذا البودكاست في كاش المتصفح للاستماع لاحقاً بدون إنترنت ودون إعادة التحميل"
+            >
+              <HardDrive className="h-3.5 w-3.5 text-primary" />
+              <span className="hidden sm:inline">حفظ في الكاش</span>
+              <span className="sm:hidden">حفظ</span>
+            </button>
+          )}
+
+          {/* Duration badge */}
+          <span className="flex items-center gap-1.5 rounded-xl border border-border bg-muted/40 px-3 py-1.5 text-xs font-mono text-foreground font-semibold">
             <Clock className="h-3.5 w-3.5 text-primary" />
             <span>{podcast.duration}</span>
           </span>
@@ -303,7 +431,7 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
         })}
       </div>
 
-      {/* Cyber Player Console Bar */}
+      {/* Cyber Player Console Bar with YouTube-Style Buffered Download Track */}
       <div className="rounded-xl border border-border bg-card p-4 space-y-3 shadow-xs">
         <div className="flex items-center gap-3">
           {/* Main Play / Pause Button */}
@@ -315,20 +443,52 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
             {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 mr-0.5" />}
           </button>
 
-          {/* Progress Slider */}
-          <div className="flex-1 space-y-1">
-            <input
-              type="range"
-              min={0}
-              max={duration || podcast.durationSeconds}
-              step={0.5}
-              value={currentTime}
-              onChange={handleSeek}
-              className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
-            />
-            <div className="flex justify-between text-[11px] font-mono text-muted-foreground">
+          {/* Progress Slider with YouTube-Style Buffered Download Bar */}
+          <div className="flex-1 space-y-1.5">
+            <div className="relative w-full h-2.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+              {/* YouTube Buffered Track (شريط الاستكمال المؤقت بلون مميز يسبق نقطة الاستماع) */}
+              <div
+                style={{ width: `${isLocallyCached ? 100 : bufferedPercent}%` }}
+                className="absolute top-0 bottom-0 left-0 bg-primary/25 dark:bg-cyan-500/30 transition-all duration-300"
+                title={`تم تحميل ${isLocallyCached ? 100 : bufferedPercent.toFixed(0)}% في ذاكرة التخزين المؤقت`}
+              />
+
+              {/* Played Progress Track */}
+              <div
+                style={{
+                  width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%`,
+                }}
+                className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-primary to-cyan-500 rounded-full"
+              />
+
+              {/* Native range slider for seeking */}
+              <input
+                type="range"
+                min={0}
+                max={duration || podcast.durationSeconds}
+                step={0.5}
+                value={currentTime}
+                onChange={handleSeek}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                aria-label="موضع التشغيل"
+              />
+            </div>
+
+            <div className="flex justify-between items-center text-[11px] font-mono text-muted-foreground">
               <span>{formatTime(currentTime)}</span>
-              <span>{formatTime(duration || podcast.durationSeconds)}</span>
+              <div className="flex items-center gap-1.5 text-[10px]">
+                {isLocallyCached ? (
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3" />
+                    <span>مخزن محلياً بالكامل</span>
+                  </span>
+                ) : bufferedPercent > 0 ? (
+                  <span className="text-cyan-600 dark:text-cyan-400 font-semibold">
+                    (مخزن مؤقتاً: {bufferedPercent.toFixed(0)}%)
+                  </span>
+                ) : null}
+                <span>{formatTime(duration || podcast.durationSeconds)}</span>
+              </div>
             </div>
           </div>
 
@@ -355,7 +515,9 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
         {!hasLoadedSrc && (
           <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/80 pt-1">
             <Info className="h-3.5 w-3.5 text-primary" />
-            <span>يبدأ تحميل البث الصوتي تدريجياً فقط بعد النقر على زر التشغيل أو اختيار أي جملة (0 KB مستهلكة قبل الضغط).</span>
+            <span>
+              يبدأ تحميل البث تدريجياً فقط بعد النقر على زر التشغيل (0 KB مستهلكة قبل الضغط). يتم التخزين محلياً لتفادي إعادة التنزيل عند التحديث.
+            </span>
           </div>
         )}
       </div>

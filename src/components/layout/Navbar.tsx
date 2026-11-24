@@ -16,6 +16,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import { AudioCacheManager } from "./AudioCacheManager";
 
 function GithubIcon({ className = "h-4 w-4" }: { className?: string }) {
   return (
@@ -216,6 +217,7 @@ export function Navbar() {
 
         {/* Actions */}
         <div className="flex items-center gap-2">
+          <AudioCacheManager />
           <ThemeToggle />
 
           <a
