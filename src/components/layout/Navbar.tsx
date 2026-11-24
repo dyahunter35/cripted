@@ -123,7 +123,7 @@ export function Navbar() {
             {algoMenuOpen && (
               <div
                 onMouseLeave={() => setAlgoMenuOpen(false)}
-                className="absolute right-0 top-full mt-2 w-[600px] rounded-2xl border border-border bg-card p-5 shadow-2xl grid grid-cols-2 gap-4 animate-in fade-in-50 zoom-in-95 duration-150 z-50 text-right ring-1 ring-border"
+                className="absolute right-0 top-full mt-2 w-[600px] rounded-2xl border border-border bg-white dark:bg-slate-900 p-5 shadow-2xl grid grid-cols-2 gap-4 animate-in fade-in-50 zoom-in-95 duration-150 z-50 text-right ring-1 ring-border/80"
               >
                 {/* Submenu 1: Core Curriculum */}
                 <div className="space-y-2 border-l border-border/80 pl-3">
@@ -241,7 +241,7 @@ export function Navbar() {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-border bg-card/95 backdrop-blur-xl px-4 py-4 space-y-4 max-h-[80vh] overflow-y-auto">
+        <div className="md:hidden border-b border-border bg-white dark:bg-slate-900 px-4 py-4 space-y-4 max-h-[80vh] overflow-y-auto">
           <div className="flex flex-col gap-1.5">
             <Link
               href="/"

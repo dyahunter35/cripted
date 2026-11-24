@@ -385,10 +385,10 @@ export default function HomePage() {
         <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-3xl">
           كافة الخوارزميات تم التحقق منها وتعمل 100% بدون أي حاجة للإنترنت وبأعلى دقة حسابية:
         </p>
-        <div className="rounded-2xl border border-border/80 bg-[#0a0e17] p-5 text-[#c9d1d9] font-mono text-xs dir-ltr space-y-2 overflow-x-auto shadow-inner">
-          <div className="text-[#8b949e]"># 1. تثبيت المتطلبات الخفيفة</div>
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-900 dark:bg-slate-950 p-5 text-slate-200 font-mono text-xs dir-ltr space-y-2 overflow-x-auto shadow-md">
+          <div className="text-slate-400"># 1. تثبيت المتطلبات الخفيفة</div>
           <div>pip install -r requirements.txt</div>
-          <div className="text-[#8b949e] pt-2"># 2. تشغيل الاختبارات الأكاديمية التلقائية الشاملة</div>
+          <div className="text-slate-400 pt-2"># 2. تشغيل الاختبارات الأكاديمية التلقائية الشاملة</div>
           <div>python3 -m unittest discover -s tests</div>
           <div className="text-emerald-400 pt-2"># 3. تشغيل العروض التوضيحية (Demos)</div>
           <div>python3 aes/aes_manual.py demo</div>

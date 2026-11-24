@@ -181,7 +181,7 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
       </div>
 
       {/* Animated Sound Wave Visualizer */}
-      <div className="flex items-center justify-center gap-1 h-8 px-4 rounded-xl bg-black/40 border border-border/40 overflow-hidden">
+      <div className="flex items-center justify-center gap-1 h-8 px-4 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 overflow-hidden">
         {Array.from({ length: 32 }).map((_, i) => {
           const height = isPlaying
             ? `${Math.max(15, ((Math.sin(i * 0.5 + currentTime * 5) + 1) / 2) * 100)}%`
@@ -193,7 +193,7 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
               className={`w-1 rounded-full transition-all duration-150 ${
                 isPlaying
                   ? "bg-gradient-to-t from-primary via-cyan-400 to-emerald-400"
-                  : "bg-muted-foreground/30"
+                  : "bg-slate-300 dark:bg-slate-600"
               }`}
             />
           );
@@ -201,7 +201,7 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
       </div>
 
       {/* Cyber Player Console Bar */}
-      <div className="rounded-xl border border-border bg-card/60 p-4 space-y-3 shadow-inner">
+      <div className="rounded-xl border border-border bg-card p-4 space-y-3 shadow-xs">
         <div className="flex items-center gap-3">
           {/* Main Play / Pause Button */}
           <button

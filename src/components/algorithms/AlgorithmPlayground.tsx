@@ -332,8 +332,8 @@ export function AlgorithmPlayground({
           )}
         </div>
 
-        <div className="rounded-md border border-border/80 bg-[#0d1117] p-3 font-mono text-xs text-[#58a6ff] break-all dir-ltr text-left min-h-[48px] flex items-center">
-          {output || <span className="text-[#8b949e] italic">في انتظار إدخال البيانات والضغط على تشفير...</span>}
+        <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 p-3 font-mono text-xs text-blue-600 dark:text-blue-400 break-all dir-ltr text-left min-h-[48px] flex items-center shadow-xs">
+          {output || <span className="text-muted-foreground italic">في انتظار إدخال البيانات والضغط على تشفير...</span>}
         </div>
 
         {trace && (

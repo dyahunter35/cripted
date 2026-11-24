@@ -80,6 +80,7 @@ export function MathRenderer({ html, className = "" }: MathRendererProps) {
   return (
     <div
       ref={containerRef}
+      suppressHydrationWarning
       className={`prose dark:prose-invert max-w-none text-foreground leading-relaxed ${className}`}
       dangerouslySetInnerHTML={{ __html: html }}
     />

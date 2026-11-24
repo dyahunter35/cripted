@@ -392,15 +392,15 @@ export function CodeWorkspace({
 
         {/* Accordion Content */}
         {isAccordionOpen && (
-          <div className="border-t border-[#30363d] bg-[#0d1117] text-[#c9d1d9] dir-ltr">
+          <div className="border-t border-border bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-200 dir-ltr transition-colors">
             {/* Toolbar inside full code */}
-            <div className="flex flex-wrap items-center justify-between border-b border-[#30363d] bg-[#161b22] px-4 py-2.5 gap-2">
+            <div className="flex flex-wrap items-center justify-between border-b border-border bg-slate-100/90 dark:bg-slate-900 px-4 py-2.5 gap-2">
               <div className="flex items-center gap-2">
                 <FileCode className="h-4 w-4 text-primary" />
-                <span className="text-white font-mono text-xs font-semibold">
+                <span className="text-foreground font-mono text-xs font-semibold">
                   {activeTab?.fileName}
                 </span>
-                <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded font-mono">
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded font-mono font-medium">
                   Python Syntax Highlighted
                 </span>
               </div>
@@ -413,7 +413,7 @@ export function CodeWorkspace({
                     placeholder="Search in code..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="h-7 w-36 sm:w-48 rounded-md border border-[#30363d] bg-[#0d1117] pl-8 pr-3 text-xs text-white placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+                    className="h-7 w-36 sm:w-48 rounded-md border border-border bg-card pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary font-mono"
                   />
                 </div>
                 {/* Wrap */}
@@ -421,8 +421,8 @@ export function CodeWorkspace({
                   onClick={() => setWordWrap(!wordWrap)}
                   className={`flex h-7 items-center gap-1 rounded-md px-2 text-xs font-mono transition-colors ${
                     wordWrap
-                      ? "bg-primary text-white"
-                      : "bg-[#21262d] text-[#8b949e] hover:text-white"
+                      ? "bg-primary text-primary-foreground font-bold"
+                      : "bg-secondary text-muted-foreground hover:text-foreground"
                   }`}
                   title="Word Wrap"
                 >
@@ -432,10 +432,10 @@ export function CodeWorkspace({
                 {/* Copy */}
                 <button
                   onClick={handleCopyFull}
-                  className="flex h-7 items-center gap-1 rounded-md bg-[#21262d] px-2.5 text-xs text-white hover:bg-[#30363d] transition-colors font-mono"
+                  className="flex h-7 items-center gap-1 rounded-md bg-secondary text-foreground hover:bg-secondary/80 px-2.5 text-xs transition-colors font-mono font-medium border border-border/60"
                 >
                   {copied ? (
-                    <Check className="h-3 w-3 text-emerald-400" />
+                    <Check className="h-3 w-3 text-emerald-500" />
                   ) : (
                     <Copy className="h-3 w-3" />
                   )}
@@ -459,10 +459,10 @@ export function CodeWorkspace({
                         className={
                           hasMatch
                             ? "bg-amber-500/25 ring-1 ring-amber-500/40"
-                            : "hover:bg-white/5 transition-colors"
+                            : "hover:bg-slate-100 dark:hover:bg-slate-900/60 transition-colors"
                         }
                       >
-                        <td className="w-12 pr-4 pl-1 text-right text-[#484f58] select-none align-top font-mono text-[11px]">
+                        <td className="w-12 pr-4 pl-1 text-right text-slate-400 dark:text-slate-500 select-none align-top font-mono text-[11px]">
                           {lineNum}
                         </td>
                         <td
@@ -575,27 +575,27 @@ export function CodeWorkspace({
 
                   {/* 2. Interactive macOS Code Chrome Box with Syntax Coloring */}
                   <div className="space-y-1.5">
-                    <div className="rounded-2xl border border-[#30363d] bg-[#0d1117] overflow-hidden shadow-inner">
+                    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-950 overflow-hidden shadow-xs transition-colors">
                       {/* Window Header */}
-                      <div className="flex items-center justify-between border-b border-[#30363d] bg-[#161b22] px-4 py-2">
+                      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 px-4 py-2.5">
                         <div className="flex items-center gap-2">
                           <div className="flex items-center gap-1.5">
                             <span className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
                             <span className="h-2.5 w-2.5 rounded-full bg-amber-500/80" />
                             <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
                           </div>
-                          <span className="text-[11px] font-mono text-slate-400 pl-2">
+                          <span className="text-[11px] font-mono text-slate-700 dark:text-slate-300 font-semibold pl-2">
                             {activeTab?.fileName}
                           </span>
                         </div>
                         <button
                           onClick={() => handleCopySnippet(activeExplanation.snippet)}
-                          className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-white font-mono bg-[#21262d] px-2 py-0.5 rounded transition-colors"
+                          className="flex items-center gap-1 text-[11px] text-slate-600 dark:text-slate-300 hover:text-foreground font-mono bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-1 rounded-md shadow-2xs transition-colors"
                         >
                           {snippetCopied ? (
                             <>
-                              <Check className="h-3 w-3 text-emerald-400" />
-                              <span className="text-emerald-400">تم النسخ</span>
+                              <Check className="h-3 w-3 text-emerald-500" />
+                              <span className="text-emerald-500 font-semibold">تم النسخ</span>
                             </>
                           ) : (
                             <>
@@ -613,8 +613,8 @@ export function CodeWorkspace({
                             {activeExplanation.snippet
                               .split("\n")
                               .map((snipLine, sIdx) => (
-                                <tr key={sIdx} className="hover:bg-white/5">
-                                  <td className="w-8 pr-3 text-right text-[#484f58] select-none align-top font-mono text-[11px]">
+                                <tr key={sIdx} className="hover:bg-slate-200/50 dark:hover:bg-white/5 transition-colors">
+                                  <td className="w-8 pr-3 text-right text-slate-400 dark:text-slate-500 select-none align-top font-mono text-[11px]">
                                     {sIdx + 1}
                                   </td>
                                   <td className="whitespace-pre align-top pl-1">

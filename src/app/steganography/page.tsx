@@ -68,9 +68,9 @@ export default function SteganographyPage() {
               عند استبدال البت الأقل وزناً (LSB) في كل قناة، فإن أقصى تغير في قيمة اللون هو ±1 من أصل 256 مستوى،
               وهو فارق يستحيل على العين البشرية ملاحظته (Imperceptible).
             </p>
-            <div className="rounded-md border border-border/60 bg-[#0d1117] p-3 text-[#c9d1d9] font-mono dir-ltr">
-              <div className="text-[#8b949e]"># بايثون نقي لتعديل بت البكسل:</div>
-              <div>pixel_byte = (pixel_byte & ~1) | secret_bit</div>
+            <div className="rounded-md border border-border bg-muted/50 p-3 text-foreground font-mono dir-ltr">
+              <div className="text-muted-foreground text-[11px]"># بايثون نقي لتعديل بت البكسل:</div>
+              <div className="text-primary font-semibold">pixel_byte = (pixel_byte & ~1) | secret_bit</div>
             </div>
           </CardContent>
         </Card>
@@ -88,9 +88,9 @@ export default function SteganographyPage() {
               (بين -32768 و +32767). استبدال البت الأخير في العينة يغير سعتها بمقدار وحدة واحدة فقط،
               وهو ما يمثل تغيراً أقل من 0.003% يقع تماماً تحت عتبة الإدراك السمعي للأذن البشرية (Auditory Masking).
             </p>
-            <div className="rounded-md border border-border/60 bg-[#0d1117] p-3 text-[#c9d1d9] font-mono dir-ltr">
-              <div className="text-[#8b949e]"># بايثون نقي لتعديل عينة الصوت:</div>
-              <div>sample = (sample & ~1) | secret_bit</div>
+            <div className="rounded-md border border-border bg-muted/50 p-3 text-foreground font-mono dir-ltr">
+              <div className="text-muted-foreground text-[11px]"># بايثون نقي لتعديل عينة الصوت:</div>
+              <div className="text-emerald-600 dark:text-emerald-400 font-semibold">sample = (sample & ~1) | secret_bit</div>
             </div>
           </CardContent>
         </Card>

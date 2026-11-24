@@ -269,7 +269,7 @@ export function StegoStudio() {
             <span className="text-xs font-bold text-muted-foreground block mb-2">
               المخطط الهندسي لآلية حقن البتات (Bit Injection Diagram):
             </span>
-            <div className="rounded-xl overflow-hidden border border-border/80 bg-black/40 p-2">
+            <div className="rounded-xl overflow-hidden border border-border bg-slate-100 dark:bg-slate-900/60 p-3">
               <img
                 src={`${basePath}/images/stego-diagram.svg`}
                 alt="LSB Steganography Diagram"
@@ -305,10 +305,10 @@ export function StegoStudio() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-border/80 bg-[#0d1117] p-4 text-[#c9d1d9] font-mono text-xs dir-ltr space-y-2">
-            <div className="text-[#8b949e]"># استبدال البت الأقل وزناً في عينة الصوت (Python logic):</div>
+          <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-4 text-slate-800 dark:text-slate-200 font-mono text-xs dir-ltr space-y-2">
+            <div className="text-slate-500 dark:text-slate-400"># استبدال البت الأقل وزناً في عينة الصوت (Python logic):</div>
             <div>new_sample = (original_sample & ~1) | secret_bit</div>
-            <div className="text-emerald-400"># العينات الناتجة تظل متطابقة سمعياً 100% دون أي تشويش أو نقر صوتي.</div>
+            <div className="text-emerald-600 dark:text-emerald-400"># العينات الناتجة تظل متطابقة سمعياً 100% دون أي تشويش أو نقر صوتي.</div>
           </div>
         </div>
       )}

@@ -202,14 +202,14 @@ export function AvalancheEffectLab() {
 
       {/* Avalanche Percentage Meter */}
       {result && (
-        <div className="rounded-xl border border-border/80 bg-[#090d16] p-5 text-white space-y-4">
+        <div className="rounded-xl border border-border bg-card p-5 text-foreground space-y-4 shadow-xs">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <span className="text-xs text-muted-foreground block">
                 نسبة البتات المتغيرة في النص المشفر (Bit Flip Ratio):
               </span>
               <div className="flex items-baseline gap-2">
-                <span className="font-mono text-3xl font-extrabold text-cyan-400">
+                <span className="font-mono text-3xl font-extrabold text-primary">
                   {result.percent}%
                 </span>
                 <span className="text-xs font-mono text-muted-foreground">
@@ -218,7 +218,7 @@ export function AvalancheEffectLab() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3.5 py-1.5 text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
+            <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3.5 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
               <CheckCircle2 className="h-4 w-4" />
               <span>
                 {result.percent >= 45 && result.percent <= 55
@@ -233,7 +233,7 @@ export function AvalancheEffectLab() {
             <span className="text-[11px] text-muted-foreground block font-mono">
               مصفوفة البتات المشفرة (الأخضر = بت تغيرت قيمته نتيجة البت الواحد المنقلب):
             </span>
-            <div className="flex flex-wrap gap-1 p-3 rounded-lg bg-black/60 border border-border/40 font-mono text-[10px] dir-ltr max-h-32 overflow-y-auto">
+            <div className="flex flex-wrap gap-1 p-3 rounded-lg bg-secondary/70 border border-border font-mono text-[10px] dir-ltr max-h-32 overflow-y-auto">
               {Array.from({ length: result.totalBits }).map((_, idx) => {
                 const bitA = result.bitsA[idx];
                 const bitB = result.bitsB[idx];
@@ -244,7 +244,7 @@ export function AvalancheEffectLab() {
                     className={`h-5 w-5 flex items-center justify-center rounded-xs transition-colors ${
                       isChanged
                         ? "bg-emerald-500 text-black font-bold shadow-xs scale-105"
-                        : "bg-muted/30 text-[#8b949e]"
+                        : "bg-muted/30 text-muted-foreground"
                     }`}
                     title={`Bit #${idx}: A=${bitA}, B=${bitB}`}
                   >
