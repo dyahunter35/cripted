@@ -539,19 +539,24 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
           <div className="flex items-center gap-2">
             {activeSentence && (
               (() => {
-                const isInst = activeSentence.role === "instructor" || activeSentence.speaker.includes("كريم");
+                const isHost1 =
+                  activeSentence.role === "host1" ||
+                  activeSentence.speaker.includes("1") ||
+                  activeSentence.speaker.includes("أحمد") ||
+                  activeSentence.role === "instructor" ||
+                  activeSentence.speaker.includes("كريم");
                 return (
                   <span
                     className={`flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold border transition-colors ${
-                      isInst
+                      isHost1
                         ? "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30"
                         : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
                     }`}
                   >
-                    {isInst ? (
-                      <GraduationCap className="h-3 w-3 text-sky-600 dark:text-sky-400" />
+                    {isHost1 ? (
+                      <User className="h-3 w-3 text-sky-600 dark:text-sky-400" />
                     ) : (
-                      <User className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                      <Sparkles className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                     )}
                     <span>{activeSentence.speaker}</span>
                   </span>
@@ -574,7 +579,7 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
               <Headphones className="h-4 w-4" />
               <span>
                 {isPlaying
-                  ? "استمع إلى سياق الحديث الشائق بين الأستاذ والطالب..."
+                  ? "استمع إلى سياق الحوار الصوتي الشائق..."
                   : "اضغط تشغيل أو اختر أي سطر في السلسلة الزمنية بالأسفل للانتقال الفوري إليه."}
               </span>
             </p>
@@ -625,19 +630,36 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
           )}
         </div>
 
-        {/* Speakers Legend */}
+        {/* Speakers Legend (ديناميكي يتكيف مع المتحدثين في البودكاست) */}
         {showTranscript && (
           <div className="flex flex-wrap items-center gap-2.5 py-1">
-            <div className="flex items-center gap-1.5 rounded-lg border border-sky-500/30 bg-sky-50/80 dark:bg-sky-950/30 px-2.5 py-1 text-xs">
-              <GraduationCap className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400" />
-              <span className="font-bold text-sky-700 dark:text-sky-300">د. كريم:</span>
-              <span className="text-muted-foreground text-[11px]">أستاذ المقرر (مقدمة وشرح وتحليل أكاديمي)</span>
-            </div>
-            <div className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-50/80 dark:bg-emerald-950/30 px-2.5 py-1 text-xs">
-              <User className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span className="font-bold text-emerald-700 dark:text-emerald-300">يوسف:</span>
-              <span className="text-muted-foreground text-[11px]">طالب ماجستير (أسئلة واستيضاحات ونقاش)</span>
-            </div>
+            {transcript.some((t) => t.speaker.includes("المذيع") || t.speaker.includes("أحمد") || t.speaker.includes("سارة")) ? (
+              <>
+                <div className="flex items-center gap-1.5 rounded-lg border border-sky-500/30 bg-sky-50/80 dark:bg-sky-950/30 px-2.5 py-1 text-xs">
+                  <User className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400" />
+                  <span className="font-bold text-sky-700 dark:text-sky-300">المذيع 1:</span>
+                  <span className="text-muted-foreground text-[11px]">التقديم وطرح التساؤلات والربط التحليلي</span>
+                </div>
+                <div className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-50/80 dark:bg-emerald-950/30 px-2.5 py-1 text-xs">
+                  <Sparkles className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span className="font-bold text-emerald-700 dark:text-emerald-300">المذيعة 2:</span>
+                  <span className="text-muted-foreground text-[11px]">الشرح التقني وتفكيك النظريات الهندسية</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-1.5 rounded-lg border border-sky-500/30 bg-sky-50/80 dark:bg-sky-950/30 px-2.5 py-1 text-xs">
+                  <GraduationCap className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400" />
+                  <span className="font-bold text-sky-700 dark:text-sky-300">د. كريم:</span>
+                  <span className="text-muted-foreground text-[11px]">أستاذ المقرر (مقدمة وشرح وتحليل أكاديمي)</span>
+                </div>
+                <div className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-50/80 dark:bg-emerald-950/30 px-2.5 py-1 text-xs">
+                  <User className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span className="font-bold text-emerald-700 dark:text-emerald-300">يوسف:</span>
+                  <span className="text-muted-foreground text-[11px]">طالب ماجستير (أسئلة واستيضاحات ونقاش)</span>
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -654,7 +676,24 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
             ) : (
               filteredTranscript.map((item, idx) => {
                 const isActive = activeIndex !== -1 && transcript[activeIndex]?.id === item.id;
-                const isInstructor = item.role === "instructor" || item.speaker.includes("كريم");
+                const isHost1 =
+                  item.role === "host1" ||
+                  item.speaker.includes("1") ||
+                  item.speaker.includes("أحمد") ||
+                  item.role === "instructor" ||
+                  item.speaker.includes("كريم");
+
+                const roleLabel = item.speaker.includes("1")
+                  ? "• المذيع 1"
+                  : item.speaker.includes("2")
+                  ? "• المذيعة 2"
+                  : item.speaker.includes("أحمد")
+                  ? "• المحاور الرئيسي"
+                  : item.speaker.includes("سارة")
+                  ? "• خبيرة التقنية"
+                  : isHost1
+                  ? "• أستاذ المقرر"
+                  : "• طالب ماجستير";
 
                 return (
                   <div
@@ -663,10 +702,10 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
                     onClick={() => handleSeekToSentence(item.start)}
                     className={`group cursor-pointer rounded-xl p-3 text-xs leading-relaxed border transition-all duration-200 ${
                       isActive
-                        ? isInstructor
+                        ? isHost1
                           ? "border-sky-500 bg-sky-100/80 dark:bg-sky-950/60 ring-2 ring-sky-500/50 shadow-md"
                           : "border-emerald-500 bg-emerald-100/80 dark:bg-emerald-950/60 ring-2 ring-emerald-500/50 shadow-md"
-                        : isInstructor
+                        : isHost1
                         ? "border-sky-200/80 dark:border-sky-900/40 bg-sky-50/50 dark:bg-sky-950/20 hover:border-sky-400 hover:bg-sky-50/80 dark:hover:bg-sky-950/30"
                         : "border-emerald-200/80 dark:border-emerald-900/40 bg-emerald-50/50 dark:bg-emerald-950/20 hover:border-emerald-400 hover:bg-emerald-50/80 dark:hover:bg-emerald-950/30"
                     }`}
@@ -675,26 +714,26 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
                       <div className="flex items-center gap-2">
                         <span
                           className={`flex items-center gap-1.5 font-bold px-2.5 py-0.5 rounded-md text-[11px] border ${
-                            isInstructor
+                            isHost1
                               ? "bg-sky-500/15 text-sky-800 dark:text-sky-300 border-sky-500/30"
                               : "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30"
                           }`}
                         >
-                          {isInstructor ? (
-                            <GraduationCap className="h-3 w-3 text-sky-600 dark:text-sky-400" />
+                          {isHost1 ? (
+                            <User className="h-3 w-3 text-sky-600 dark:text-sky-400" />
                           ) : (
-                            <User className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                            <Sparkles className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                           )}
                           <span>{item.speaker}</span>
                           <span className="text-[10px] font-normal opacity-80">
-                            {isInstructor ? "• أستاذ المقرر" : "• طالب ماجستير"}
+                            {roleLabel}
                           </span>
                         </span>
 
                         {isActive && (
                           <span
                             className={`flex items-center gap-1 text-[10px] font-bold ${
-                              isInstructor
+                              isHost1
                                 ? "text-sky-600 dark:text-sky-400"
                                 : "text-emerald-600 dark:text-emerald-400"
                             }`}
