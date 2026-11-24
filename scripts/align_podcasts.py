@@ -67,6 +67,29 @@ def parse_md_turns(file_path):
         turns.append((cur_time, cur_spk, ' '.join(cur_txt).strip()))
     return turns
 
+def parse_idea_md(file_path):
+    with open(file_path, 'r', encoding='utf-8') as f:
+        lines = [l.strip() for l in f if l.strip()]
+
+    turns = []
+    for l in lines:
+        if l.startswith('إليك') or l.startswith('ملاحظة'):
+            continue
+        m = re.match(r'^\*\*\[(\d+):(\d+)\s*-\s*(\d+):(\d+)\]\s*(المتحدث[ة]?):\*\*\s*(.*)', l)
+        if m:
+            start_m, start_s, end_m, end_s, spk, text = m.groups()
+            start_sec = int(start_m) * 60 + int(start_s)
+            end_sec = int(end_m) * 60 + int(end_s)
+            is_host1 = (spk == 'المتحدث')
+            turns.append({
+                'start': float(start_sec),
+                'end': float(end_sec),
+                'speaker': 'المذيع' if is_host1 else 'الخبيرة',
+                'role': 'host1' if is_host1 else 'host2',
+                'text': text.strip()
+            })
+    return turns
+
 def align_turns_to_audio(turns, stt_segments, audio_duration, silence_intervals):
     """
     High-density anchor alignment:
@@ -166,12 +189,8 @@ def align_turns_to_audio(turns, stt_segments, audio_duration, silence_intervals)
     turn_ends[n_turns - 1] = round(audio_duration, 2)
 
     # 4. Snap turn boundaries to nearby silence points if within 1.5s
-    silence_starts = [s[0] for s in silence_intervals]
-    silence_ends = [s[1] for s in silence_intervals]
-
     for i in range(1, n_turns):
         est_boundary = turn_starts[i]
-        # find closest silence
         best_diff = 1.5
         best_snap = None
         for s_start, s_end in silence_intervals:
@@ -238,37 +257,39 @@ def main():
     podcasts["des"]["audioFile"] = "des_podcast.m4a"
     print(f"DES successfully synced: {len(des_synced)} items")
 
-    # 3. Align IDEA from idea.md (201 turns with explicit timestamps)
-    print("\n--- Aligning IDEA (201 turns) ---")
-    idea_turns = parse_md_turns(os.path.join(BASE_DIR, "idea.md"))
-    idea_audio_duration = 1349.0
-    idea_synced = []
-    for i, (t_time, spk, txt) in enumerate(idea_turns):
-        is_host1 = ("1" in spk) or ("المذيع" in spk and "2" not in spk and "ة" not in spk)
-        speaker_name = "المذيع" if is_host1 else "الخبيرة"
-        role_name = "host1" if is_host1 else "host2"
+    # 3. Align IDEA from updated idea.md (203 turns with exact timestamps)
+    print("\n--- Aligning IDEA (203 turns) ---")
+    idea_turns = parse_idea_md(os.path.join(BASE_DIR, "idea.md"))
+    idea_audio = os.path.join(BASE_DIR, "public", "audio", "idea_podcast.m4a")
+    idea_silences = get_silence_intervals(idea_audio, noise="-28dB", d="0.25")
 
-        start_t = float(t_time if t_time is not None else 0.0)
-        if i + 1 < len(idea_turns) and idea_turns[i + 1][0] is not None:
-            end_t = float(idea_turns[i + 1][0])
-            if end_t <= start_t:
-                end_t = start_t + max(2.5, len(txt) / 16.0)
-        else:
-            end_t = idea_audio_duration
+    # Snap boundaries to silence midpoints
+    for i in range(1, len(idea_turns)):
+        raw_boundary = idea_turns[i]['start']
+        best_diff = 1.2
+        best_snap = None
+        for s_start, s_end in idea_silences:
+            mid = (s_start + s_end) / 2.0
+            diff = abs(raw_boundary - mid)
+            if diff < best_diff:
+                best_diff = diff
+                best_snap = round(mid, 2)
+        if best_snap is not None and best_snap > idea_turns[i-1]['start'] + 0.4:
+            idea_turns[i-1]['end'] = best_snap
+            idea_turns[i]['start'] = best_snap
 
-        idea_synced.append({
-            "id": i + 1,
-            "start": round(start_t, 2),
-            "end": round(end_t, 2),
-            "speaker": speaker_name,
-            "role": role_name,
-            "text": txt
-        })
-    podcasts["idea"]["transcript"] = idea_synced
+    if idea_turns:
+        idea_turns[0]['start'] = 0.0
+        idea_turns[-1]['end'] = 1349.0
+
+    for idx, t in enumerate(idea_turns):
+        t['id'] = idx + 1
+
+    podcasts["idea"]["transcript"] = idea_turns
     podcasts["idea"]["durationSeconds"] = 1349
     podcasts["idea"]["duration"] = "22:29"
     podcasts["idea"]["audioFile"] = "idea_podcast.m4a"
-    print(f"IDEA successfully synced: {len(idea_synced)} items")
+    print(f"IDEA successfully synced: {len(idea_turns)} items")
 
     # 4. Save podcasts.json
     with open(PODCASTS_JSON_PATH, 'w', encoding='utf-8') as f:
