@@ -13,7 +13,6 @@ export function AlgorithmVisualizer({
   algorithmName,
 }: AlgorithmVisualizerProps) {
   const [roundStep, setRoundStep] = useState(1);
-  const [isPlaying, setIsPlaying] = useState(false);
 
   // Maximum rounds depending on cipher family
   const getMaxRounds = () => {
@@ -72,7 +71,7 @@ export function AlgorithmVisualizer({
               محاكي المعمارية الهندسية ومسار الدورات (Architecture Visualizer)
             </h3>
             <p className="text-xs text-muted-foreground">
-              تتبع تتابع وتطور البيانات والمفاتيح الفرعية دورة بدورة في {algorithmName}
+              مخطط مفاهيمي لخطوات {algorithmName}؛ الرموز توضح البنية ولا تمثل قيماً محسوبة للنص أو المفتاح
             </p>
           </div>
         </div>
@@ -91,10 +90,10 @@ export function AlgorithmVisualizer({
             className="flex items-center gap-1 rounded-lg border border-border bg-secondary/80 px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-secondary transition-colors"
           >
             <ArrowRight className="h-3.5 w-3.5" />
-            <span>الدورة السابقة</span>
+            <span>{isStream ? "الموضع السابق" : "الدورة السابقة"}</span>
           </button>
           <div className="flex items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-xs">
-            <span className="text-muted-foreground text-[10px]">الدورة</span>
+            <span className="text-muted-foreground text-[10px]">{isStream ? "الموضع الرمزي" : "الدورة"}</span>
             <span className="text-primary font-bold">{roundStep}</span>
             <span className="text-muted-foreground text-[10px]">/ {maxRounds}</span>
           </div>
@@ -102,7 +101,7 @@ export function AlgorithmVisualizer({
             onClick={nextRound}
             className="flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 shadow-xs transition-colors"
           >
-            <span>الدورة التالية</span>
+            <span>{isStream ? "الموضع التالي" : "الدورة التالية"}</span>
             <ArrowRight className="h-3.5 w-3.5 rotate-180" />
           </button>
         </div>
@@ -121,7 +120,7 @@ export function AlgorithmVisualizer({
               <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 dark:bg-cyan-950/20 p-3 text-center space-y-2">
                 <div className="text-cyan-700 dark:text-cyan-300 font-bold">L_{roundStep - 1} (32-bit)</div>
                 <div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-2 text-[11px] text-cyan-600 dark:text-cyan-300 font-mono shadow-xs">
-                  {`0x${((roundStep * 0x12345678) >>> 0).toString(16).padStart(8, "0")}`}
+                  {`L[${roundStep - 1}]`}
                 </div>
               </div>
 
@@ -129,7 +128,7 @@ export function AlgorithmVisualizer({
               <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 dark:bg-emerald-950/20 p-3 text-center space-y-2">
                 <div className="text-emerald-700 dark:text-emerald-300 font-bold">R_{roundStep - 1} (32-bit)</div>
                 <div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-2 text-[11px] text-emerald-600 dark:text-emerald-300 font-mono shadow-xs">
-                  {`0x${((roundStep * 0x87654321) >>> 0).toString(16).padStart(8, "0")}`}
+                  {`R[${roundStep - 1}]`}
                 </div>
               </div>
             </div>
@@ -147,15 +146,15 @@ export function AlgorithmVisualizer({
             {/* Results of Current Round */}
             <div className="grid grid-cols-2 gap-4 max-w-lg mx-auto pt-3 border-t border-slate-200 dark:border-slate-800">
               <div className="rounded-lg border border-emerald-500/30 bg-white dark:bg-slate-900 p-2.5 text-center shadow-xs">
-                <span className="text-[10px] text-muted-foreground block">الناتج الأيسر الجديد L_{roundStep}:</span>
+                <span className="text-[10px] text-muted-foreground block">العلاقة للأيسر L_{roundStep}:</span>
                 <span className="text-emerald-700 dark:text-emerald-300 font-bold">
-                  {`0x${((roundStep * 0x87654321) >>> 0).toString(16).padStart(8, "0")}`}
+                  {`R[${roundStep - 1}]`}
                 </span>
               </div>
               <div className="rounded-lg border border-cyan-500/30 bg-white dark:bg-slate-900 p-2.5 text-center shadow-xs">
-                <span className="text-[10px] text-muted-foreground block">الناتج الأيمن الجديد R_{roundStep}:</span>
+                <span className="text-[10px] text-muted-foreground block">العلاقة للأيمن R_{roundStep}:</span>
                 <span className="text-cyan-700 dark:text-cyan-300 font-bold">
-                  {`0x${(((roundStep * 0x12345678) ^ 0x5a5a5a5a) >>> 0).toString(16).padStart(8, "0")}`}
+                  {`L[${roundStep - 1}] ⊕ F(R[${roundStep - 1}], K[${roundStep}])`}
                 </span>
               </div>
             </div>
@@ -180,8 +179,8 @@ export function AlgorithmVisualizer({
                 <p className="text-[10px] text-muted-foreground">Cyclic shifts (0, 1, 2, 3 bytes)</p>
               </div>
               <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2.5">
-                <div className="text-emerald-700 dark:text-emerald-300 font-bold mb-1">3. MixColumns</div>
-                <p className="text-[10px] text-muted-foreground">MDS matrix polynomial diffusion</p>
+                <div className="text-emerald-700 dark:text-emerald-300 font-bold mb-1">{roundStep === 10 ? "3. لا توجد MixColumns" : "3. MixColumns"}</div>
+                <p className="text-[10px] text-muted-foreground">{roundStep === 10 ? "الدورة الأخيرة تستثني خلط الأعمدة" : "MDS matrix polynomial diffusion"}</p>
               </div>
               <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5">
                 <div className="text-amber-700 dark:text-amber-300 font-bold mb-1">4. AddRoundKey</div>
@@ -195,16 +194,13 @@ export function AlgorithmVisualizer({
                 {Array.from({ length: 16 }).map((_, idx) => {
                   const r = idx % 4;
                   const c = Math.floor(idx / 4);
-                  const byteVal = ((roundStep * 17 + idx * 23) % 256)
-                    .toString(16)
-                    .padStart(2, "0");
                   return (
                     <div
                       key={idx}
                       className="rounded-lg bg-primary/10 border border-primary/20 py-2 text-xs font-bold text-primary hover:bg-primary/20 transition-colors"
                       title={`State[${r},${c}]`}
                     >
-                      {byteVal}
+                      {`s${r},${c}`}
                     </div>
                   );
                 })}
@@ -218,11 +214,10 @@ export function AlgorithmVisualizer({
         <div className="space-y-4">
           <div className="rounded-xl border border-border bg-muted/30 p-5 text-foreground font-mono text-xs dir-ltr shadow-xs">
             <div className="text-center text-primary font-bold mb-3 text-xs sm:text-sm">
-              === RC4 Stream Cipher: S-Box Permutation (256 Bytes State) ===
+              === RC4: مخطط رمزي لأول 16 موضعاً من S ===
             </div>
             <div className="flex flex-wrap justify-center gap-1.5 max-w-xl mx-auto my-3">
               {Array.from({ length: 16 }).map((_, idx) => {
-                const sVal = (idx * 16 + roundStep * 5) % 256;
                 const isI = idx === (roundStep % 16);
                 const isJ = idx === ((roundStep * 3) % 16);
                 return (
@@ -237,13 +232,13 @@ export function AlgorithmVisualizer({
                     }`}
                   >
                     <span className="text-[9px] text-muted-foreground">{idx}</span>
-                    <span>{sVal.toString(16).padStart(2, "0")}</span>
+                    <span>{`S[${idx}]`}</span>
                   </div>
                 );
               })}
             </div>
             <div className="text-center text-xs text-muted-foreground">
-              مؤشر <span className="text-cyan-600 dark:text-cyan-400 font-bold">i</span> ومؤشر <span className="text-amber-600 dark:text-amber-400 font-bold">j</span> يتبادلان المواقع باستمرار لإنتاج تيار عشوائي كاذب PRGA.
+              مؤشر <span className="text-cyan-600 dark:text-cyan-400 font-bold">i</span> ومؤشر <span className="text-amber-600 dark:text-amber-400 font-bold">j</span> يوضحان مواضع رمزية؛ الحالة الفعلية تُحسب بخوارزميتي KSA وPRGA.
             </div>
           </div>
         </div>
@@ -255,6 +250,7 @@ export function AlgorithmVisualizer({
             <div className="text-center text-primary font-bold mb-3 text-xs sm:text-sm">
               === IDEA Group Mixer: 3 Incompatible Algebraic Operations ===
             </div>
+            <p className="text-center text-muted-foreground mb-3">ثماني دورات تليها مرحلة إخراج بأربعة مفاتيح فرعية؛ مجموع المفاتيح 52.</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-center my-3 max-w-xl mx-auto">
               <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-3">
                 <div className="text-base text-cyan-700 dark:text-cyan-300 font-bold mb-1">XOR (⊕)</div>

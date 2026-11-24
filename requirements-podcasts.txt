@@ -1,0 +1,6 @@
+# Optional audio tools; the website and cipher demos do not require these.
+-r requirements.txt
+edge-tts>=7.0
+pydub>=0.25.1
+SpeechRecognition>=3.10
+numpy>=1.26

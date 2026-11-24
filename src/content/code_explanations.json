@@ -382,32 +382,31 @@
   "blowfish": {
     "manual-python": [
       {
-        "id": "bf-m-1",
-        "role": "مصفوفة المفاتيح P-array وصناديق S-Boxes المستقلة",
-        "category": "key",
-        "badge": "Key-Dependent S-Boxes / Feistel",
-        "inputs": "key (1 to 56 bytes)",
-        "outputs": "P-array (18 subkeys), 4 S-boxes (4x256)",
-        "snippet": "def initialize_p_and_s(key):\n    # Initialize P and S with fractional digits of Pi\n    p = list(INITIAL_P)\n    s = [list(box) for box in INITIAL_S]\n    # XOR key into P-array\n    for i in range(18):\n        p[i] ^= key_words[i % len(key_words)]\n    # Encrypt all zero block repeatedly to build key-dependent S-boxes\n    l, r = 0, 0\n    for i in range(0, 18, 2):\n        l, r = bf_round(l, r, p, s)\n        p[i], p[i+1] = l, r",
-        "explanation": "تهيئة مصفوفات المفاتيح P-array وصناديق S-boxes بالأرقام الكسرية للعدد باي (Pi)، ثم تشفير كتلة صفرية لتوليد صناديق معتمدة على المفتاح كلياً.",
-        "htmlExplanation": "<strong>صناديق S-box المعتمدة على المفتاح:</strong> ميزة خوارزمية بروس شناير العبقرية؛ الصناديق ليست ثابتة كـ DES بل تتغير بالكامل مع كل مفتاح سري جديد عبر 521 عملية تشفير أولية.",
-        "math": "P_i = P_i \\oplus K_i, \\quad S_{i, j} = E_K(0)",
-        "security": "الاعتماد على المفتاح في توليد الصناديق يمنع تماماً هجمات التحليل الخطي والتفاضلي الموجهة للصناديق الثابتة.",
-        "examTip": "تكلفة تهيئة المفتاح (Key Setup) في Blowfish باهظة وتتطلب 521 تشفيراً، مما يجعلها ممتازة لحماية كلمات المرور (bcrypt)."
+        "id": "blowfish-source-0",
+        "role": "توليد P وصناديق S المعتمدة على المفتاح",
+        "category": "cipher",
+        "badge": "Pure Python",
+        "snippet": "def __init__(self, key):\n        if not 4 <= len(key) <= 56:\n            raise ValueError(\"Blowfish key must contain 4..56 bytes\")\n        self.p = list(P_INIT)\n        self.s = [list(s) for s in (S0_INIT,S1_INIT,S2_INIT,S3_INIT)]\n        for i in range(18):\n            word = 0\n            for j in range(4):\n                word = (word << 8) | key[(4*i+j) % len(key)]\n            self.p[i] ^= word\n        left = right = 0\n        for table in [self.p] + self.s:\n            for i in range(0,len(table),2):\n                left,right = self._words(left,right)\n                table[i],table[i+1] = left,right",
+        "explanation": "تبدأ الجداول بثوابت مشتقة من π، ثم تُخلط بالمفتاح وتُحدّث بتشفير متكرر لكتلة صفرية.",
+        "htmlExplanation": "<p>تبدأ الجداول بثوابت مشتقة من π، ثم تُخلط بالمفتاح وتُحدّث بتشفير متكرر لكتلة صفرية.</p>"
       },
       {
-        "id": "bf-m-2",
-        "role": "دالة الدورات F في Blowfish (الجمع والـ XOR)",
-        "category": "round",
-        "badge": "ARX-like 32-bit F Function",
-        "inputs": "x (32-bit half block)",
-        "outputs": "y (32-bit mixed value)",
-        "snippet": "def f_function(x, s):\n    a = (x >> 24) & 0xff\n    b = (x >> 16) & 0xff\n    c = (x >> 8) & 0xff\n    d = x & 0xff\n    res = ((s[0][a] + s[1][b]) ^ s[2][c]) + s[3][d]\n    return res & 0xffffffff",
-        "explanation": "تقسيم الكلمة 32 بت إلى 4 بايتات (a, b, c, d)، استخراج القيم من الصناديق الأربعة، وخلطها بالجمع النمطي Modulo 2^32 وعملية XOR.",
-        "htmlExplanation": "<strong>دالة الدورات الفائقة F:</strong> دمج عمليتي الجمع والـ XOR المتعارضتين جبرياً <code>((S1 + S2) ^ S3) + S4</code>، مما يحقق خلطاً سريعاً جداً في دورة معالج واحدة.",
-        "math": "F(x) = \\left( (S_1[a] + S_2[b] \\bmod 2^{32}) \\oplus S_3[c] \\right) + S_4[d] \\bmod 2^{32}",
-        "security": "التعارض الجبري بين الجمع الحسابي والـ XOR يمنع تشكيل معادلات خطية جبرية لكسر الخوارزمية.",
-        "examTip": "تذكر ترتيب العمليات في Blowfish: جمع الصندوقين الأولين، ثم XOR مع الثالث، ثم جمع مع الرابع."
+        "id": "blowfish-source-1",
+        "role": "الدالة F",
+        "category": "cipher",
+        "badge": "Pure Python",
+        "snippet": "def _f(self, x):\n        a,b,c,d = x >> 24, (x >> 16) & 255, (x >> 8) & 255, x & 255\n        return (((self.s[0][a] + self.s[1][b]) ^ self.s[2][c]) + self.s[3][d]) & 0xffffffff",
+        "explanation": "تقسيم الكلمة إلى أربعة بايتات واستخدامها لفهرسة صناديق S؛ تدمج النتائج بالجمع النمطي وXOR.",
+        "htmlExplanation": "<p>تقسيم الكلمة إلى أربعة بايتات واستخدامها لفهرسة صناديق S؛ تدمج النتائج بالجمع النمطي وXOR.</p>"
+      },
+      {
+        "id": "blowfish-source-2",
+        "role": "دورات فيستل وفكها",
+        "category": "cipher",
+        "badge": "Pure Python",
+        "snippet": "def _words(self, left, right, decrypt=False):\n        p = self.p[::-1] if decrypt else self.p\n        for i in range(16):\n            left ^= p[i]\n            right ^= self._f(left)\n            left,right = right,left\n        left,right = right,left\n        right ^= p[16]\n        left ^= p[17]\n        return left,right",
+        "explanation": "تطبق 16 دورة مع التبييض النهائي. عند فك التشفير يُعكس ترتيب مصفوفة P.",
+        "htmlExplanation": "<p>تطبق 16 دورة مع التبييض النهائي. عند فك التشفير يُعكس ترتيب مصفوفة P.</p>"
       }
     ],
     "libs-python": [
@@ -530,18 +529,31 @@
   "cast": {
     "manual-python": [
       {
-        "id": "cast-m-1",
-        "role": "الدورات الـ 16 المتناوبة بأنواعها الثلاثة",
-        "category": "round",
-        "badge": "Alternating Feistel Rounds (RFC 2144)",
-        "inputs": "L, R (32-bit halves), subkeys",
-        "outputs": "Ciphertext (64 bits)",
-        "snippet": "def cast_round(l, r, km, kr, round_type):\n    if round_type == 1:\n        # Type 1: I = ((Km + D) <<< Kr)\n        f = ((km + r) & 0xffffffff)\n        f = rotl32(f, kr)\n        f = ((S1[f >> 24] ^ S2[(f >> 16) & 0xff]) - S3[(f >> 8) & 0xff]) + S4[f & 0xff]\n    elif round_type == 2:\n        # Type 2: I = ((Km ^ D) <<< Kr)\n        f = (km ^ r)\n        f = rotl32(f, kr)\n        f = ((S1[f >> 24] - S2[(f >> 16) & 0xff]) + S3[(f >> 8) & 0xff]) ^ S4[f & 0xff]\n    # Type 3: I = ((Km - D) <<< Kr)\n    return r, l ^ (f & 0xffffffff)",
-        "explanation": "تنفيذ دورات CAST-128 الست عشرة التي تتناوب بين ثلاثة أنواع مختلفة من دوال الدورات لمنع الهجمات المتماثلة.",
-        "htmlExplanation": "<strong>الدورات الثلاث المتناوبة في CAST:</strong> ميزة RFC 2144؛ تبديل العمليات الحسابية (الجمع، الطرح، الـ XOR) بين الدورات، مما يحقق مناعة غير مسبوقة ضد هجمات التحليل التفاضلي.",
-        "math": "\\text{Round 1: } (S_1 \\oplus S_2 - S_3) + S_4, \\quad \\text{Round 2: } (S_1 - S_2 + S_3) \\oplus S_4",
-        "security": "التناوب بين العمليات يكسر أي تناظر في الخوارزمية ويمنع هجمات Slide Attacks و Reflection Attacks.",
-        "examTip": "تستخدم CAST-128 نوعين من المفاتيح الفرعية في كل دورة: مفتاح حجب Km (Masking Key) ومفتاح دوران Kr (Rotation Key)."
+        "id": "cast-source-0",
+        "role": "توسيع مفتاح CAST",
+        "category": "cipher",
+        "badge": "Pure Python",
+        "snippet": "def cast_setup(key_bytes):\n    if not 5 <= len(key_bytes) <= 16:\n        raise ValueError(\"CAST key must contain 5..16 bytes\")\n    x = bytearray(key_bytes.ljust(16, b'\\0'))\n    z = bytearray(16)\n    keys = []\n    for half in range(2):\n        z[0:4] = (int.from_bytes(x[0:4], \"big\") ^ S5[x[13]] ^ S6[x[15]] ^ S7[x[12]] ^ S8[x[14]] ^ S7[x[8]]).to_bytes(4, \"big\")\n        z[4:8] = (int.from_bytes(x[8:12], \"big\") ^ S5[z[0]] ^ S6[z[2]] ^ S7[z[1]] ^ S8[z[3]] ^ S8[x[10]]).to_bytes(4, \"big\")\n        z[8:12] = (int.from_bytes(x[12:16], \"big\") ^ S5[z[7]] ^ S6[z[6]] ^ S7[z[5]] ^ S8[z[4]] ^ S5[x[9]]).to_bytes(4, \"big\")\n        z[12:16] = (int.from_bytes(x[4:8], \"big\") ^ S5[z[10]] ^ S6[z[9]] ^ S7[z[11]] ^ S8[z[8]] ^ S6[x[11]]).to_bytes(4, \"big\")\n        keys.append(S5[z[8]] ^ S6[z[9]] ^ S7[z[7]] ^ S8[z[6]] ^ S5[z[2]])\n        keys.append(S5[z[10]] ^ S6[z[11]] ^ S7[z[5]] ^ S8[z[4]] ^ S6[z[6]])\n        keys.append(S5[z[12]] ^ S6[z[13]] ^ S7[z[3]] ^ S8[z[2]] ^ S7[z[9]])\n        keys.append(S5[z[14]] ^ S6[z[15]] ^ S7[z[1]] ^ S8[z[0]] ^ S8[z[12]])\n        x[0:4] = (int.from_bytes(z[8:12], \"big\") ^ S5[z[5]] ^ S6[z[7]] ^ S7[z[4]] ^ S8[z[6]] ^ S7[z[0]]).to_bytes(4, \"big\")\n        x[4:8] = (int.from_bytes(z[0:4], \"big\") ^ S5[x[0]] ^ S6[x[2]] ^ S7[x[1]] ^ S8[x[3]] ^ S8[z[2]]).to_bytes(4, \"big\")\n        x[8:12] = (int.from_bytes(z[4:8], \"big\") ^ S5[x[7]] ^ S6[x[6]] ^ S7[x[5]] ^ S8[x[4]] ^ S5[z[1]]).to_bytes(4, \"big\")\n        x[12:16] = (int.from_bytes(z[12:16], \"big\") ^ S5[x[10]] ^ S6[x[9]] ^ S7[x[11]] ^ S8[x[8]] ^ S6[z[3]]).to_bytes(4, \"big\")\n        keys.append(S5[x[3]] ^ S6[x[2]] ^ S7[x[12]] ^ S8[x[13]] ^ S5[x[8]])\n        keys.append(S5[x[1]] ^ S6[x[0]] ^ S7[x[14]] ^ S8[x[15]] ^ S6[x[13]])\n        keys.append(S5[x[7]] ^ S6[x[6]] ^ S7[x[8]] ^ S8[x[9]] ^ S7[x[3]])\n        keys.append(S5[x[5]] ^ S6[x[4]] ^ S7[x[10]] ^ S8[x[11]] ^ S8[x[7]])\n        z[0:4] = (int.from_bytes(x[0:4], \"big\") ^ S5[x[13]] ^ S6[x[15]] ^ S7[x[12]] ^ S8[x[14]] ^ S7[x[8]]).to_bytes(4, \"big\")\n        z[4:8] = (int.from_bytes(x[8:12], \"big\") ^ S5[z[0]] ^ S6[z[2]] ^ S7[z[1]] ^ S8[z[3]] ^ S8[x[10]]).to_bytes(4, \"big\")\n        z[8:12] = (int.from_bytes(x[12:16], \"big\") ^ S5[z[7]] ^ S6[z[6]] ^ S7[z[5]] ^ S8[z[4]] ^ S5[x[9]]).to_bytes(4, \"big\")\n        z[12:16] = (int.from_bytes(x[4:8], \"big\") ^ S5[z[10]] ^ S6[z[9]] ^ S7[z[11]] ^ S8[z[8]] ^ S6[x[11]]).to_bytes(4, \"big\")\n        keys.append(S5[z[3]] ^ S6[z[2]] ^ S7[z[12]] ^ S8[z[13]] ^ S5[z[9]])\n        keys.append(S5[z[1]] ^ S6[z[0]] ^ S7[z[14]] ^ S8[z[15]] ^ S6[z[12]])\n        keys.append(S5[z[7]] ^ S6[z[6]] ^ S7[z[8]] ^ S8[z[9]] ^ S7[z[2]])\n        keys.append(S5[z[5]] ^ S6[z[4]] ^ S7[z[10]] ^ S8[z[11]] ^ S8[z[6]])\n        x[0:4] = (int.from_bytes(z[8:12], \"big\") ^ S5[z[5]] ^ S6[z[7]] ^ S7[z[4]] ^ S8[z[6]] ^ S7[z[0]]).to_bytes(4, \"big\")\n        x[4:8] = (int.from_bytes(z[0:4], \"big\") ^ S5[x[0]] ^ S6[x[2]] ^ S7[x[1]] ^ S8[x[3]] ^ S8[z[2]]).to_bytes(4, \"big\")\n        x[8:12] = (int.from_bytes(z[4:8], \"big\") ^ S5[x[7]] ^ S6[x[6]] ^ S7[x[5]] ^ S8[x[4]] ^ S5[z[1]]).to_bytes(4, \"big\")\n        x[12:16] = (int.from_bytes(z[12:16], \"big\") ^ S5[x[10]] ^ S6[x[9]] ^ S7[x[11]] ^ S8[x[8]] ^ S6[z[3]]).to_bytes(4, \"big\")\n        keys.append(S5[x[8]] ^ S6[x[9]] ^ S7[x[7]] ^ S8[x[6]] ^ S5[x[3]])\n        keys.append(S5[x[10]] ^ S6[x[11]] ^ S7[x[5]] ^ S8[x[4]] ^ S6[x[7]])\n        keys.append(S5[x[12]] ^ S6[x[13]] ^ S7[x[3]] ^ S8[x[2]] ^ S7[x[8]])\n        keys.append(S5[x[14]] ^ S6[x[15]] ^ S7[x[1]] ^ S8[x[0]] ^ S8[x[13]])\n    return keys[:16], [k & 31 for k in keys[16:]], 12 if len(key_bytes) <= 10 else 16",
+        "explanation": "اشتقاق مفاتيح القناع والدوران وفق RFC 2144. المفاتيح حتى 80 بت تستخدم 12 دورة، والأطول تستخدم 16 دورة.",
+        "htmlExplanation": "<p>اشتقاق مفاتيح القناع والدوران وفق RFC 2144. المفاتيح حتى 80 بت تستخدم 12 دورة، والأطول تستخدم 16 دورة.</p>"
+      },
+      {
+        "id": "cast-source-1",
+        "role": "دورات CAST الثلاث",
+        "category": "cipher",
+        "badge": "Pure Python",
+        "snippet": "def _cast_block(block, setup, decrypt=False):\n    if len(block) != 8:\n        raise ValueError(\"CAST block must contain 8 bytes\")\n    km, kr, rounds = setup\n    left, right = struct.unpack('>II', block)\n    for i in (range(rounds-1,-1,-1) if decrypt else range(rounds)):\n        if i % 3 == 0:\n            v = _rotl(km[i] + right, kr[i])\n        elif i % 3 == 1:\n            v = _rotl(km[i] ^ right, kr[i])\n        else:\n            v = _rotl(km[i] - right, kr[i])\n        a,b,c,d = v >> 24, (v >> 16) & 255, (v >> 8) & 255, v & 255\n        if i % 3 == 0:\n            f = ((S1[a] ^ S2[b]) - S3[c] + S4[d]) & MASK\n        elif i % 3 == 1:\n            f = (((S1[a] - S2[b] + S3[c]) & MASK) ^ S4[d]) & MASK\n        else:\n            f = (((S1[a] + S2[b]) ^ S3[c]) - S4[d]) & MASK\n        left, right = right, left ^ f\n    return struct.pack('>II', right, left)",
+        "explanation": "تتناوب دوال الجمع وXOR والطرح مع الدوران وصناديق S1–S4؛ يعكس فك التشفير ترتيب الدورات والمفاتيح.",
+        "htmlExplanation": "<p>تتناوب دوال الجمع وXOR والطرح مع الدوران وصناديق S1–S4؛ يعكس فك التشفير ترتيب الدورات والمفاتيح.</p>"
+      },
+      {
+        "id": "cast-source-2",
+        "role": "تشفير الرسالة",
+        "category": "cipher",
+        "badge": "Pure Python",
+        "snippet": "def cast_encrypt(plaintext, password):\n    data = plaintext.encode() if isinstance(plaintext, str) else plaintext\n    padding = 8 - len(data) % 8\n    data += bytes([padding]) * padding\n    setup = cast_setup(derive_key(password))\n    return b''.join(_cast_block(data[i:i+8], setup) for i in range(0,len(data),8))",
+        "explanation": "حشو PKCS#7 ثم تشفير كتل مستقلة بحجم 8 بايت؛ جدول المفتاح يُحسب مرة واحدة للرسالة.",
+        "htmlExplanation": "<p>حشو PKCS#7 ثم تشفير كتل مستقلة بحجم 8 بايت؛ جدول المفتاح يُحسب مرة واحدة للرسالة.</p>"
       }
     ],
     "libs-python": [
@@ -842,18 +854,13 @@
     ],
     "libs-python": [
       {
-        "id": "idea-l-1",
-        "role": "التطبيق المرجعي المعياري لخوارزمية IDEA",
+        "id": "idea-wrapper",
+        "role": "واجهة توافق للتطبيق اليدوي",
         "category": "cipher",
-        "badge": "Standard 128-bit Key Implementation",
-        "inputs": "key (16 bytes = 128 bits), data (bytes)",
-        "outputs": "ciphertext (bytes)",
-        "snippet": "from idea_manual import idea_encrypt, idea_decrypt\n\n# تشفير موثق بالمتجهات المرجعية الرسمية\nct = idea_encrypt(key, data)",
-        "explanation": "تنفيذ خوارزمية IDEA بالمتجهات المرجعية المعتمدة من ETH Zurich.",
-        "htmlExplanation": "<strong>المرجعية الأكاديمية لـ IDEA:</strong> معيار التشفير الأوروبي الذي اشتهر عالمياً بفضل اعتماده في برنامج PGP الكلاسيكي.",
-        "math": "C = \\text{IDEA}_K(P)",
-        "security": "مفتاح 128 بت و 52 مفتاحاً فرعياً مشتقاً يمنحان مناعة كاملة ضد هجمات القوة العمياء.",
-        "examTip": "كانت IDEA محمية ببراءة اختراع سويسرية انتهت صلاحيتها عام 2012، وأصبحت الآن ملكية عامة (Public Domain)."
+        "badge": "Compatibility wrapper",
+        "snippet": "\"\"\"IDEA (International Data Encryption Algorithm) Library Interface.\"\"\"\n\nfrom idea_manual import (\n    mul_mod,\n    inv_mul,\n    inv_add,\n    idea_expand_key,\n    idea_invert_keys,\n    idea_crypt_block,\n    derive_key,\n    idea_encrypt,\n    idea_decrypt,\n    main,\n)\n\nif __name__ == \"__main__\":\n    main()\n",
+        "explanation": "واجهة توافق تعيد تصدير التطبيق اليدوي؛ لا تستخدم مكتبة تشفير مستقلة. الاختبار المرجعي موجود في مجموعة الاختبارات.",
+        "htmlExplanation": "<p>واجهة توافق تعيد تصدير التطبيق اليدوي؛ لا تستخدم مكتبة تشفير مستقلة. الاختبار المرجعي موجود في مجموعة الاختبارات.</p>"
       }
     ],
     "stego-image": [
@@ -1138,18 +1145,13 @@
     ],
     "libs-python": [
       {
-        "id": "rc5-l-1",
-        "role": "التطبيق المرجعي المعياري لخوارزمية RC5-32/12/16",
+        "id": "rc5-wrapper",
+        "role": "واجهة توافق للتطبيق اليدوي",
         "category": "cipher",
-        "badge": "Standard RFC 2040 Specification",
-        "inputs": "key, data (bytes)",
-        "outputs": "ciphertext (bytes)",
-        "snippet": "from rc5_manual import rc5_encrypt, rc5_decrypt\n\n# تشفير كتل 64 بت في 12 دورة\nct = rc5_encrypt(key, data)",
-        "explanation": "تنفيذ RC5 القياسي المتوافق مع مواصفات RFC 2040.",
-        "htmlExplanation": "<strong>معيار RFC 2040:</strong> تشفير كتل 64 بت بمفتاح 128 بت و 12 دورة دوران معتمد على البيانات.",
-        "math": "C = \\text{RC5}_{32/12/16}(P)",
-        "security": "خوارزمية رائدة تم استخدامها في العديد من بروتوكولات الأمان لمرونتها الفائقة على المعالجات المدمجة.",
-        "examTip": "خوارزمية RC5 كانت مرشحة أساسية، وشكلت الأساس المعماري لتطوير خوارزمية RC6 لمسابقة AES."
+        "badge": "Compatibility wrapper",
+        "snippet": "\"\"\"RC5 (RC5-32/12/16) Library Wrapper interface.\"\"\"\nfrom rc5_manual import (\n    rc5_setup,\n    rc5_encrypt_block,\n    rc5_decrypt_block,\n    derive_key,\n    rc5_encrypt,\n    rc5_decrypt,\n    main,\n)\n\nif __name__ == \"__main__\":\n    main()\n",
+        "explanation": "واجهة توافق تعيد تصدير التطبيق اليدوي؛ لا تستخدم مكتبة تشفير مستقلة. الاختبار المرجعي موجود في مجموعة الاختبارات.",
+        "htmlExplanation": "<p>واجهة توافق تعيد تصدير التطبيق اليدوي؛ لا تستخدم مكتبة تشفير مستقلة. الاختبار المرجعي موجود في مجموعة الاختبارات.</p>"
       }
     ],
     "stego-image": [
@@ -1286,18 +1288,13 @@
     ],
     "libs-python": [
       {
-        "id": "rc6-l-1",
-        "role": "التطبيق المرجعي لمعيار RC6-w/r/b",
+        "id": "rc6-wrapper",
+        "role": "واجهة توافق للتطبيق اليدوي",
         "category": "cipher",
-        "badge": "NIST AES Finalist Specification",
-        "inputs": "key, data (bytes)",
-        "outputs": "ciphertext (bytes)",
-        "snippet": "from rc6_manual import rc6_encrypt, rc6_decrypt\n\n# تشفير كتل 128 بت في 20 دورة كاملة\nct = rc6_encrypt(key, data)",
-        "explanation": "تشفير كتل 128 بت بـ 20 دورة كاملة طبقاً لمواصفات ملف ترشيح NIST.",
-        "htmlExplanation": "<strong>ملف الترشيح النهائي لمعيار AES:</strong> تشفير كتل 128 بت بمفتاح 128/192/256 بت مع مناعة كاملة ضد كافة الهجمات المعروفة.",
-        "math": "C = \\text{RC6}_{32/20/16}(P)",
-        "security": "واحدة من أقوى الخوارزميات في تاريخ التشفير المتناظر بفضل كفاءتها الرياضية الفائقة.",
-        "examTip": "جاءت RC6 في المركز الثاني بعد ريندال (AES) في مسابقة NIST، وكان تفوق AES بسبب كفاءته الأعلى على البطاقات الذكية Smart Cards."
+        "badge": "Compatibility wrapper",
+        "snippet": "\"\"\"RC6 (RC6-32/20/16, AES Finalist) Library Wrapper interface.\"\"\"\nfrom rc6_manual import (\n    rc6_setup,\n    rc6_encrypt_block,\n    rc6_decrypt_block,\n    derive_key,\n    rc6_encrypt,\n    rc6_decrypt,\n    main,\n)\n\nif __name__ == \"__main__\":\n    main()\n",
+        "explanation": "واجهة توافق تعيد تصدير التطبيق اليدوي؛ لا تستخدم مكتبة تشفير مستقلة. الاختبار المرجعي موجود في مجموعة الاختبارات.",
+        "htmlExplanation": "<p>واجهة توافق تعيد تصدير التطبيق اليدوي؛ لا تستخدم مكتبة تشفير مستقلة. الاختبار المرجعي موجود في مجموعة الاختبارات.</p>"
       }
     ],
     "stego-image": [

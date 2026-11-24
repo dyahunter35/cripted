@@ -657,6 +657,9 @@ def main():
         "stego-audio": SHARED_STEGO_AUDIO
     }
 
+    from explanation_sources import refresh_explanations
+    from pathlib import Path
+    refresh_explanations(result, Path(__file__).resolve().parents[1])
     with open("src/content/code_explanations.json", "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
 

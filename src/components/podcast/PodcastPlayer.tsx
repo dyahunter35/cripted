@@ -32,6 +32,8 @@ import {
   formatBytes,
 } from "@/lib/audio-cache";
 
+import { PodcastSession } from "@/lib/podcast-session";
+
 interface PodcastPlayerProps {
   algorithmSlug: string;
 }
@@ -49,6 +51,8 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
   const podcast = (podcastsData as Record<string, any>)[algorithmSlug];
 
   const audioRef = useRef<HTMLAudioElement>(null);
+  const sessionRef = useRef<PodcastSession | null>(null);
+  const [playError, setPlayError] = useState("");
   const activeSentenceRef = useRef<HTMLDivElement>(null);
   const transcriptContainerRef = useRef<HTMLDivElement>(null);
 
@@ -137,85 +141,34 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
     });
   }, [activeIndex, autoScroll]);
 
-  // Load audio source (prefer local CacheStorage if available!)
-  const loadAudioSource = async () => {
+  useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    if (audio.getAttribute("src")) return;
-
-    // Check if we have a locally cached offline copy
-    const cachedLocalUrl = await getCachedAudioUrl(algorithmSlug, audioUrl);
-    if (cachedLocalUrl) {
-      audio.src = cachedLocalUrl;
-      setIsLocallyCached(true);
-      setBufferedPercent(100);
-    } else {
-      audio.src = audioUrl;
-      // Auto-cache in background to store in CacheStorage & Header dropdown
-      downloadAndCachePodcast(
-        algorithmSlug,
-        audioUrl,
-        {
-          title: podcast.title,
-          subtitle: podcast.subtitle,
-          duration: podcast.duration,
-          durationSeconds: podcast.durationSeconds,
-          audioFile: podcast.audioFile || `${algorithmSlug}_podcast.mp3`,
-        }
-      ).then((cached) => {
-        if (cached) {
-          setIsLocallyCached(true);
-          setBufferedPercent(100);
-        }
-      }).catch(() => {});
-    }
-    setHasLoadedSrc(true);
-  };
+    const session = new PodcastSession(audio, audioUrl, () => getCachedAudioUrl(algorithmSlug, audioUrl));
+    sessionRef.current = session;
+    return () => { session.dispose(); sessionRef.current = null; };
+  }, [algorithmSlug, audioUrl]);
 
   const handleTogglePlay = async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (isPlaying) {
-      audio.pause();
-      setIsPlaying(false);
-    } else {
-      window.dispatchEvent(new CustomEvent("crypto-lab:stop-all-audio"));
-
-      if (!audio.getAttribute("src")) {
-        await loadAudioSource();
-      }
-
-      try {
-        await audio.play();
-        setIsPlaying(true);
-      } catch (err) {
-        console.warn("Audio play interrupted:", err);
-      }
+    const session = sessionRef.current;
+    if (!session) return;
+    if (isPlaying) { session.pause(); return; }
+    window.dispatchEvent(new CustomEvent("crypto-lab:stop-all-audio"));
+    setPlayError("");
+    try {
+      await session.play();
+      if (sessionRef.current !== session) return;
+      if (audioRef.current?.getAttribute("src")) setHasLoadedSrc(true);
+      // Preserve automatic offline persistence, but only after explicit playback.
+      if (!audioRef.current?.paused) void handleDownloadOffline();
+    } catch {
+      if (sessionRef.current === session) setPlayError("تعذر تشغيل التسجيل. تحقق من الاتصال ثم اضغط تشغيل للمحاولة مجدداً.");
     }
   };
 
-  // Jump audio position directly to sentence start time
-  const handleSeekToSentence = async (startTime: number) => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (!audio.getAttribute("src")) {
-      await loadAudioSource();
-    }
-
-    audio.currentTime = startTime;
+  const handleSeekToSentence = (startTime: number) => {
+    sessionRef.current?.seek(startTime);
     setCurrentTime(startTime);
-
-    if (!isPlaying) {
-      window.dispatchEvent(new CustomEvent("crypto-lab:stop-all-audio"));
-      try {
-        await audio.play();
-        setIsPlaying(true);
-      } catch (err) {
-        console.warn("Audio play interrupted:", err);
-      }
-    }
   };
 
   // 1-Click Explicit Cache for Offline Listening
@@ -242,40 +195,15 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
     setIsDownloadingCache(false);
     if (success) {
       setIsLocallyCached(true);
-      // If audio already initialized, seamlessly swap to the cached local object URL
-      const localUrl = await getCachedAudioUrl(algorithmSlug, audioUrl);
-      if (localUrl && audioRef.current) {
-        const cur = audioRef.current.currentTime;
-        const wasPlaying = isPlaying;
-        audioRef.current.src = localUrl;
-        audioRef.current.currentTime = cur;
-        if (wasPlaying) {
-          audioRef.current.play().catch(() => {});
-        }
-      }
+      // Existing playback can adopt the copy; saving alone must leave src unset.
+      await sessionRef.current?.useCachedSource().catch(() => {});
     }
   };
 
   useEffect(() => {
-    const stopAudio = () => {
-      if (audioRef.current && isPlaying) {
-        audioRef.current.pause();
-        setIsPlaying(false);
-      }
-    };
+    const stopAudio = () => sessionRef.current?.pause();
     window.addEventListener("crypto-lab:stop-all-audio", stopAudio);
     return () => window.removeEventListener("crypto-lab:stop-all-audio", stopAudio);
-  }, [isPlaying]);
-
-  useEffect(() => {
-    return () => {
-      const audio = audioRef.current;
-      if (audio) {
-        audio.pause();
-        audio.removeAttribute("src");
-        audio.load();
-      }
-    };
   }, []);
 
   const updateBuffered = () => {
@@ -319,9 +247,7 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const time = parseFloat(e.target.value);
     setCurrentTime(time);
-    if (audioRef.current) {
-      audioRef.current.currentTime = time;
-    }
+    sessionRef.current?.seek(time);
   };
 
   const cycleSpeed = () => {
@@ -365,11 +291,16 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
       <audio
         ref={audioRef}
         preload="none"
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onError={() => { setIsPlaying(false); setPlayError("تعذر تحميل التسجيل الصوتي."); }}
         onTimeUpdate={handleTimeUpdate}
         onProgress={updateBuffered}
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={() => setIsPlaying(false)}
       />
+
+      {playError && <p role="alert" className="text-xs text-destructive">{playError}</p>}
 
       {/* Header Info */}
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -619,6 +550,8 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <button
             onClick={() => setShowTranscript(!showTranscript)}
+            aria-expanded={showTranscript}
+            aria-controls={`podcast-transcript-${algorithmSlug}`}
             className="flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary/80 transition-colors"
           >
             <FileText className="h-4 w-4" />
@@ -631,6 +564,7 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
               {/* Auto Scroll Toggle */}
               <button
                 onClick={() => setAutoScroll(!autoScroll)}
+                aria-pressed={autoScroll}
                 className={`flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border font-semibold transition-colors ${
                   autoScroll
                     ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
@@ -648,6 +582,7 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
                 <input
                   type="text"
                   placeholder="بحث في كلام البودكاست..."
+                  aria-label="البحث في تفريغ البودكاست"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="h-7 w-36 sm:w-48 rounded-lg border border-border bg-card pl-7 pr-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary font-sans"
@@ -701,6 +636,7 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
         {showTranscript && (
           <div
             ref={transcriptContainerRef}
+            id={`podcast-transcript-${algorithmSlug}`}
             className="space-y-2.5 rounded-xl border border-border bg-slate-50/50 dark:bg-slate-900/50 p-3 sm:p-4 max-h-96 overflow-y-auto"
           >
             {filteredTranscript.length === 0 ? (
@@ -773,7 +709,7 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
                           handleSeekToSentence(item.start);
                         }}
                         className="flex items-center gap-1 font-mono text-[11px] text-muted-foreground group-hover:text-primary bg-card/80 hover:bg-primary/10 px-2.5 py-0.5 rounded-md transition-colors border border-border/50"
-                        title="انقر للاستماع إلى هذه الفقرة"
+                        title="تحديد موضع الفقرة؛ اضغط تشغيل لبدء الاستماع"
                       >
                         <Play className="h-2.5 w-2.5" />
                         <span>{formatTime(item.start)}</span>

@@ -6,7 +6,7 @@ import struct
 def _read_bmp(path):
     with open(path, "rb") as f:
         data = f.read()
-    if data[:2] != b"BM":
+    if len(data) < 54 or data[:2] != b"BM":
         raise ValueError("not a BMP file")
     pixel_offset = struct.unpack_from("<I", data, 10)[0]
     width = struct.unpack_from("<i", data, 18)[0]
@@ -18,6 +18,8 @@ def _read_bmp(path):
     # row size padded to multiple of 4 bytes
     row_size = (width * 3 + 3) & ~3
     abs_h = abs(height)
+    if width <= 0 or abs_h == 0 or pixel_offset < 54 or pixel_offset + row_size * abs_h > len(data):
+        raise ValueError("invalid or truncated BMP")
     pixels = bytearray()
     for y in range(abs_h):
         # BMP stores bottom-up unless height negative
@@ -30,7 +32,7 @@ def _read_bmp(path):
 
 
 def capacity_bytes(width, height):
-    return (width * height * 3) // 8 - 4  # 4 bytes length header
+    return (width * abs(height) * 3) // 8 - 4  # 4 bytes length header
 
 
 def hide(input_path, output_path, payload_bytes):
@@ -61,6 +63,8 @@ def hide(input_path, output_path, payload_bytes):
 
 def extract(input_path):
     width, height, pixel_offset, row_size, abs_h, data, pixels = _read_bmp(input_path)
+    if len(pixels) < 32:
+        raise ValueError("image too small for length header")
     # read 32-bit length
     length_bits = 32
     length = 0

@@ -26,6 +26,7 @@ export function AudioCacheManager() {
   const [cachedItems, setCachedItems] = useState<CachedPodcastMeta[]>([]);
   const [mounted, setMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const refreshCacheList = async () => {
     const list = await syncAndGetCachedPodcasts();
@@ -83,9 +84,14 @@ export function AudioCacheManager() {
   }
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative" ref={dropdownRef} onKeyDown={event => {
+      if (event.key === "Escape" && isOpen) { setIsOpen(false); triggerRef.current?.focus(); }
+    }}>
       {/* Header Trigger Button */}
       <button
+        ref={triggerRef}
+        aria-expanded={isOpen}
+        aria-controls="cached-podcasts"
         onClick={() => setIsOpen(!isOpen)}
         className={`relative flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition-all ${
           isOpen
@@ -108,7 +114,7 @@ export function AudioCacheManager() {
 
       {/* Dropdown Panel */}
       {isOpen && (
-        <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 w-80 sm:w-96 rounded-2xl border border-border bg-white dark:bg-slate-900 p-4 shadow-2xl z-50 text-right animate-in fade-in-50 zoom-in-95 duration-150">
+        <div id="cached-podcasts" className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 w-80 sm:w-96 rounded-2xl border border-border bg-white dark:bg-slate-900 p-4 shadow-2xl z-50 text-right animate-in fade-in-50 zoom-in-95 duration-150">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border pb-3">
             <div className="space-y-0.5">
@@ -127,6 +133,7 @@ export function AudioCacheManager() {
             </div>
             <button
               onClick={() => setIsOpen(false)}
+              aria-label="إغلاق قائمة التسجيلات المحفوظة"
               className="rounded-lg p-1 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
             >
               <X className="h-4 w-4" />
@@ -154,7 +161,7 @@ export function AudioCacheManager() {
                   لا توجد تسجيلات محفوظة حالياً
                 </p>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  يتم حفظ البودكاست في الذاكرة المؤقتة تلقائياً عند الاستماع إليه، أو بالضغط على زر &quot;حفظ بدون إنترنت&quot; في مشغل البودكاست.
+                  يتم حفظ البودكاست تلقائياً بعد بدء التشغيل، أو بالضغط على زر &quot;حفظ في الكاش&quot; في المشغل.
                 </p>
               </div>
             ) : (

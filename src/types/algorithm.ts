@@ -21,7 +21,7 @@ export interface CodeTabItem {
   id: string;
   title: string;
   language: "python" | "javascript";
-  category: "manual" | "libs" | "interactive" | "stego";
+  category: "manual" | "libs" | "wrapper" | "interactive" | "stego";
   fileName: string;
   description: string;
   code: string;

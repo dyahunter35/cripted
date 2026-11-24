@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo, useRef, useEffect, useId } from "react";
 import {
   Copy,
   Check,
@@ -171,6 +171,7 @@ export function CodeWorkspace({
   defaultTabId,
   algorithmSlug,
 }: CodeWorkspaceProps) {
+  const workspaceId = useId();
   // 1. Top File Tabs state
   const [activeTabId, setActiveTabId] = useState<string>(
     defaultTabId || (tabs.length > 0 ? tabs[0].id : "")
@@ -317,6 +318,7 @@ export function CodeWorkspace({
             return (
               <button
                 key={tab.id}
+                aria-pressed={isActive}
                 onClick={() => {
                   setActiveTabId(tab.id);
                   setSelectedExplainIndex(0);
@@ -334,6 +336,8 @@ export function CodeWorkspace({
                     ? "(تطبيق من الصفر)"
                     : tab.category === "libs"
                     ? "(المكتبات القياسية)"
+                    : tab.category === "wrapper"
+                    ? "(واجهة توافق)"
                     : tab.category === "stego"
                     ? "(إخفاء بيانات)"
                     : ""}
@@ -370,6 +374,8 @@ export function CodeWorkspace({
       {/* 2. ACCORDION: عرض الكود بالكامل كاملاً مع تلوين الأكواد والبحث */}
       <div className="border-b border-border/80 bg-background/50">
         <button
+          aria-expanded={isAccordionOpen}
+          aria-controls={`${workspaceId}-code`}
           onClick={() => setIsAccordionOpen(!isAccordionOpen)}
           className="flex w-full items-center justify-between px-5 py-3.5 text-xs font-bold text-foreground hover:bg-muted/30 transition-colors"
         >
@@ -392,7 +398,7 @@ export function CodeWorkspace({
 
         {/* Accordion Content */}
         {isAccordionOpen && (
-          <div className="border-t border-border bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-200 dir-ltr transition-colors">
+          <div id={`${workspaceId}-code`} className="border-t border-border bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-200 dir-ltr transition-colors">
             {/* Toolbar inside full code */}
             <div className="flex flex-wrap items-center justify-between border-b border-border bg-slate-100/90 dark:bg-slate-900 px-4 py-2.5 gap-2">
               <div className="flex items-center gap-2">
@@ -411,6 +417,7 @@ export function CodeWorkspace({
                   <input
                     type="text"
                     placeholder="Search in code..."
+                    aria-label="البحث في الكود المصدري"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="h-7 w-36 sm:w-48 rounded-md border border-border bg-card pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary font-mono"

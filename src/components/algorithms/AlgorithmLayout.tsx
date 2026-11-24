@@ -136,6 +136,7 @@ export function AlgorithmLayout({ algorithm }: AlgorithmLayoutProps) {
       {/* Interactive Visual Architecture Engine (Feistel/SPN/Stream Stepper) */}
       <section className="space-y-3">
         <AlgorithmVisualizer
+          key={algorithm.slug}
           algorithmSlug={algorithm.slug}
           algorithmName={algorithm.name}
         />
@@ -143,12 +144,13 @@ export function AlgorithmLayout({ algorithm }: AlgorithmLayoutProps) {
 
       {/* Podcast Section (Zero-Bandwidth) */}
       <section className="space-y-3">
-        <PodcastPlayer algorithmSlug={algorithm.slug} />
+        <PodcastPlayer key={algorithm.slug} algorithmSlug={algorithm.slug} />
       </section>
 
       {/* Interactive Code Workspace (RTL Vertical Tabs, Syntax, Search, Line Numbers, Fullscreen) */}
       <section className="space-y-3">
         <CodeWorkspace
+          key={algorithm.slug}
           tabs={algorithm.codeTabs}
           defaultTabId="manual-python"
           algorithmSlug={algorithm.slug}
@@ -158,6 +160,7 @@ export function AlgorithmLayout({ algorithm }: AlgorithmLayoutProps) {
       {/* Interactive Live Playground */}
       <section className="space-y-3">
         <AlgorithmPlayground
+          key={algorithm.slug}
           cipherType={algorithm.playgroundType}
           defaultPlaintext={algorithm.defaultPlaintext}
           defaultKey={algorithm.defaultKey}

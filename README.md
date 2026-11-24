@@ -94,6 +94,31 @@ pip install -r requirements.txt
 python3 -m unittest discover -s tests
 ```
 
+لتشغيل اختبارات TypeScript أيضاً (تتطلب حزم Python السابقة للمقارنة بين التنفيذين):
+
+```bash
+npm test
+```
+
+بعد بناء الموقع، شغّل فحوص المتصفح (Chromium)، التي تفحص التشفير والصوت والإخفاء والوضعين النهاري والليلي على ثلاثة أحجام شاشة:
+
+```bash
+npx playwright install chromium
+npm run build
+npm run test:browser
+```
+
+تُحفظ صور الفحص ونتائجه في `test-results/browser/`، ويشغّل مسار GitHub Actions الفحوص قبل السماح بالنشر.
+
+تغطي الاختبارات المتجهات المرجعية للخوارزميات التسع، والمطابقة بين محرك المتصفح وPython، وحدود إخفاء البيانات، وتحميل الصوت عند الطلب. ملفات `rc5_libs.py` و`rc6_libs.py` و`idea_libs.py` واجهات توافق للتطبيق اليدوي وليست تطبيقات مكتبات مستقلة. أما CAST وBlowfish فلهما تنفيذ Pure Python مستقل وتنفيذ PyCryptodome للمقارنة.
+
+بعد تعديل ملفات Python، حدّث الأكواد المعروضة وحزم ZIP، ثم افحص اتساقها:
+
+```bash
+npm run sync-content
+python3 scripts/sync-code-artifacts.py --check
+```
+
 ### 3. تشغيل العروض التجريبية المباشرة (Demo CLI):
 ```bash
 python3 aes/aes_manual.py demo
@@ -112,6 +137,8 @@ python3 blowfish/blowfish_manual.py demo
 # إضافة مفتاح GEMINI_API_KEY داخل .env.local
 npm run generate-podcasts
 ```
+
+هذا الأمر يولد الحوار النصي فقط؛ متطلبات توليد الصوت وتفريغه موثقة في [دليل البودكاست](docs/PODCAST_PIPELINE.md). يمكن فحص البيانات دون استدعاء API أو تعديل الملفات بالأمر `npm run generate-podcasts -- --check`.
 
 ---
 

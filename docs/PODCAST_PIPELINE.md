@@ -4,6 +4,24 @@
 
 ---
 
+## متطلبات التشغيل
+
+تحتاج أدوات الصوت إلى Python وحزم إضافية منفصلة عن متطلبات خوارزميات التشفير:
+
+```bash
+python3 -m pip install -r requirements-podcasts.txt
+```
+
+ثبّت FFmpeg أيضاً وتأكد من أن `ffmpeg` و`ffprobe` متاحان في PATH. التوليد العصبي بـ`generate_neural_podcast.py` يستخدم خدمة edge-tts ويحتاج اتصالاً بالإنترنت. التفريغ بـ`sync_podcast_transcription.py` يستخدم Google Speech Recognition ويحتاج اتصالاً أيضاً. أما `generate_all_podcasts.py` فيعتمد على أمر `say` وصوت Majed في macOS.
+
+أمر `npm run generate-podcasts` يولد **الحوار النصي فقط**، ويقرأ المفتاح من `.env.local` محلياً؛ لا يولد الملف الصوتي ولا يعدّل الصوت المنشور. لفحص المسارات والبيانات دون استدعاء خدمات أو تعديل ملفات:
+
+```bash
+npm run generate-podcasts -- --check
+```
+
+المشغل في المتصفح لا يستدعي خدمات التوليد أو التفريغ.
+
 ## 1. كيف تضيف بودكاست جديد لأي خوارزمية؟
 كل ما عليك فعله هو:
 1. ضع الملف الصوتي في المجلد:

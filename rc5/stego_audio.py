@@ -10,6 +10,8 @@ def _read_wav(path):
         frames = w.readframes(w.getnframes())
     if params.sampwidth != 2:
         raise ValueError("only 16-bit PCM WAV is supported")
+    if len(frames) != params.nframes * params.nchannels * 2:
+        raise ValueError("truncated WAV frames")
     # unpack samples
     count = len(frames) // 2
     samples = list(struct.unpack("<" + "h" * count, frames))
@@ -40,6 +42,8 @@ def hide(input_path, output_path, payload_bytes):
 
 def extract(input_path):
     params, samples = _read_wav(input_path)
+    if len(samples) < 32:
+        raise ValueError("audio too small for length header")
     # read length
     length = 0
     for i in range(32):

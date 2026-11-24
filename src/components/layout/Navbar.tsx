@@ -57,6 +57,8 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [algoMenuOpen, setAlgoMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const algoButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileButtonRef = useRef<HTMLButtonElement>(null);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -70,18 +72,22 @@ export function Navbar() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/85 backdrop-blur-md">
+    <header onKeyDown={event => {
+      if (event.key !== "Escape") return;
+      if (algoMenuOpen) { setAlgoMenuOpen(false); algoButtonRef.current?.focus(); }
+      if (mobileMenuOpen) { setMobileMenuOpen(false); mobileButtonRef.current?.focus(); }
+    }} className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/85 backdrop-blur-md">
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand */}
         <div className="flex items-center gap-3">
           <Link href="/" className="group flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-cyan-500/20 text-primary border border-primary/30 transition-all group-hover:scale-105">
+            <div className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-cyan-500/20 text-primary border border-primary/30 transition-all group-hover:scale-105">
               <Shield className="h-5 w-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-extrabold text-foreground tracking-tight text-lg">Crypto Lab</span>
-                <span className="rounded-md bg-primary/15 border border-primary/20 px-1.5 py-0.5 text-[10px] font-bold text-primary">
+                <span className="font-extrabold text-foreground tracking-tight text-base sm:text-lg whitespace-nowrap">Crypto Lab</span>
+                <span className="hidden xl:inline-flex rounded-md bg-primary/15 border border-primary/20 px-1.5 py-0.5 text-[10px] font-bold text-primary">
                   v3.0 Academic
                 </span>
               </div>
@@ -93,7 +99,7 @@ export function Navbar() {
         </div>
 
         {/* Desktop Navigation with Menu -> Submenu */}
-        <nav className="hidden md:flex items-center gap-1.5 text-xs font-semibold">
+        <nav className="hidden lg:flex items-center gap-1.5 text-xs font-semibold">
           <Link
             href="/"
             className={`rounded-lg px-3 py-2 transition-colors ${
@@ -108,6 +114,9 @@ export function Navbar() {
           {/* Algorithms Dropdown Menu with Submenus */}
           <div className="relative" ref={dropdownRef}>
             <button
+              ref={algoButtonRef}
+              aria-expanded={algoMenuOpen}
+              aria-controls="algorithm-navigation"
               onClick={() => setAlgoMenuOpen(!algoMenuOpen)}
               onMouseEnter={() => setAlgoMenuOpen(true)}
               className={`flex items-center gap-1.5 rounded-lg px-3 py-2 transition-colors ${
@@ -123,6 +132,7 @@ export function Navbar() {
             {/* Submenu Dropdown Panel */}
             {algoMenuOpen && (
               <div
+                id="algorithm-navigation"
                 onMouseLeave={() => setAlgoMenuOpen(false)}
                 className="absolute right-0 top-full mt-2 w-[620px] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 !opacity-100 p-5 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] grid grid-cols-2 gap-4 animate-in fade-in-50 zoom-in-95 duration-150 z-[100] text-right ring-1 ring-black/5 dark:ring-white/10"
               >
@@ -224,7 +234,7 @@ export function Navbar() {
             href="https://github.com/dyahunter35/cripted"
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:flex items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-secondary transition-colors shadow-2xs"
+            className="hidden xl:flex items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-secondary transition-colors shadow-2xs"
           >
             <GithubIcon className="h-4 w-4" />
             <span>مستودع GitHub</span>
@@ -232,8 +242,11 @@ export function Navbar() {
 
           {/* Mobile menu trigger */}
           <button
+            ref={mobileButtonRef}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-navigation"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary"
+            className="lg:hidden rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary"
             aria-label="القائمة"
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -243,7 +256,7 @@ export function Navbar() {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-border bg-white dark:bg-slate-900 px-4 py-4 space-y-4 max-h-[80vh] overflow-y-auto">
+        <div id="mobile-navigation" className="lg:hidden border-b border-border bg-white dark:bg-slate-900 px-4 py-4 space-y-4 max-h-[80vh] overflow-y-auto">
           <div className="flex flex-col gap-1.5">
             <Link
               href="/"

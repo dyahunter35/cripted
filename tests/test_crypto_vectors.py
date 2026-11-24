@@ -7,20 +7,22 @@ import unittest
 import sys
 import os
 import subprocess
+import tempfile
+import shutil
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 
 class TestCryptoAlgorithms(unittest.TestCase):
     def run_algorithm_demo(self, algo_dir, script_name):
-        cwd = os.path.join(ROOT_DIR, algo_dir)
+        source = os.path.join(ROOT_DIR, algo_dir)
         cmd = [sys.executable, script_name, "demo"]
-        result = subprocess.run(
-            cmd,
-            cwd=cwd,
-            capture_output=True,
-            text=True
-        )
+        # Demos create carrier files; isolate them from tracked examples.
+        with tempfile.TemporaryDirectory() as cwd:
+            for filename in os.listdir(source):
+                if filename.endswith(".py"):
+                    shutil.copy2(os.path.join(source, filename), cwd)
+            result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=60)
         self.assertEqual(
             result.returncode,
             0,
@@ -57,7 +59,7 @@ class TestCryptoAlgorithms(unittest.TestCase):
         self.assertIn("recovered", output)
 
     def test_cast(self):
-        output = self.run_algorithm_demo("cast", "cast_libs.py")
+        output = self.run_algorithm_demo("cast", "cast_manual.py")
         self.assertIn("recovered", output)
 
     def test_blowfish(self):

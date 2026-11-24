@@ -1,6 +1,6 @@
 /**
- * Crypto & Stego Lab — Offline Gemini Podcast Generator
- * Generates Arabic multi-speaker educational podcasts for all 9 ciphers.
+ * Crypto & Stego Lab — local podcast dialogue generator.
+ * Generates text only. Audio synthesis/transcription are separate Python tools.
  *
  * Usage:
  *   npx tsx scripts/generate-podcasts.ts [--algorithm <slug>] [--force]
@@ -9,11 +9,16 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as crypto from "crypto";
+import { fileURLToPath } from "node:url";
+import { loadEnvFile } from "node:process";
 
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const envFile = path.resolve(scriptDir, "../.env.local");
+if (fs.existsSync(envFile)) loadEnvFile(envFile);
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
-const MANIFEST_PATH = path.join(__dirname, "../src/content/podcasts.json");
-const AUDIO_DIR = path.join(__dirname, "../public/audio");
-const CACHE_PATH = path.join(__dirname, "../.podcast_hash_cache.json");
+const MANIFEST_PATH = path.join(scriptDir, "../src/content/podcasts.json");
+const AUDIO_DIR = path.join(scriptDir, "../public/audio");
+const CACHE_PATH = path.join(scriptDir, "../.podcast_hash_cache.json");
 
 interface PodcastDialogue {
   speaker: string;
@@ -113,6 +118,19 @@ async function main() {
   }
 
   const args = process.argv.slice(2);
+  if (args.includes("--check")) {
+    for (const [slug, entry] of Object.entries(manifestData)) {
+      if (!Array.isArray(entry.dialogue) || !fs.existsSync(path.join(AUDIO_DIR, entry.audioFile))) {
+        throw new Error(`Missing dialogue or audio for ${slug}`);
+      }
+    }
+    console.log(`Validated ${Object.keys(manifestData).length} podcast entries. No API calls or file changes.`);
+    return;
+  }
+  if (!GEMINI_API_KEY) {
+    console.log("No GEMINI_API_KEY supplied; keeping existing dialogue and audio unchanged.");
+    return;
+  }
   const targetAlgo = args.includes("--algorithm")
     ? args[args.indexOf("--algorithm") + 1]
     : null;
@@ -144,4 +162,4 @@ async function main() {
   console.log("=== Podcast generation completed successfully! ===");
 }
 
-main().catch(console.error);
+main().catch(error => { console.error(error instanceof Error ? error.message : "Generation failed"); process.exitCode = 1; });

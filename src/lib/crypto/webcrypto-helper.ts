@@ -27,7 +27,9 @@ export function bytesToHex(bytes: Uint8Array): string {
 }
 
 export function hexToBytes(hex: string): Uint8Array {
-  hex = hex.replace(/[^0-9a-fA-F]/g, "");
+  if (hex.length % 2 || !/^[0-9a-fA-F]*$/.test(hex)) {
+    throw new Error("النص المشفر يجب أن يحتوي على أزواج Hex صالحة فقط");
+  }
   const bytes = new Uint8Array(hex.length / 2);
   for (let i = 0; i < bytes.length; i++) {
     bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
@@ -75,7 +77,7 @@ export function rc4Crypt(keyBytes: Uint8Array, textBytes: Uint8Array, drop = 0):
 export function rc5Setup(keyBytes: Uint8Array, r = 12): Uint32Array {
   const P32 = 0xb7e15163 >>> 0;
   const Q32 = 0x9e3779b9 >>> 0;
-  const c = Math.max(1, Math.floor(keyBytes.length / 4));
+  const c = Math.max(1, Math.ceil(keyBytes.length / 4));
   const L = new Uint32Array(c);
   for (let i = 0; i < c; i++) {
     L[i] =
@@ -141,7 +143,7 @@ export function rc5Block(pt8: Uint8Array, S: Uint32Array, r = 12, mode: "enc" | 
 export function rc6Setup(keyBytes: Uint8Array, r = 20): Uint32Array {
   const P32 = 0xb7e15163 >>> 0;
   const Q32 = 0x9e3779b9 >>> 0;
-  const c = Math.max(1, Math.floor(keyBytes.length / 4));
+  const c = Math.max(1, Math.ceil(keyBytes.length / 4));
   const L = new Uint32Array(c);
   for (let i = 0; i < c; i++) {
     L[i] =
@@ -369,6 +371,7 @@ export async function aesSubtleCrypt(
 }
 
 // --- Feistel Simulation Engine (DES / GOST / Blowfish / CAST) ---
+/** Generic teaching network only. Use engine.ts for named cipher operations. */
 export function feistelSimulation(
   dataBytes: Uint8Array,
   keyBytes: Uint8Array,
@@ -395,11 +398,12 @@ export function feistelSimulation(
     );
 
     for (let r = 0; r < rounds; r++) {
+      const keyRound = mode === "dec" ? rounds - 1 - r : r;
       const subkey =
-        (keyBytes[(r * 4) % keyBytes.length] << 24) |
-        (keyBytes[(r * 4 + 1) % keyBytes.length] << 16) |
-        (keyBytes[(r * 4 + 2) % keyBytes.length] << 8) |
-        keyBytes[(r * 4 + 3) % keyBytes.length];
+        (keyBytes[(keyRound * 4) % keyBytes.length] << 24) |
+        (keyBytes[(keyRound * 4 + 1) % keyBytes.length] << 16) |
+        (keyBytes[(keyRound * 4 + 2) % keyBytes.length] << 8) |
+        keyBytes[(keyRound * 4 + 3) % keyBytes.length];
 
       let F = (R ^ subkey) >>> 0;
       F = ((F << 11) | (F >>> 21)) ^ 0x5a5a5a5a;
