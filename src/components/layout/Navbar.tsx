@@ -123,13 +123,15 @@ export function Navbar() {
             {algoMenuOpen && (
               <div
                 onMouseLeave={() => setAlgoMenuOpen(false)}
-                className="absolute right-0 top-full mt-1.5 w-[580px] rounded-2xl border border-border/80 bg-card/95 p-5 shadow-2xl backdrop-blur-xl grid grid-cols-2 gap-4 animate-in fade-in-50 zoom-in-95 duration-150 z-50 text-right"
+                className="absolute right-0 top-full mt-2 w-[600px] rounded-2xl border border-border bg-card p-5 shadow-2xl grid grid-cols-2 gap-4 animate-in fade-in-50 zoom-in-95 duration-150 z-50 text-right ring-1 ring-border"
               >
                 {/* Submenu 1: Core Curriculum */}
-                <div className="space-y-2 border-l border-border/60 pl-3">
-                  <div className="flex items-center gap-2 pb-1 border-b border-border/40">
-                    <Shield className="h-4 w-4 text-primary" />
-                    <span className="text-xs font-bold text-primary">خوارزميات المنهج الأساسية</span>
+                <div className="space-y-2 border-l border-border/80 pl-3">
+                  <div className="flex items-center gap-2 pb-2 border-b border-border/60">
+                    <Shield className="h-4 w-4 text-primary dark:text-sky-400" />
+                    <span className="text-xs font-bold text-primary dark:text-sky-400">
+                      خوارزميات المنهج الأساسية
+                    </span>
                   </div>
                   <div className="space-y-1">
                     {coreCiphers.map((c) => (
@@ -137,19 +139,21 @@ export function Navbar() {
                         key={c.slug}
                         href={`/algorithms/${c.slug}`}
                         onClick={() => setAlgoMenuOpen(false)}
-                        className={`group block rounded-lg p-2 transition-colors ${
+                        className={`group block rounded-xl p-2.5 transition-all border ${
                           pathname === `/algorithms/${c.slug}`
-                            ? "bg-primary/10 border border-primary/30"
-                            : "hover:bg-secondary/70"
+                            ? "bg-primary/10 border-primary/40 shadow-xs"
+                            : "border-transparent hover:border-border hover:bg-secondary/70"
                         }`}
                       >
                         <div className="flex items-center justify-between">
                           <span className="font-mono text-xs font-bold text-foreground group-hover:text-primary">
                             {c.name}
                           </span>
-                          <span className="text-[10px] text-muted-foreground font-mono">FIPS/RFC</span>
+                          <span className="text-[10px] bg-secondary text-muted-foreground font-mono px-1.5 py-0.5 rounded">
+                            FIPS/RFC
+                          </span>
                         </div>
-                        <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
+                        <p className="text-[11px] text-muted-foreground group-hover:text-foreground line-clamp-1 mt-1 transition-colors">
                           {c.desc}
                         </p>
                       </Link>
@@ -159,9 +163,11 @@ export function Navbar() {
 
                 {/* Submenu 2: Additional Ciphers */}
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 pb-1 border-b border-border/40">
-                    <Cpu className="h-4 w-4 text-cyan-400" />
-                    <span className="text-xs font-bold text-foreground">خوارزميات إضافية ومتقدمة</span>
+                  <div className="flex items-center gap-2 pb-2 border-b border-border/60">
+                    <Cpu className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+                    <span className="text-xs font-bold text-foreground">
+                      خوارزميات إضافية ومتقدمة
+                    </span>
                   </div>
                   <div className="space-y-1">
                     {extraCiphers.map((c) => (
@@ -169,19 +175,21 @@ export function Navbar() {
                         key={c.slug}
                         href={`/algorithms/${c.slug}`}
                         onClick={() => setAlgoMenuOpen(false)}
-                        className={`group block rounded-lg p-2 transition-colors ${
+                        className={`group block rounded-xl p-2.5 transition-all border ${
                           pathname === `/algorithms/${c.slug}`
-                            ? "bg-primary/10 border border-primary/30"
-                            : "hover:bg-secondary/70"
+                            ? "bg-primary/10 border-primary/40 shadow-xs"
+                            : "border-transparent hover:border-border hover:bg-secondary/70"
                         }`}
                       >
                         <div className="flex items-center justify-between">
                           <span className="font-mono text-xs font-bold text-foreground group-hover:text-primary">
                             {c.name}
                           </span>
-                          <span className="text-[10px] text-muted-foreground font-mono">Advanced</span>
+                          <span className="text-[10px] bg-secondary text-muted-foreground font-mono px-1.5 py-0.5 rounded">
+                            Advanced
+                          </span>
                         </div>
-                        <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
+                        <p className="text-[11px] text-muted-foreground group-hover:text-foreground line-clamp-1 mt-1 transition-colors">
                           {c.desc}
                         </p>
                       </Link>

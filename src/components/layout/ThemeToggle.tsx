@@ -14,47 +14,51 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <div className="w-9 h-9 rounded-md border border-border bg-card/50" />
+      <div className="w-24 h-9 rounded-xl border border-border bg-card/60" />
     );
   }
 
   return (
-    <div className="flex items-center rounded-lg border border-border bg-card/60 p-0.5 text-muted-foreground backdrop-blur-sm">
+    <div className="flex items-center rounded-xl border border-border bg-card p-1 text-muted-foreground shadow-xs">
       <button
         onClick={() => setTheme("light")}
-        className={`rounded-md p-1.5 transition-colors ${
+        className={`flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold transition-all ${
           theme === "light"
-            ? "bg-primary text-primary-foreground shadow-sm"
-            : "hover:text-foreground"
+            ? "bg-amber-500 text-white shadow-xs"
+            : "hover:text-foreground hover:bg-secondary"
         }`}
-        title="الوضع النهاري (Light)"
+        title="الوضع النهاري الواضح (Light)"
         aria-label="Light mode"
       >
-        <Sun className="h-4 w-4" />
+        <Sun className="h-3.5 w-3.5" />
+        <span className="hidden sm:inline">نهاري</span>
       </button>
+
       <button
         onClick={() => setTheme("dark")}
-        className={`rounded-md p-1.5 transition-colors ${
+        className={`flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold transition-all ${
           theme === "dark"
-            ? "bg-primary text-primary-foreground shadow-sm"
-            : "hover:text-foreground"
+            ? "bg-primary text-primary-foreground shadow-xs"
+            : "hover:text-foreground hover:bg-secondary"
         }`}
-        title="الوضع الليلي (Dark)"
+        title="الوضع الليلي التقني (Dark)"
         aria-label="Dark mode"
       >
-        <Moon className="h-4 w-4" />
+        <Moon className="h-3.5 w-3.5" />
+        <span className="hidden sm:inline">ليلي</span>
       </button>
+
       <button
         onClick={() => setTheme("system")}
-        className={`rounded-md p-1.5 transition-colors ${
+        className={`flex items-center gap-1 rounded-lg px-1.5 py-1 text-xs font-semibold transition-all ${
           theme === "system"
-            ? "bg-primary text-primary-foreground shadow-sm"
-            : "hover:text-foreground"
+            ? "bg-slate-700 text-white shadow-xs"
+            : "hover:text-foreground hover:bg-secondary"
         }`}
-        title="تلقائي (حسب النظام)"
+        title="تلقائي حسب نظام التشغيل"
         aria-label="System mode"
       >
-        <Laptop className="h-4 w-4" />
+        <Laptop className="h-3.5 w-3.5" />
       </button>
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 
 type Theme = "dark" | "light" | "system";
 
@@ -11,13 +11,14 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: "system",
+  theme: "light",
   setTheme: () => {},
-  resolvedTheme: "dark",
+  resolvedTheme: "light",
 });
 
 export function ThemeProvider({
   children,
+  defaultTheme = "light",
 }: {
   children: React.ReactNode;
   attribute?: string;
@@ -25,62 +26,70 @@ export function ThemeProvider({
   enableSystem?: boolean;
   disableTransitionOnChange?: boolean;
 }) {
-  const [theme, setThemeState] = useState<Theme>("system");
-  const [resolvedTheme, setResolvedTheme] = useState<"dark" | "light">("dark");
+  const [theme, setThemeState] = useState<Theme>("light");
+  const [resolvedTheme, setResolvedTheme] = useState<"dark" | "light">("light");
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    try {
-      const saved = (localStorage.getItem("theme") as Theme) || "system";
-      setThemeState(saved);
-    } catch {
-      // Ignore localStorage errors in private mode
-    }
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
+  // Apply theme to document.documentElement
+  const applyTheme = useCallback((targetTheme: Theme) => {
+    if (typeof window === "undefined") return;
     const root = document.documentElement;
     const media = window.matchMedia("(prefers-color-scheme: dark)");
 
-    const updateTheme = () => {
-      let resolved: "dark" | "light" = "dark";
-      if (theme === "system") {
-        resolved = media.matches ? "dark" : "light";
-      } else {
-        resolved = theme;
-      }
-      setResolvedTheme(resolved);
-
-      if (resolved === "dark") {
-        root.classList.add("dark");
-        root.classList.remove("light");
-      } else {
-        root.classList.add("light");
-        root.classList.remove("dark");
-      }
-    };
-
-    updateTheme();
-    try {
-      localStorage.setItem("theme", theme);
-    } catch {
-      // Ignore
+    let resolved: "dark" | "light" = "light";
+    if (targetTheme === "system") {
+      resolved = media.matches ? "dark" : "light";
+    } else {
+      resolved = targetTheme;
     }
 
+    setResolvedTheme(resolved);
+
+    if (resolved === "dark") {
+      root.classList.add("dark");
+      root.classList.remove("light");
+      root.style.colorScheme = "dark";
+    } else {
+      root.classList.add("light");
+      root.classList.remove("dark");
+      root.style.colorScheme = "light";
+    }
+  }, []);
+
+  // Initialize on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("theme") as Theme | null;
+      const initial = saved || (defaultTheme as Theme) || "light";
+      setThemeState(initial);
+      applyTheme(initial);
+    } catch {
+      applyTheme("light");
+    }
+    setMounted(true);
+  }, [defaultTheme, applyTheme]);
+
+  // Listen to system theme changes if theme === "system"
+  useEffect(() => {
+    if (!mounted || theme !== "system") return;
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+
     const listener = () => {
-      if (theme === "system") {
-        updateTheme();
-      }
+      applyTheme("system");
     };
 
     media.addEventListener("change", listener);
     return () => media.removeEventListener("change", listener);
-  }, [theme, mounted]);
+  }, [theme, mounted, applyTheme]);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
+    applyTheme(newTheme);
+    try {
+      localStorage.setItem("theme", newTheme);
+    } catch {
+      // Ignore
+    }
   };
 
   return (
