@@ -541,6 +541,7 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
               (() => {
                 const isHost1 =
                   activeSentence.role === "host1" ||
+                  activeSentence.speaker.includes("المذيع") ||
                   activeSentence.speaker.includes("1") ||
                   activeSentence.speaker.includes("أحمد") ||
                   activeSentence.role === "instructor" ||
@@ -633,16 +634,23 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
         {/* Speakers Legend (ديناميكي يتكيف مع المتحدثين في البودكاست) */}
         {showTranscript && (
           <div className="flex flex-wrap items-center gap-2.5 py-1">
-            {transcript.some((t) => t.speaker.includes("المذيع") || t.speaker.includes("أحمد") || t.speaker.includes("سارة")) ? (
+            {transcript.some(
+              (t) =>
+                t.speaker === "المذيع" ||
+                t.speaker === "الخبيرة" ||
+                t.speaker.includes("المذيع") ||
+                t.speaker.includes("أحمد") ||
+                t.speaker.includes("سارة")
+            ) ? (
               <>
                 <div className="flex items-center gap-1.5 rounded-lg border border-sky-500/30 bg-sky-50/80 dark:bg-sky-950/30 px-2.5 py-1 text-xs">
                   <User className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400" />
-                  <span className="font-bold text-sky-700 dark:text-sky-300">المذيع 1:</span>
+                  <span className="font-bold text-sky-700 dark:text-sky-300">المذيع:</span>
                   <span className="text-muted-foreground text-[11px]">التقديم وطرح التساؤلات والربط التحليلي</span>
                 </div>
                 <div className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-50/80 dark:bg-emerald-950/30 px-2.5 py-1 text-xs">
                   <Sparkles className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-                  <span className="font-bold text-emerald-700 dark:text-emerald-300">المذيعة 2:</span>
+                  <span className="font-bold text-emerald-700 dark:text-emerald-300">الخبيرة:</span>
                   <span className="text-muted-foreground text-[11px]">الشرح التقني وتفكيك النظريات الهندسية</span>
                 </div>
               </>
@@ -678,22 +686,11 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
                 const isActive = activeIndex !== -1 && transcript[activeIndex]?.id === item.id;
                 const isHost1 =
                   item.role === "host1" ||
+                  item.speaker.includes("المذيع") ||
                   item.speaker.includes("1") ||
                   item.speaker.includes("أحمد") ||
                   item.role === "instructor" ||
                   item.speaker.includes("كريم");
-
-                const roleLabel = item.speaker.includes("1")
-                  ? "• المذيع 1"
-                  : item.speaker.includes("2")
-                  ? "• المذيعة 2"
-                  : item.speaker.includes("أحمد")
-                  ? "• المحاور الرئيسي"
-                  : item.speaker.includes("سارة")
-                  ? "• خبيرة التقنية"
-                  : isHost1
-                  ? "• أستاذ المقرر"
-                  : "• طالب ماجستير";
 
                 return (
                   <div
@@ -725,9 +722,6 @@ export function PodcastPlayer({ algorithmSlug }: PodcastPlayerProps) {
                             <Sparkles className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                           )}
                           <span>{item.speaker}</span>
-                          <span className="text-[10px] font-normal opacity-80">
-                            {roleLabel}
-                          </span>
                         </span>
 
                         {isActive && (
