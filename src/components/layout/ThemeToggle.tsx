@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/layout/ThemeProvider";
 import { Sun, Moon, Laptop } from "lucide-react";
 
 export function ThemeToggle() {
@@ -51,7 +51,7 @@ export function ThemeToggle() {
             ? "bg-primary text-primary-foreground shadow-sm"
             : "hover:text-foreground"
         }`}
-        title="تلقائي حسب النظام (System)"
+        title="تلقائي (حسب النظام)"
         aria-label="System mode"
       >
         <Laptop className="h-4 w-4" />
