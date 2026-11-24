@@ -132,13 +132,17 @@ python3 cast/cast_libs.py demo
 python3 blowfish/blowfish_manual.py demo
 ```
 
-### 4. توليد البودكاست باستخدام Gemini (اختياري / Offline Generator):
+### 4. البودكاست المضاف يدوياً:
+
+ملفات البودكاست تُضاف يدوياً داخل `public/audio/`، وتُسجَّل بياناتها ونصوصها في `src/content/podcasts.json`. البناء والنشر لا يولّدان صوتاً أو حواراً ولا يعيدان كتابة هذه الملفات.
+
+لفحص وجود الملفات وبياناتها دون تعديلها:
+
 ```bash
-# إضافة مفتاح GEMINI_API_KEY داخل .env.local
-npm run generate-podcasts
+npm run check:podcasts
 ```
 
-هذا الأمر يولد الحوار النصي فقط؛ متطلبات توليد الصوت وتفريغه موثقة في [دليل البودكاست](docs/PODCAST_PIPELINE.md). يمكن فحص البيانات دون استدعاء API أو تعديل الملفات بالأمر `npm run generate-podcasts -- --check`.
+راجع [دليل إضافة البودكاست يدوياً](docs/PODCAST_PIPELINE.md). يبدأ تشغيل الصوت بعد الضغط على Play فقط.
 
 ---
 
